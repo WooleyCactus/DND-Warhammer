@@ -2,6 +2,7 @@
 
 Converts D&D 5e characters into Warhammer 40k Rogue Trader characters for a homebrew campaign.
 
+- Create a new character step by step (2024 rules, D&D Beyond order)
 - Import a D&D Beyond PDF export, or an .xlsx / .xls / .csv character sheet
 - Review and fix what was read, then convert: classes → careers, species → origins, skills, weapons, armour and spells
 - Play from the sheet: HP, spell slots, ammo, Corruption, Insanity, Perils of the Warp, dice
