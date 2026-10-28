@@ -55,7 +55,9 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .brand small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
 .nav{margin-left:auto;display:flex;gap:4px}
 .nav button{background:none;border:1px solid transparent;border-radius:var(--r);padding:6px 14px;font-family:var(--f-caps);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.nav button:hover{color:var(--ink)}
+.nav button:hover,.nav a:hover{color:var(--ink)}
+.nav a{border:1px solid transparent;border-radius:var(--r);padding:6px 14px;font-family:var(--f-caps);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.nav a[aria-current="page"]{color:var(--gold-hi);border-color:var(--gold-dk);background:rgba(200,162,74,.08)}
 .nav button[aria-current="page"]{color:var(--gold-hi);border-color:var(--gold-dk);background:rgba(200,162,74,.08)}
 
 main{padding-block:28px 110px}
@@ -1224,7 +1226,7 @@ function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit
 
 /* ---------- views ---------- */
 function render(){
- $('#nav').innerHTML=[['party','Party'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('');
+ $('#nav').innerHTML=[['party','Party'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="guide.html">Guide</a>';
  const app=$('#app');
  if(S.view==='party')app.innerHTML=vParty();
  else if(S.view==='import')app.innerHTML=vImport();

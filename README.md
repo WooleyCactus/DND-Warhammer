@@ -10,3 +10,4 @@ Converts D&D 5e characters into Warhammer 40k Rogue Trader characters for a home
 Single-file app (`index.html`). Characters are saved in each browser's local storage.
 
 Live site: https://wooleycactus.github.io/DND-Warhammer/
+Player guide: https://wooleycactus.github.io/DND-Warhammer/guide.html
