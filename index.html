@@ -291,6 +291,32 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* turn + how */
+.turn{margin-bottom:28px}
+.rage-t{margin-bottom:12px;border-color:var(--blood);color:#ff9a9c;background:rgba(94,15,18,.25)}
+.tk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.tk{border:1px solid var(--line);background:var(--plate-bg);padding:10px 12px}
+.tk-h{font-family:var(--f-caps);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.tk-i{font-size:14px;padding:4px 0;border-top:1px solid var(--line)}
+.tk-i:first-of-type{border-top:0}
+.tk-i b{color:var(--parch)}
+.tk-i span{color:var(--muted)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 22px}
+.res{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.res b{color:var(--parch)}
+.pips{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;max-width:160px}
+#how{position:fixed;inset:0;z-index:30}
+.how-scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.how-card{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);overflow:auto;background:var(--rivets),linear-gradient(180deg,#221d18,#16130f);border:1px solid var(--gold-dk);border-top:2px solid var(--gold);padding:16px 18px;box-shadow:0 20px 50px rgba(0,0,0,.8)}
+.how-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.how-h h3{font-family:var(--f-caps);font-size:20px;letter-spacing:.04em;color:var(--gold-hi)}
+.how-f{font-size:22px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);padding:10px 12px;margin:12px 0 8px;box-shadow:inset 0 1px 3px #000}
+.how-parts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted)}
+.how-parts b{color:var(--gold-hi);font-weight:400}
+.how-add{display:grid;gap:6px;margin-top:12px;font-size:14.5px}
+.how-add label{display:flex;gap:8px;align-items:flex-start}
+.how-add input{accent-color:var(--gold);margin-top:3px}
+.how-notes{margin:12px 0 0;padding-left:18px;font-size:13.5px;color:var(--parch);display:grid;gap:4px}
 /* class options */
 .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 22px}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -1763,6 +1789,189 @@ function pmClick(a,v,btn){const pm=S.pm;if(!pm)return false;const ch=S.party.fin
   default:return false;}
  render();return true;}
 
+/* ===== Roll math, "how to roll" cards, and the turn helper ===== */
+const W5E={club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
+function clsLevel(src,c){const e=(src.classes||[]).find(x=>x.cls===c);return e?e.level:0;}
+function hasFeat(src,k){return (src.feats||[]).some(f=>f.key===k);}
+function rollCtx(ch,d){
+ const s=ch.src;const pb=d.pb;const L=c=>clsLevel(s,c);const o=s.opts||{};
+ const extraAtk=Math.max(L('fighter')>=20?4:L('fighter')>=11?3:L('fighter')>=5?2:1,(L('barbarian')>=5||L('paladin')>=5||L('ranger')>=5||L('monk')>=5)?2:1,(o.invocations||[]).includes('devouringblade')?3:(o.invocations||[]).includes('thirstingblade')?2:1);
+ const champ=L('fighter')>=3&&s.classes.some(x=>x.cls==='fighter'&&x.sub==='Champion');
+ return {pb,L,o,extraAtk,
+  jack:L('bard')>=2?Math.floor(pb/2):0,reliable:L('rogue')>=11,crit:champ?(L('fighter')>=15?18:19):20,
+  rageDmg:L('barbarian')?(L('barbarian')>=16?4:L('barbarian')>=9?3:2):0,sneak:L('rogue')?Math.ceil(L('rogue')/2):0,
+  sup:(o.maneuvers||[]).length?superiority(L('fighter')).size:0,
+  mark:(s.spells||[]).some(n=>/Hunter's Mark|^Hex$/.test(n)),
+  alert:hasFeat(s,'alert'),gwm:hasFeat(s,'greatweaponmaster'),lucky:hasFeat(s,'lucky'),
+  thaum:(L('cleric')&&o.order==='thaumaturge')||(L('druid')&&o.order==='magician')?Math.max(1,d.mods.wis):0,
+  thaumSkills:L('cleric')&&o.order==='thaumaturge'?['arcana','religion']:L('druid')&&o.order==='magician'?['arcana','nature']:[],
+  agon:(o.invocations||[]).includes('agonizingblast'),martial:L('monk')?(L('monk')>=17?12:L('monk')>=11?10:L('monk')>=5?8:6):0};
+}
+function skillParts(ch,d,key){const c=rollCtx(ch,d);const sk=d.skills.find(x=>x.key===key);const p=[[ABIL_FULL[sk.ab],d.mods[sk.ab]]];
+ if(sk.prof===2)p.push(['Expertise',2*c.pb]);else if(sk.prof===1)p.push(['Proficiency',c.pb]);else if(c.jack)p.push(['Jack of All Trades',c.jack]);
+ if(c.thaumSkills.includes(key))p.push([CLASSES[c.L('cleric')?'cleric':'druid'].name==='Cleric'?'Thaumaturge':'Seer',c.thaum]);
+ const notes=[];if(c.reliable&&sk.prof)notes.push('Reliable Talent: if the d20 shows 9 or lower, treat it as 10.');
+ if(sk.ab==='str')notes.push(c.rageDmg?'While raging (Blood Frenzy): roll with advantage.':'');
+ if(key==='stealth'&&ch.src.armor&&/Chain mail|Splint|Plate|Scale mail|Half plate|Ring mail/i.test(ch.src.armor))notes.push('Your armour gives disadvantage on Concealment.');
+ return {parts:p,notes:notes.filter(Boolean),prof:sk.prof};}
+function totalOf(parts){return parts.reduce((a,x)=>a+x[1],0);}
+function initParts(ch,d){const c=rollCtx(ch,d);const p=[['Dexterity',d.mods.dex]];if(c.alert)p.push(['Ever-vigilant (Alert)',c.pb]);if(c.jack)p.push(['Jack of All Trades',c.jack]);return p;}
+function weaponCalc(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);
+ return d.weapons.map((w,i)=>{
+  const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const b=k&&W5E[k];const plus=+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);
+  const props=b?b[2]:'';const ranged=/ranged/.test(props);const fin=/finesse/.test(props);
+  const abil=ranged?'dex':fin?(d.mods.dex>=d.mods.str?'dex':'str'):'str';
+  let atkParts,dmgDice,dmgFlat,dmgType;
+  if(s.built&&b){
+   atkParts=[[ABIL_FULL[abil],d.mods[abil]],['Proficiency',c.pb]];if(plus)atkParts.push(['Mastercrafted',plus]);if(s.style==='archery'&&ranged)atkParts.push(['Marksman Doctrine',2]);
+   const W=WEAPONS[k];dmgDice=W&&W.dice?W.dice:b[0];dmgType=W&&W.dice?W.type:b[1];
+   dmgFlat=[[ABIL_FULL[abil],d.mods[abil]]];if(plus)dmgFlat.push(['Mastercrafted',plus]);
+   if(s.style==='dueling'&&!ranged&&!/two/.test(props))dmgFlat.push(['Duellist Doctrine',2]);
+   if(c.gwm&&/heavy/.test(props)&&!ranged)dmgFlat.push(['Executioner\'s Stroke',c.pb]);
+  }else{
+   const a=num(w.atk);atkParts=a!=null&&!/dc/i.test(w.atk)?[['From sheet',a]]:null;
+   const m=String(w.dmg||'').match(/(\d+d\d+|\d+)\s*([+\-−]\s*\d+)?\s*(.*)$/);dmgDice=m?m[1]:'';dmgFlat=m&&m[2]?[['From sheet',num(m[2])]]:[];dmgType=m?m[3]:'';
+  }
+  const melee=!ranged;const strMelee=melee&&abil==='str';
+  return {i,w,k,props,ranged,abil,atkParts,dmgDice,dmgFlat,dmgType:(dmgType||'').trim(),strMelee,
+   atkText:atkParts?sgn(totalOf(atkParts)):(w.atk||'—'),dmgText:dmgDice?`${dmgDice}${totalOf(dmgFlat)?' '+sgn(totalOf(dmgFlat)).replace(/^([+-])/,'$1 '):''} ${(dmgType||'').trim()}`.trim():(w.dmg||'—')};
+ });
+}
+function powerAttacks(ch,d){
+ const c=rollCtx(ch,d);const out=[];const trad=d.cast.primaryTrad||'psyker';const t=d.cast.trads[0];if(!t)return out;const lvl=d.lvl;
+ for(const sp of d.spells){const info=SPELL_INFO[N(sp.src)];if(!info)continue;const m=info.desc.match(/(\d+)d(\d+)\s+(Acid|Bludgeoning|Cold|Fire|Force|Lightning|Necrotic|Piercing|Poison|Psychic|Radiant|Slashing|Thunder)\s+damage/i);if(!m)continue;
+  const atk=/spell attack/i.test(info.desc);const sv=(info.desc.match(/(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/i)||[])[1];
+  const tier=info.lvl===0?(lvl>=17?4:lvl>=11?3:lvl>=5?2:1):1;let n=+m[1],beams=1;
+  if(info.lvl===0){if(/beam/i.test(info.desc))beams=tier;else n=n*tier;}
+  const flat=sp.src==='Eldritch Blast'&&c.agon?d.mods.cha:0;
+  out.push({name:sp.name40k,src:sp.src,lvl:info.lvl,atk:atk?t.atk:null,save:sv||null,dc:t.dc,dice:`${n}d${m[2]}`,flat,beams,type:m[3],note:info.lvl>0?'More damage from a higher slot (see the power).':''});}
+ return out;
+}
+/* ---- limited resources ---- */
+function resources(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);const L=c.L;const r=[];const pb=d.pb;
+ const t=(arr,l)=>arr[Math.max(0,Math.min(19,l-1))];
+ if(L('barbarian'))r.push({k:'rage',label:'Blood Frenzy (Rage)',max:t([2,2,3,3,3,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6],L('barbarian')),reset:'long',note:`+${c.rageDmg} damage on Str melee hits; resist bludgeoning, piercing, slashing; advantage on Str checks and saves. Regain one use on a short rest.`,partial:true});
+ if(L('bard'))r.push({k:'insp',label:'Rousing Oratory (Bardic Inspiration)',max:Math.max(1,d.mods.cha),reset:L('bard')>=5?'short':'long',note:`Bonus action: give an ally a d${L('bard')>=15?12:L('bard')>=10?10:L('bard')>=5?8:6} to add to a roll.`});
+ if(L('cleric')>=2)r.push({k:'cd',label:'Invoke the Emperor (Channel Divinity)',max:L('cleric')>=18?4:L('cleric')>=6?3:2,reset:'short',note:'Regain one use on a short rest, all on a long rest.',partial:true});
+ if(L('paladin')>=3)r.push({k:'pcd',label:'Invoke the Emperor (Channel Divinity)',max:L('paladin')>=11?3:2,reset:'short',note:'Regain one use on a short rest, all on a long rest.',partial:true});
+ if(L('druid')>=2)r.push({k:'ws',label:'Biomorph (Wild Shape)',max:L('druid')>=17?4:L('druid')>=6?3:2,reset:'short',note:'Bonus action. Regain one use on a short rest.',partial:true});
+ if(L('fighter'))r.push({k:'sw',label:'Second Wind',max:L('fighter')>=10?4:L('fighter')>=4?3:2,reset:'short',note:`Bonus action: heal 1d10 + ${L('fighter')}. Regain one use on a short rest.`,partial:true});
+ if(L('fighter')>=2)r.push({k:'as',label:'Combat Stimm (Action Surge)',max:L('fighter')>=17?2:1,reset:'short',note:'Take one extra action this turn (not a Magic action).'});
+ if(L('fighter')>=9)r.push({k:'ind',label:'Iron Will (Indomitable)',max:L('fighter')>=17?3:L('fighter')>=13?2:1,reset:'long',note:`Reroll a failed save, adding +${L('fighter')}.`});
+ if(c.sup)r.push({k:'sup',label:`Superiority dice (d${c.sup})`,max:superiority(L('fighter')).dice,reset:'short',note:'Spend one to fuel a manoeuvre.'});
+ if(L('monk')>=2)r.push({k:'focus',label:'Inner Focus (Focus Points)',max:L('monk'),reset:'short',note:'Flurry of Blows, Patient Defence, Step of the Wind: 1 point each.'});
+ if(L('paladin'))r.push({k:'loh',label:'Laying of Hands (HP pool)',max:5*L('paladin'),reset:'long',pool:true,note:'Bonus action: restore HP from this pool, or spend 5 to cure poison.'});
+ if(L('ranger'))r.push({k:'hm',label:'Markerlight (free casts)',max:t([2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6],L('ranger')),reset:'long',note:'Cast Markerlight (Hunter\'s Mark) without a slot.'});
+ if(L('sorcerer')>=2)r.push({k:'sp',label:'Warp Points (Sorcery Points)',max:L('sorcerer'),reset:'long',note:'Fuel Warp Shaping, or convert to and from power slots.'});
+ if(L('sorcerer'))r.push({k:'is',label:'Innate Sorcery',max:2,reset:'long',note:'Bonus action for 1 minute: +1 power save DC and advantage on power attacks.'});
+ if(L('wizard'))r.push({k:'ar',label:'Psychic Recovery (Arcane Recovery)',max:1,reset:'long',note:`After a short rest, recover slots totalling up to ${Math.ceil(L('wizard')/2)} levels.`});
+ if(c.lucky)r.push({k:'luck',label:'The Emperor\'s Favour (Luck points)',max:pb,reset:'long',note:'Gain advantage on a d20 roll, or impose disadvantage on an attack against you.'});
+ return r;
+}
+function turnKit(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);const L=c.L;const sp=s.spells||[];const has=n=>sp.includes(n);const o=c.o;
+ const A=[],B=[],R=[],O=[],F=[];
+ A.push(['Attack',c.extraAtk>1?`Make ${c.extraAtk} weapon attacks.`:'Make one weapon attack.']);
+ if(d.cast.trads.length)A.push(['Use a power',`Cast one of your powers (save DC ${d.cast.trads[0].dc}, attack ${sgn(d.cast.trads[0].atk)}).`]);
+ if(L('cleric')>=2||L('paladin')>=3)A.push(['Invoke the Emperor','Channel Divinity option (uses a charge).']);
+ A.push(['Other actions','Dash, Disengage, Dodge, Help, Hide, Ready, Search, or use an object.']);
+ if(L('barbarian'))B.push(['Blood Frenzy (Rage)',`Start raging if not in heavy armour: +${c.rageDmg} Str melee damage, resistance, advantage on Str.`]);
+ if(L('fighter'))B.push(['Second Wind',`Heal 1d10 + ${L('fighter')}.`]);
+ if(L('rogue')>=2)B.push(['Cunning Action','Dash, Disengage or Hide.']);
+ if(L('rogue')>=3)B.push(['Steady Aim','Advantage on your next attack if you haven\'t moved (speed becomes 0).']);
+ if(L('monk')){B.push(['Close-combat strike',`One unarmed strike (d${c.martial} + Dex).`]);if(L('monk')>=2)B.push(['Focus techniques','Flurry of Blows (2 strikes), Patient Defence (Disengage + Dodge) or Step of the Wind (Dash + Disengage): 1 Focus each.']);}
+ if(L('bard'))B.push(['Rousing Oratory','Give an ally an inspiration die.']);
+ if(L('paladin'))B.push(['Laying of Hands','Heal from your pool.']);
+ if(L('druid')>=2)B.push(['Biomorph','Take a beast form.']);
+ if(L('sorcerer'))B.push(['Innate Sorcery','+1 save DC and advantage on power attacks for 1 minute.']);
+ if(c.mark)B.push([has('Hex')?'Daemon\'s Mark (Hex)':'Markerlight (Hunter\'s Mark)','Mark a target: +1d6 damage on your hits against it (concentration).']);
+ if(has('Healing Word'))B.push([spell40k('Healing Word',d.cast.primaryTrad).name40k,'Heal an ally at range as a bonus action.']);
+ if(has('Misty Step'))B.push([spell40k('Misty Step',d.cast.primaryTrad).name40k,'Teleport up to 30 ft.']);
+ if(has('Spiritual Weapon'))B.push([spell40k('Spiritual Weapon',d.cast.primaryTrad).name40k,'Summon or attack with your floating weapon.']);
+ B.push(['Off-hand attack','If holding two Light weapons, attack with the other (no ability modifier to damage unless you have Twin-weapon Doctrine).']);
+ R.push(['Opportunity attack','When a foe leaves your reach, make one melee attack.']);
+ if(L('rogue')>=5)R.push(['Uncanny Dodge','Halve the damage of an attack that hits you.']);
+ if(L('monk')>=3)R.push(['Deflect Rounds','Reduce attack damage; spend 1 Focus to redirect it.']);
+ if((o.maneuvers||[]).includes('riposte'))R.push(['Riposte','When a foe misses you in melee, attack back (superiority die).']);
+ if((o.maneuvers||[]).includes('parry'))R.push(['Parry','Reduce melee damage (superiority die).']);
+ [['Shield','+5 AC until your next turn.'],['Absorb Elements','Resist elemental damage; add 1d6 to your next melee hit.'],['Counterspell','Stop a power being cast.'],['Hellish Rebuke','Burn a foe who damaged you.'],['Silvery Barbs','Force a reroll.']].forEach(([n,t])=>{if(has(n))R.push([spell40k(n,d.cast.primaryTrad).name40k,t]);});
+ if(hasFeat(s,'sentinel'))R.push(['Bulwark Sentinel','Strike a foe that attacks an ally next to you.']);
+ if(c.sneak)O.push(['Killing Strike (Sneak Attack)',`+${c.sneak}d6 once per turn when you hit with a finesse or ranged weapon and have advantage, or an ally is next to the target.`]);
+ if(L('monk')>=5)O.push(['Nerve Strike (Stunning Strike)','On a hit, spend 1 Focus: Con save or Stunned.']);
+ if(hasFeat(s,'savageattacker'))O.push(['Savage Attacker','Roll weapon damage dice twice and use either.']);
+ if(c.gwm)O.push(['Executioner\'s Stroke','After a crit or a kill with a melee weapon, make one attack as a bonus action.']);
+ if(L('barbarian')>=2)F.push(['Reckless Assault','Gain advantage on Str melee attacks this turn; attacks against you have advantage.']);
+ if(L('fighter')>=2)F.push(['Combat Stimm (Action Surge)','Take one extra action.']);
+ if(c.crit<20)F.push(['Improved Critical',`Your weapon attacks crit on ${c.crit}–20.`]);
+ if(c.reliable)F.push(['Reliable Talent','Proficient skill checks treat a d20 roll of 9 or lower as 10.']);
+ return {A,B,R,O,F};
+}
+
+/* ---- How-to-roll card ---- */
+function openHow(ch,kind,key){
+ const d=derive(ch);const c=rollCtx(ch,d);const st=ch.state||{};const raging=!!st.raging;
+ let h={kind,title:'',dice:'1d20',parts:[],notes:[],addons:[],d20:true,crit:c.crit};
+ const adv=[{k:'adv',label:'Advantage: roll 2d20, keep the higher',d20:'adv'},{k:'dis',label:'Disadvantage: roll 2d20, keep the lower',d20:'dis'}];
+ const bless={k:'bless',label:'Blessed (Bless / Emperor\'s Blessing): add 1d4',expr:'1d4'};
+ if(kind==='skill'){const sk=d.skills.find(x=>x.key===key);const r=skillParts(ch,d,key);h.title=`${sk.w40} check`;h.sub=`${sk.name} · ${ABIL_FULL[sk.ab]}`;h.parts=r.parts;h.notes=r.notes;h.addons=[...adv,{k:'ins',label:'Inspired by an ally: add their die (e.g. 1d6)',expr:'1d6'}];if(sk.ab==='str'&&raging)h.addons[0].on=true;if(c.reliable&&r.prof)h.reliable=true;}
+ else if(kind==='check'){h.title=`${ABIL_FULL[key]} check`;h.parts=[[ABIL_FULL[key],d.mods[key]]];if(c.jack)h.parts.push(['Jack of All Trades',c.jack]);h.addons=[...adv];if(key==='str'&&raging)h.addons[0].on=true;}
+ else if(kind==='save'){const sv=d.saves.find(x=>x.a===key);h.title=`${ABIL_FULL[key]} save`;h.parts=[[ABIL_FULL[key],d.mods[key]]];if(sv.prof)h.parts.push(['Proficiency',c.pb]);h.addons=[...adv,bless];if(key==='str'&&raging)h.addons[0].on=true;
+  if(clsLevel(ch.src,'paladin')>=6)h.parts.push(['Aura of Faith',Math.max(1,d.mods.cha)]);}
+ else if(kind==='init'){h.title='Initiative';h.parts=initParts(ch,d);h.addons=[...adv];if(clsLevel(ch.src,'barbarian')>=7)h.addons[0].on=true,h.notes.push('Feral Instinct: advantage on initiative.');}
+ else if(kind==='atk'){const wc=weaponCalc(ch,d)[key];h.title=`${wc.w.to} attack`;h.sub=wc.w.from;h.parts=wc.atkParts||[['Bonus',num(wc.w.atk)||0]];h.wi=key;
+  h.addons=[...adv,bless];if(clsLevel(ch.src,'barbarian')>=2&&wc.strMelee)h.addons.push({k:'reck',label:'Reckless Assault: advantage (foes get advantage on you)',d20:'adv'});
+  if((c.o.maneuvers||[]).includes('precision'))h.addons.push({k:'prec',label:`Aimed Shot: add a superiority die (1d${c.sup})`,expr:`1d${c.sup}`,res:'sup'});
+  h.notes.push(c.crit<20?`Critical hit on a natural ${c.crit}–20: roll double damage dice.`:'Critical hit on a natural 20: roll double damage dice.');
+  const mk=wc.k&&(c.o.masteries||[]).includes(wc.k)&&MASTERY_KINDS.find(x=>x.key===wc.k);if(mk)h.notes.push(`Mastery ${mk.prop}: ${reskinText(MASTERY_PROPS[mk.prop])}`);
+  if(c.extraAtk>1)h.notes.push(`You get ${c.extraAtk} attacks with the Attack action.`);}
+ else if(kind==='dmg'){const wc=weaponCalc(ch,d)[key];h.title=`${wc.w.to} damage`;h.sub=wc.dmgType;h.d20=false;h.dice=wc.dmgDice||'0';h.parts=wc.dmgFlat;
+  h.addons=[{k:'crit',label:'Critical hit: double the damage dice',crit:true}];
+  if(c.rageDmg&&wc.strMelee)h.addons.push({k:'rage',label:`Raging: +${c.rageDmg}`,flat:c.rageDmg,on:raging});
+  if(c.sneak&&(wc.ranged||/finesse/.test(wc.props)))h.addons.push({k:'sneak',label:`Killing Strike (once per turn): +${c.sneak}d6`,expr:`${c.sneak}d6`});
+  if(c.mark)h.addons.push({k:'mark',label:'Target is marked (Markerlight / Hex): +1d6',expr:'1d6'});
+  if(c.sup)h.addons.push({k:'sup',label:`Manoeuvre: add a superiority die (1d${c.sup})`,expr:`1d${c.sup}`,res:'sup'});
+  if(/two/.test(wc.props)&&ch.src.style==='greatweapon')h.notes.push('Heavy Weapons Doctrine: treat any 1 or 2 on a damage die as a 3.');
+  if(hasFeat(ch.src,'savageattacker'))h.notes.push('Savage Attacker (once per turn): roll the weapon dice twice and keep either total.');
+  const wp=(d.weapons[key]||{}).props||[];if(wp.includes('Chain (crit +1d6)'))h.notes.push('Chain weapon: on a critical hit, add another 1d6.');if(wp.includes('Explosive'))h.notes.push('Explosive: on a critical hit, roll the damage dice three times instead of twice.');
+  if(/versatile/.test(wc.props))h.notes.push('Versatile: used two-handed, the weapon\'s die is one size larger.');}
+ else if(kind==='patk'){const pa=powerAttacks(ch,d)[key];h.title=`${pa.name} attack`;h.sub=pa.src;h.parts=[['Power attack',pa.atk]];h.addons=[...adv,bless];h.notes.push(pa.beams>1?`${pa.beams} separate beams: roll each attack separately.`:'Critical hit on a natural 20: double the damage dice.');}
+ else if(kind==='pdmg'){const pa=powerAttacks(ch,d)[key];h.title=`${pa.name} damage`;h.sub=`${pa.type}${pa.save?` · ${pa.save} save DC ${pa.dc}, half on a success`:''}`;h.d20=false;h.dice=pa.dice;h.parts=pa.flat?[['Agonising Warp Blast',pa.flat]]:[];h.addons=[{k:'crit',label:'Critical hit: double the damage dice',crit:true}];if(pa.beams>1)h.notes.push(`Per beam (${pa.beams} beams).`);if(pa.note)h.notes.push(pa.note);}
+ S.how={id:ch.id,...h};drawHow();
+}
+function howFormula(h){
+ const on=h.addons.filter(a=>a.on);const advOn=on.some(a=>a.d20==='adv'),disOn=on.some(a=>a.d20==='dis');
+ let dice=h.d20?(advOn&&!disOn?'2d20, keep the higher':disOn&&!advOn?'2d20, keep the lower':'1d20'):h.dice;
+ if(!h.d20&&on.some(a=>a.crit))dice=String(h.dice).replace(/(\d+)d(\d+)/,(m,n,f)=>`${2*n}d${f}`);
+ const extras=on.filter(a=>a.expr).map(a=>a.crit===undefined&&!h.d20&&on.some(x=>x.crit)?a.expr.replace(/(\d+)d(\d+)/,(m,n,f)=>`${2*n}d${f}`):a.expr);
+ const flat=totalOf(h.parts)+on.filter(a=>a.flat).reduce((s,a)=>s+a.flat,0);
+ return {dice,extras,flat,text:`Roll ${dice}${extras.length?' + '+extras.join(' + '):''}${flat?` ${flat>0?'+':'−'} ${Math.abs(flat)}`:''}`};
+}
+function drawHow(){
+ let el=document.getElementById('how');if(!el){el=document.createElement('div');el.id='how';document.body.appendChild(el);}
+ const h=S.how;if(!h){el.innerHTML='';el.hidden=true;return;}el.hidden=false;const f=howFormula(h);
+ el.innerHTML=`<div class="how-scrim" data-act="howclose"></div><div class="how-card" role="dialog" aria-label="${esc(h.title)}">
+  <div class="how-h"><div><div class="eyebrow">How to roll</div><h3>${esc(h.title)}</h3>${h.sub?`<div class="muted" style="font-size:13px">${esc(h.sub)}</div>`:''}</div><button class="step" data-act="howclose" aria-label="Close">×</button></div>
+  <div class="how-f mono">${esc(f.text)}</div>
+  ${h.parts.length?`<div class="how-parts">${h.parts.map(p=>`<span>${esc(p[0])} <b class="mono">${sgn(p[1])}</b></span>`).join('')}</div>`:''}
+  ${h.addons.length?`<div class="how-add">${h.addons.map((a,i)=>`<label><input type="checkbox" data-how="${i}"${a.on?' checked':''}> ${esc(a.label)}</label>`).join('')}</div>`:''}
+  ${h.notes.length||h.reliable?`<ul class="how-notes">${h.notes.map(n=>`<li>${esc(n)}</li>`).join('')}${h.reliable&&!h.notes.some(n=>/Reliable/.test(n))?'<li>Reliable Talent: treat a d20 of 9 or lower as 10.</li>':''}</ul>`:''}
+  <div class="row" style="justify-content:space-between;margin-top:12px"><span class="muted" style="font-size:13px">Rolling your own dice? Use the line above.</span><button class="btn primary" data-act="howroll">Roll for me</button></div></div>`;
+}
+function howRoll(){
+ const h=S.how;if(!h)return;const ch=S.party.find(c=>c.id===h.id)||exampleChar();const f=howFormula(h);const on=h.addons.filter(a=>a.on);
+ let total=0,detail=[],crit=false,fail=false;
+ if(h.d20){const a=1+Math.floor(Math.random()*20),b=1+Math.floor(Math.random()*20);const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;
+  detail.push(adv!==dis?`d20[${a},${b}]`:`d20[${a}]`);if(h.reliable&&r<10){detail.push('reliable→10');r=10;}crit=h.kind==='atk'?r>=h.crit:r===20;fail=r===1;total+=r;}
+ else{const r=rollExpr(f.dice);total+=r.total;detail.push(r.detail);}
+ for(const x of f.extras){const r=rollExpr(x);total+=r.total;detail.push(r.detail);}
+ total+=f.flat;if(f.flat)detail.push(sgn(f.flat));
+ const usesSup=on.some(a=>a.res==='sup');if(usesSup&&ch&&ch.state){ch.state.res=ch.state.res||{};ch.state.res.sup=(ch.state.res.sup||0)+1;persist(ch);}
+ pushRoll({label:h.title+(crit?' · CRITICAL':''),total,detail:detail.join(' '),crit,fail});
+ S.how=null;drawHow();if(usesSup)render();
+}
+
 /* ===== UI ===== */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1976,6 +2185,17 @@ function previewHtml(){
 function setPath(obj,path,val){const ks=path.split('.');let o=obj;for(let i=0;i<ks.length-1;i++){o=o[ks[i]];}o[ks[ks.length-1]]=val;}
 
 /* ---------- sheet ---------- */
+function turnPanel(ch,d){
+ const st=ch.state||{};const used=(st.res||{});const res=resources(ch,d);const T=turnKit(ch,d);const ex=!!ch.example;
+ const resRow=r=>{const u=used[r.k]||0;if(r.pool)return `<div class="res"><div><b>${esc(r.label)}</b><div class="muted" style="font-size:13px">${esc(r.note)}</div></div><div class="row"><button class="step" data-act="respool" data-k="${r.k}" data-d="1" aria-label="Spend 1">−</button><span class="mono">${r.max-u}/${r.max}</span><button class="step" data-act="respool" data-k="${r.k}" data-d="-1" aria-label="Restore 1">+</button></div></div>`;
+  return `<div class="res"><div><b>${esc(r.label)}</b> <small class="muted">${r.reset==='short'?'short rest':'long rest'}</small><div class="muted" style="font-size:13px">${esc(r.note)}</div></div><div class="pips">${Array.from({length:r.max},(_,j)=>`<button class="pip${j<u?' used':''}" data-act="res" data-k="${r.k}" data-j="${j}" aria-label="${esc(r.label)} use ${j+1}${j<u?' (used)':''}"></button>`).join('')}</div></div>`;};
+ const list=(t,arr)=>arr.length?`<div class="tk"><div class="tk-h">${t}</div>${arr.map(x=>`<div class="tk-i"><b>${esc(x[0])}</b> <span>${esc(x[1])}</span></div>`).join('')}</div>`:'';
+ const barb=clsLevel(ch.src,'barbarian');
+ return `<section class="sec turn"><h2 class="sec-h">Your turn<small>what you can do</small></h2>
+  ${barb?`<label class="chip rage-t"${ex?' style="opacity:.6"':''}><input type="checkbox" data-act="rage"${st.raging?' checked':''}${ex?' disabled':''}> Raging now (adds +${rollCtx(ch,d).rageDmg} to Str melee damage and advantage on Str rolls)</label>`:''}
+  <div class="tk-grid">${list('Action',T.A)}${list('Bonus action',T.B)}${list('Reaction',T.R)}${list('Once per turn',T.O)}${list('Also',T.F)}</div>
+  ${res.length?`<h3 class="sub-h">Limited uses</h3><div class="res-grid">${res.map(resRow).join('')}</div>`:''}</section>`;
+}
 function vSheet(ch){
  const d=derive(ch);const s=ch.src;const st=ch.state||{};const hp=hpOf(ch,d);const ex=!!ch.example;
  const thr=(v,arr)=>{const hit=arr.filter(t=>v>=t[0]).pop();return hit?hit[1]:'No effect yet.';};
@@ -2004,27 +2224,28 @@ function vSheet(ch){
  <div class="vitals">
   <div class="vital"><span class="k">Armour class</span><span class="v">${d.ac}</span></div>
   <div class="vital hp"><span class="k">Wounds (HP)</span><div class="hp-ctl"><button class="step" data-act="hp" data-d="-1" aria-label="Lose 1 HP">−</button><input id="hpin" class="mono" type="number" value="${hp}" data-st="hp" data-live aria-label="Current HP"><span class="mono">/ ${d.maxHp}</span><button class="step" data-act="hp" data-d="1" aria-label="Heal 1 HP">+</button><span class="muted" style="font-size:13px">temp</span><input class="mono" type="number" value="${st.temp||0}" data-st="temp" data-live style="width:52px" aria-label="Temporary HP"></div></div>
-  <div class="vital"><span class="k">Initiative</span><button class="roll" data-act="d20" data-l="Initiative" data-m="${d.init}" style="align-self:flex-start;font-size:20px">${sgn(d.init)}</button></div>
+  <div class="vital"><span class="k">Initiative</span><button class="roll" data-act="how" data-kind="init" style="align-self:flex-start;font-size:20px">${sgn(totalOf(initParts(ch,d)))}</button></div>
   <div class="vital"><span class="k">Speed</span><span class="v">${s.speed||30}<small class="muted" style="font-size:13px"> ft</small></span></div>
   <div class="vital"><span class="k">Proficiency</span><span class="v">${sgn(d.pb)}</span></div>
   <div class="vital"><span class="k">Hit dice</span><span class="v" style="font-size:18px">${hd}</span></div>
   <div class="vital"><span class="k">Rest</span><div class="row"><button class="btn sm" data-act="short">Short</button><button class="btn sm" data-act="long">Long</button></div></div>
  </div>
  <div class="meters">${meter('corruption','Corruption',CORRUPTION,'cor')}${meter('insanity','Insanity',INSANITY,'ins')}</div>
+ ${turnPanel(ch,d)}
 
  <div class="cols"><div>
   <section class="sec"><h2 class="sec-h">Characteristics<small>tap to roll</small></h2><div class="abil">
-   ${ABIL.map(a=>{const sv=d.saves.find(x=>x.a===a);return `<div class="ab"><button class="roll" style="border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center" data-act="d20" data-l="${ABIL_FULL[a]} check" data-m="${d.mods[a]}"><span class="k">${a.toUpperCase()}</span><span class="m">${sgn(d.mods[a])}</span><span class="s">${s.abilities[a]}</span></button><button class="sv roll${sv.prof?' p':''}" data-act="d20" data-l="${ABIL_FULL[a]} save" data-m="${sv.total}">save ${sgn(sv.total)}</button></div>`;}).join('')}
+   ${ABIL.map(a=>{const sv=d.saves.find(x=>x.a===a);return `<div class="ab"><button class="roll" style="border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center" data-act="how" data-kind="check" data-k="${a}"><span class="k">${a.toUpperCase()}</span><span class="m">${sgn(d.mods[a])}</span><span class="s">${s.abilities[a]}</span></button><button class="sv roll${sv.prof?' p':''}" data-act="how" data-kind="save" data-k="${a}">save ${sgn(sv.total+(clsLevel(s,'paladin')>=6?Math.max(1,d.mods.cha):0))}</button></div>`;}).join('')}
   </div></section>
   <section class="sec"><h2 class="sec-h">Skills<small>40k · 5e</small></h2><div class="skills">
-   ${d.skills.map(k=>`<button class="sk" data-act="d20" data-l="${esc(k.w40)}" data-m="${k.total}"><span class="dot p${k.prof}" title="${['Untrained','Proficient','Expertise'][k.prof]}"></span><span class="n">${esc(k.w40)}${k.w40!==k.name?`<small>${esc(k.name)} · ${k.ab.toUpperCase()}</small>`:`<small>${k.ab.toUpperCase()}</small>`}</span><span class="b">${sgn(k.total)}</span></button>`).join('')}
+   ${d.skills.map(k=>`<button class="sk" data-act="how" data-kind="skill" data-k="${k.key}"><span class="dot p${k.prof}" title="${['Untrained','Proficient','Expertise'][k.prof]}"></span><span class="n">${esc(k.w40)}${k.w40!==k.name?`<small>${esc(k.name)} · ${k.ab.toUpperCase()}</small>`:`<small>${k.ab.toUpperCase()}</small>`}</span><span class="b">${sgn(totalOf(skillParts(ch,d,k.key).parts))}</span></button>`).join('')}
   </div></section>
  </div><div>
-  <section class="sec"><h2 class="sec-h">Weapons<small>tap to roll</small></h2>
+  <section class="sec"><h2 class="sec-h">Weapons<small>tap for how to roll</small></h2>
    ${d.weapons.length?`<div class="tscroll"><table class="wtable"><thead><tr><th>Weapon</th><th>Hit</th><th>Damage</th><th>Range</th><th>Clip</th></tr></thead><tbody>
-   ${d.weapons.map((w,i)=>{const left=ammo[i]==null?w.clip:ammo[i];const isDc=/dc/i.test(w.atk);return `<tr><td><b>${esc(w.to)}</b><small>${esc(w.from)}${w.props.length?' · '+esc(w.props.join(', ')):''}${(()=>{const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const m=k&&((s.opts||{}).masteries||[]).includes(k)&&MASTERY_KINDS.find(x=>x.key===k);return m?` · <span class="mastery" title="${esc(reskinText(MASTERY_PROPS[m.prop]||''))}">Mastery: ${esc(m.prop)}</span>`:'';})()}</small></td>
-    <td>${w.atk?(isDc?`<span class="mono">${esc(w.atk)}</span>`:`<button class="roll" data-act="atk" data-i="${i}">${esc(w.atk)}</button>`):'—'}</td>
-    <td>${w.dmg?`<button class="roll" data-act="dmg" data-i="${i}">${esc(w.dmg)}</button>`:'—'}</td>
+   ${weaponCalc(ch,d).map((wc,i)=>{const w=wc.w;const left=ammo[i]==null?w.clip:ammo[i];const isDc=/dc/i.test(w.atk)&&!wc.atkParts;return `<tr><td><b>${esc(w.to)}</b><small>${esc(w.from)}${w.props.length?' · '+esc(w.props.join(', ')):''}${(()=>{const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const m=k&&((s.opts||{}).masteries||[]).includes(k)&&MASTERY_KINDS.find(x=>x.key===k);return m?` · <span class="mastery" title="${esc(reskinText(MASTERY_PROPS[m.prop]||''))}">Mastery: ${esc(m.prop)}</span>`:'';})()}</small></td>
+    <td>${wc.atkParts?`<button class="roll" data-act="how" data-kind="atk" data-k="${i}">${esc(wc.atkText)}</button>`:(w.atk?`<span class="mono">${esc(w.atk)}</span>`:'—')}</td>
+    <td>${wc.dmgDice?`<button class="roll" data-act="how" data-kind="dmg" data-k="${i}">${esc(wc.dmgText)}</button>`:'—'}</td>
     <td class="mono">${esc(w.range||(w.kind==='melee'?'Melee':'—'))}</td>
     <td>${w.clip?`<span class="ammo"><button class="step" style="width:24px;height:24px" data-act="shot" data-i="${i}" aria-label="Fire one shot">−</button>${left}/${w.clip}<button class="btn sm ghost" data-act="reload" data-i="${i}">Reload</button></span>`:'—'}</td></tr>`;}).join('')}
    </tbody></table></div>${propsUsed.length?`<div class="legend">${propsUsed.map(p=>`<div><b>${esc(p)}.</b> ${esc(PROP_TEXT[p])}</div>`).join('')}</div>`:''}`:'<p class="muted">No attacks recorded.</p>'}
@@ -2034,6 +2255,7 @@ function vSheet(ch){
   ${d.cast.trads.length||d.spells.length?`<section class="sec"><h2 class="sec-h">${esc(TRAD[d.cast.primaryTrad||'psyker'].power)}<small>40k · 5e source</small></h2>
    ${d.cast.trads.map(t=>`<div class="trad"><b>${esc(TRAD[t.trad].name)}</b><span>Save DC <span class="mono">${t.dc}</span></span><span>Attack <button class="roll" data-act="d20" data-l="${esc(TRAD[t.trad].name)} attack" data-m="${t.atk}">${sgn(t.atk)}</button></span><span class="muted">${esc(t.classes.join(', '))} · ${t.abil.toUpperCase()}</span></div>`).join('')}
    ${slotRow||pactRow?`<div class="slots">${slotRow}${pactRow}</div>`:''}
+   ${(()=>{const pa=powerAttacks(ch,d);return pa.length?`<div class="tscroll" style="margin-bottom:12px"><table class="wtable"><thead><tr><th>Damaging power</th><th>Hit / save</th><th>Damage</th></tr></thead><tbody>${pa.map((p,i)=>`<tr><td><b>${esc(p.name)}</b><small>${esc(p.src)}${p.lvl?' · level '+p.lvl:' · cantrip'}${p.beams>1?' · '+p.beams+' beams':''}</small></td><td>${p.atk!=null?`<button class="roll" data-act="how" data-kind="patk" data-k="${i}">${sgn(p.atk)}</button>`:p.save?`<span class="mono">${esc(p.save.slice(0,3).toUpperCase())} DC ${p.dc}</span>`:'—'}</td><td><button class="roll" data-act="how" data-kind="pdmg" data-k="${i}">${esc(p.dice)}${p.flat?' '+sgn(p.flat):''} ${esc(p.type.toLowerCase())}</button></td></tr>`).join('')}</tbody></table></div>`:'';})()}
    ${psy?`<div class="row" style="margin-bottom:6px"><button class="btn sm danger" data-act="perils">Perils of the Warp check</button><span class="muted" style="font-size:13px">Wis save DC 10 when casting at Corruption 10+, at your highest slot, or on a natural 1.</span></div>${S.perils?`<div class="perils-out">${S.perils}</div>`:''}`:''}
    ${Object.keys(byLvl).sort((a,b)=>(a==='?'?99:+a)-(b==='?'?99:+b)).map(k=>`<div class="slvl">${k==='0'?'Cantrips':k==='?'?'Unlisted':'Level '+k}</div>${byLvl[k].map(x=>{const m=powerMeta(x.src,d.cast.primaryTrad||'psyker');return `<div class="sp sheet-sp"><details class="sp-d" data-sp="${esc(x.src)}" data-trad="${d.cast.primaryTrad||'psyker'}"><summary><span class="sp-n">${esc(x.name40k)}${x.perils?' <span class="perils">PERILS</span>':''}</span><span class="sp-m">${esc(x.src)}${x.discipline?' · '+esc(x.discipline):''}</span><span class="sp-q">${esc(powerSummary(m))}</span></summary><div class="sp-body"></div></details></div>`;}).join('')}`).join('')}
   </section>`:''}
@@ -2081,6 +2303,9 @@ async function handleFile(file){
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
  if(a==='newbuild'){S.build=newBuild();go('build');return;}
+ if(a==='how'){const c=S.cur==='example'?exampleChar():cur();if(c)openHow(c,b.dataset.kind,b.dataset.kind==='atk'||b.dataset.kind==='dmg'||b.dataset.kind==='patk'||b.dataset.kind==='pdmg'?+b.dataset.k:b.dataset.k);return;}
+ if(a==='howclose'){S.how=null;drawHow();return;}
+ if(a==='howroll'){howRoll();return;}
  if(a==='pnew'){joinParty(newCode());return;}
  if(a==='pjoin'){const v=($('#pjoin')||{}).value;joinParty(v);return;}
  if(a==='paskleave'){S.confirmLeave=true;render();return;}
@@ -2126,8 +2351,11 @@ document.addEventListener('click',e=>{
   case 'pact':{const j=+b.dataset.j;const u=st.pact||0;st.pact=j<u?j:j+1;persist(ch);render();break;}
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{st.ammo=st.ammo||{};st.ammo[+b.dataset.i]=d.weapons[+b.dataset.i].clip;persist(ch);render();break;}
-  case 'short':st.pact=0;persist(ch);toastMsg('Short rest: pact slots restored. Spend hit dice by adjusting HP.');render();break;
-  case 'long':st.hp=d.maxHp;st.temp=0;st.slots={};st.pact=0;st.ammo={};persist(ch);toastMsg('Long rest: wounds, slots and clips restored.');render();break;
+  case 'rage':st.raging=!st.raging;persist(ch);render();break;
+  case 'res':{const k=b.dataset.k,j=+b.dataset.j;st.res=st.res||{};const u2=st.res[k]||0;st.res[k]=j<u2?j:j+1;persist(ch);render();break;}
+  case 'respool':{const k=b.dataset.k;const r=resources(ch,d).find(x=>x.k===k);st.res=st.res||{};st.res[k]=Math.max(0,Math.min(r.max,(st.res[k]||0)+(+b.dataset.d)));persist(ch);render();break;}
+  case 'short':st.pact=0;st.res=st.res||{};resources(ch,d).forEach(r=>{if(r.reset==='short'||r.partial){st.res[r.k]=r.partial?Math.max(0,(st.res[r.k]||0)-1):0;}});st.raging=false;persist(ch);toastMsg('Short rest: pact slots restored. Spend hit dice by adjusting HP.');render();break;
+  case 'long':st.hp=d.maxHp;st.temp=0;st.slots={};st.pact=0;st.ammo={};st.res={};st.raging=false;persist(ch);toastMsg('Long rest: wounds, slots and clips restored.');render();break;
   case 'perils':{const wis=d.mods.wis+(d.saves.find(x=>x.a==='wis').prof?d.pb:0);const r=1+Math.floor(Math.random()*20);const tot=r+wis;
    if(r!==1&&tot>=10){S.perils=`<b>Resisted.</b> Wis save ${r} ${sgn(wis)} = ${tot} against DC 10.`;pushRoll({label:'Perils save: resisted',total:tot,detail:`d20[${r}] ${sgn(wis)}`});}
    else{const p=1+Math.floor(Math.random()*20);const row=PERILS.find(x=>p>=x[0]&&p<=x[1]);S.perils=`<b style="color:var(--blood)">Failed</b> (Wis save ${tot}). Perils roll <span class="mono">${p}</span>: ${esc(row[2])}`;pushRoll({label:'Perils of the Warp',total:p,detail:row[2],fail:true});}
@@ -2149,6 +2377,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
  const t=e.target;
+ if(t.dataset.how!=null&&S.how){const ad=S.how.addons[+t.dataset.how];ad.on=t.checked;if(ad.d20&&t.checked)S.how.addons.forEach(x=>{if(x!==ad&&x.d20&&x.d20!==ad.d20)x.on=false;});drawHow();return;}
  if(S.view==='build'&&(t.dataset.b||t.dataset.fp)){buildInput(t,true);return;}
  if(S.view==='levelup'&&t.dataset.fp){luInput(t,true);return;}
  if(t.dataset.c){
@@ -2168,6 +2397,7 @@ document.addEventListener('dragover',e=>{const dz=e.target.closest&&e.target.clo
 document.addEventListener('dragleave',e=>{const dz=e.target.closest&&e.target.closest('#drop');if(dz)dz.classList.remove('over');});
 document.addEventListener('drop',e=>{const dz=e.target.closest&&e.target.closest('#drop');if(!dz)return;e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handleFile(f);});
 
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.how){S.how=null;drawHow();}});
 render();initStore();
 
 </script>

@@ -288,6 +288,32 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* turn + how */
+.turn{margin-bottom:28px}
+.rage-t{margin-bottom:12px;border-color:var(--blood);color:#ff9a9c;background:rgba(94,15,18,.25)}
+.tk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.tk{border:1px solid var(--line);background:var(--plate-bg);padding:10px 12px}
+.tk-h{font-family:var(--f-caps);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.tk-i{font-size:14px;padding:4px 0;border-top:1px solid var(--line)}
+.tk-i:first-of-type{border-top:0}
+.tk-i b{color:var(--parch)}
+.tk-i span{color:var(--muted)}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 22px}
+.res{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.res b{color:var(--parch)}
+.pips{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;max-width:160px}
+#how{position:fixed;inset:0;z-index:30}
+.how-scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.how-card{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);overflow:auto;background:var(--rivets),linear-gradient(180deg,#221d18,#16130f);border:1px solid var(--gold-dk);border-top:2px solid var(--gold);padding:16px 18px;box-shadow:0 20px 50px rgba(0,0,0,.8)}
+.how-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.how-h h3{font-family:var(--f-caps);font-size:20px;letter-spacing:.04em;color:var(--gold-hi)}
+.how-f{font-size:22px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);padding:10px 12px;margin:12px 0 8px;box-shadow:inset 0 1px 3px #000}
+.how-parts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted)}
+.how-parts b{color:var(--gold-hi);font-weight:400}
+.how-add{display:grid;gap:6px;margin-top:12px;font-size:14.5px}
+.how-add label{display:flex;gap:8px;align-items:flex-start}
+.how-add input{accent-color:var(--gold);margin-top:3px}
+.how-notes{margin:12px 0 0;padding-left:18px;font-size:13.5px;color:var(--parch);display:grid;gap:4px}
 /* class options */
 .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 22px}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -1333,7 +1359,7 @@ const parts=[];
 parts.push(sec('start','How it works','Your character keeps every 5e number: level, proficiency, ability scores, HP, AC, spell slots and save DCs. What changes is the fiction, plus four house rules: firearms, armour, psychic Perils, and Corruption &amp; Insanity.',
 `<ol class="g-steps"><li><b>New character:</b> open the app and choose <b>Create</b>. It follows D&amp;D Beyond's 2024 order: Career, Background, Origin, Characteristics, Skills, Wargear, Powers.</li>
 <li><b>Existing character:</b> choose <b>Import</b> and upload your D&amp;D Beyond PDF (Export to PDF on your character page) or a spreadsheet. Check what was read, fix anything missed, then convert.</li>
-<li><b>At the table:</b> tap any bonus to roll. Track wounds, power slots, ammo, Corruption and Insanity on the sheet.</li></ol>
+<li><b>At the table:</b> tap any bonus to see exactly what to roll, with tick boxes for situational extras (raging, Killing Strike, a marked target, Bless, critical hits). Roll your own dice, or tap Roll for me. The <b>Your turn</b> panel lists what you can do with your action, bonus action and reaction, and tracks limited uses.</li></ol>
 <p class="note">Characters on the public site are saved in your own browser. Use the same device each session.</p>`));
 
 parts.push(sec('careers','Careers','Every class keeps its mechanics. The career is its name in the Imperium, and it decides how the character draws power.',
