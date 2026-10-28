@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Cinzel:wght@500;700&family=Share+Tech+Mono&family=UnifrakturCook:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Cinzel:wght@500;700&family=Share+Tech+Mono&display=swap">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
@@ -19,7 +19,7 @@ body{margin:0}
  --gold:#C8A24A;--gold-hi:#EBCB7A;--gold-dk:#7A5C1E;--blood:#B3262A;--blood-dk:#5E0F12;--warp:#8E5BC4;--ok:#7FA36A;--warn:#D08A2E;
  --parch:#D8C59C;--parch-ink:#2A1E10;
  --brass:var(--gold);--brass-ink:#140F06;--panel:var(--plate);
- --f-display:'UnifrakturCook','Pirata One',Georgia,serif;
+ --f-display:'Cinzel','Trajan Pro',Georgia,serif;
  --f-caps:'Cinzel','Trajan Pro',Georgia,serif;
  --f-head:'Cinzel','Trajan Pro',Georgia,serif;
  --f-body:'Alegreya Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -51,7 +51,7 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .top-in{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
 .brand{background:none;border:0;padding:0;display:flex;align-items:center;gap:12px;color:var(--ink);text-align:left}
 .brand .seal{width:30px;height:30px;flex:none}
-.brand b{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1;color:var(--gold-hi);text-shadow:0 1px 0 #000,0 0 18px rgba(200,162,74,.25)}
+.brand b{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:.06em;line-height:1;color:var(--gold-hi);text-shadow:0 1px 0 #000,0 0 18px rgba(200,162,74,.25)}
 .brand small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
 .nav{margin-left:auto;display:flex;gap:4px}
 .nav button{background:none;border:1px solid transparent;border-radius:var(--r);padding:6px 14px;font-family:var(--f-caps);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
@@ -89,7 +89,7 @@ main{padding-block:28px 110px}
 .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
 .card{border-radius:var(--r);padding:18px 18px 16px;text-align:left;display:flex;flex-direction:column;gap:10px;min-width:0;width:100%;position:relative;border-top:2px solid var(--gold-dk)}
 .card:hover{border-color:var(--gold-dk);border-top-color:var(--gold)}
-.card h3{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1.05;color:var(--gold-hi)}
+.card h3{font-family:var(--f-display);font-weight:700;font-size:22px;line-height:1.15;letter-spacing:.03em;color:var(--gold-hi)}
 .card .sub{color:var(--muted);font-size:14px}
 .card.example{border-style:dashed}
 .bars{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;align-items:center;font-size:12px;font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
@@ -136,7 +136,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .skill-in select{width:auto;padding:3px 6px;font-size:13px;background:var(--sunk);border:1px solid var(--line);border-radius:var(--r)}
 .fs .chip input{accent-color:var(--gold)}
 .preview{position:sticky;top:80px;border-radius:var(--r);padding:18px;border-top:2px solid var(--gold)}
-.preview h3{font-family:var(--f-display);font-weight:400;font-size:28px;color:var(--gold-hi);margin-top:2px}
+.preview h3{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:.03em;color:var(--gold-hi);margin-top:2px}
 .preview dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0;font-size:14px}
 .preview dt{color:var(--muted);font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:2px}
 .preview dd{margin:0;min-width:0}
@@ -145,11 +145,11 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 /* sheet */
 .sheet-h{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-start;margin-bottom:20px;position:relative}
 .sheet-h .grow{flex:1 1 320px;min-width:0;position:relative}
-.sheet-h h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:.95;color:var(--gold-hi);text-shadow:0 2px 0 #000,0 0 30px rgba(200,162,74,.18)}
+.sheet-h h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5.5vw,48px);line-height:1.05;letter-spacing:.03em;color:var(--gold-hi);text-shadow:0 2px 0 #000,0 0 30px rgba(200,162,74,.18)}
 .sheet-h .who{font-size:17px;margin-top:8px;color:var(--parch)}
 .sheet-h .who b{font-family:var(--f-caps);font-weight:700;letter-spacing:.06em;color:var(--ink)}
 .purity{display:inline-flex;flex-direction:column;align-items:center;width:58px;margin-left:4px;vertical-align:top}
-.purity .wax{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#d8494c,#8f1518 55%,#5c0b0d);box-shadow:0 2px 3px rgba(0,0,0,.7),inset 0 -2px 4px rgba(0,0,0,.5);display:grid;place-items:center;color:rgba(255,215,200,.75);font-family:var(--f-display);font-size:18px}
+.purity .wax{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#d8494c,#8f1518 55%,#5c0b0d);box-shadow:0 2px 3px rgba(0,0,0,.7),inset 0 -2px 4px rgba(0,0,0,.5);display:grid;place-items:center;color:rgba(255,215,200,.75);font-family:Georgia,serif;font-size:18px}
 .purity .slip{width:22px;height:46px;margin-top:-6px;background:linear-gradient(90deg,#cbb688,var(--parch) 40%,#c6b082);clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%);box-shadow:0 2px 2px rgba(0,0,0,.5)}
 .sheet-seal{position:absolute;right:0;top:-6px}
 .back{background:none;border:0;padding:0;color:var(--muted);font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
@@ -286,7 +286,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
  .crow{grid-template-columns:minmax(0,1fr) 70px}.crow>:nth-child(2){grid-column:1/-1;order:3}
  .vital.hp{grid-column:1/-1}
  .brand small{display:none}
- .brand b{font-size:23px}
+ .brand b{font-size:18px}
  .sheet-seal{display:none}
  .picks{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  .pick{padding:10px}
