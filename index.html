@@ -291,6 +291,13 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* class options */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 22px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.opt.on b{color:var(--gold-hi)}
+.opt-t{font-size:13.5px;color:var(--parch);margin-top:2px}
+.subdesc{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--parch);margin-top:4px}
+.mastery{color:var(--gold)}
 /* level, feats, picker */
 .career-top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;padding:14px 16px;border:1px solid var(--gold-dk);background:var(--rivets),var(--plate-bg)}
 .lvl-step .k{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
@@ -362,7 +369,7 @@ details.mc summary{cursor:pointer;font-family:var(--f-caps);font-weight:700;lett
  <nav class="nav" id="nav"></nav>
 </div></header>
 <main class="wrap" id="app"></main>
-<footer class="wrap srd-note">Rules text for powers and some feats comes from the System Reference Document 5.2 by Wizards of the Coast LLC, licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC-BY-4.0</a>. Warhammer 40,000 names are used for a private fan game; this site is unofficial.</footer>
+<footer class="wrap srd-note">Rules text for powers, weapon mastery and some feats comes from the System Reference Document 5.2 by Wizards of the Coast LLC, licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC-BY-4.0</a>. Warhammer 40,000 names are used for a private fan game; this site is unofficial.</footer>
 <div class="dice" id="dice" aria-live="polite"></div>
 
 <script>
@@ -1143,13 +1150,161 @@ function featBonus(pick){const o={};if(!pick)return o;if(pick.type==='asi'){if(p
 function featLabel(pick){if(!pick)return '';if(pick.type==='asi'){const b=featBonus(pick);return 'Characteristic Advance ('+Object.entries(b).map(([a,v])=>`${a.toUpperCase()} +${v}`).join(', ')+')';}const F=FEATS[pick.key];return F?`${F.w40} (${F.name})${pick.abil?` · ${pick.abil.toUpperCase()} +1`:''}`:'';}
 function featRecord(pick,level){if(!pick)return null;if(pick.type==='asi')return {level,key:'asi',name:'Ability Score Improvement',w40:'Characteristic Advance',text:featLabel(pick)};const F=FEATS[pick.key];if(!F)return null;return {level,key:pick.key,name:F.name,w40:F.w40,text:F.text+(pick.abil?` (${pick.abil.toUpperCase()} +1)`:''),abil:pick.abil||null};}
 function spellbookSize(level){return 6+2*(Math.max(1,level)-1);}
-function spellLimits(cls,level,sub){
+function spellLimits(cls,level,sub,opts){
+ const ob=typeof orderCantripBonus==='function'?orderCantripBonus(cls,opts):0;
  if(cls==='wizard'){const c=castCounts('wizard',level);return {cantrips:c.cantrips,spells:spellbookSize(level),label:'Spellbook'};}
  if((cls==='fighter'&&sub==='Eldritch Knight')||(cls==='rogue'&&sub==='Arcane Trickster')){const c=castCounts('third',level);return {...c,label:'Powers known'};}
- const c=castCounts(cls,level);return {...c,label:'Prepared powers'};
+ const c=castCounts(cls,level);return {...c,cantrips:c.cantrips+ob,label:'Prepared powers'};
 }
-function spellListFor(cls,sub){if(CLASSES[cls].caster)return cls;if(sub==='Eldritch Knight'||sub==='Arcane Trickster')return 'wizard';return null;}
+function spellListFor(cls,sub){if(!CLASSES[cls])return null;if(CLASSES[cls].caster)return cls;if(sub==='Eldritch Knight'||sub==='Arcane Trickster')return 'wizard';return null;}
 function maxPowerLevel(cls,level,sub){if(CLASSES[cls].caster)return maxSpellLevel(cls,level);if(sub==='Eldritch Knight'||sub==='Arcane Trickster')return level<3?0:SLOTS[Math.max(1,Math.ceil(level/3))].length;return 0;}
+
+/* Weapon mastery rules text: System Reference Document 5.2, Wizards of the Coast LLC, CC-BY-4.0. */
+const MASTERY_PROPS={"Cleave": "If you hit a creature with a melee attack roll using this weapon, you can make a melee attack roll with the weapon against a second creature within 5 feet of the first that is also within your reach. On a hit, the second creature takes the weapon's damage, but don't add your ability modifier to that damage unless that modifier is negative. You can make this extra attack only once per turn.", "Graze": "If your attack roll with this weapon misses a creature, you can deal damage to that creature equal to the ability modifier you used to make the attack roll. This damage is the same type dealt by the weapon, and the damage can be increased only by increasing the ability modifier.", "Nick": "When you make the extra attack of the Light property, you can make it as part of the Attack action instead of as a Bonus Action. You can make this extra attack only once per turn.", "Push": "If you hit a creature with this weapon, you can push the creature up to 10 feet straight away from yourself if it is Large or smaller.", "Sap": "If you hit a creature with this weapon, that creature has Disadvantage on its next attack roll before the start of your next turn.", "Slow": "If you hit a creature with this weapon and deal damage to it, you can reduce its Speed by 10 feet until the start of your next turn. If the creature is hit more than once by weapons that have this property, the Speed reduction doesn't exceed 10 feet.", "Topple": "If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your Proficiency Bonus). On a failed save, the creature has the Prone condition.", "Vex": "If you hit a creature with this weapon and deal damage to the creature, you have Advantage on your next attack roll against that creature before the end of your next turn."};
+const WEAPON_MASTERY={"Battleaxe": "Topple", "Blowgun": "Vex", "Club": "Slow", "Dagger": "Nick", "Dart": "Vex", "Flail": "Sap", "Glaive": "Graze", "Greataxe": "Cleave", "Greatclub": "Push", "Greatsword": "Graze", "Halberd": "Cleave", "Hand Crossbow": "Vex", "Handaxe": "Vex", "Heavy Crossbow": "Push", "Javelin": "Slow", "Lance": "Topple", "Light Crossbow": "Slow", "Light Hammer": "Nick", "Longbow": "Slow", "Longsword": "Sap", "Mace": "Sap", "Maul": "Topple", "Morningstar": "Sap", "Musket": "Slow", "Pike": "Push", "Pistol": "Vex", "Quarterstaff": "Topple", "Rapier": "Vex", "Scimitar": "Nick", "Shortbow": "Vex", "Shortsword": "Vex", "Sickle": "Nick", "Sling": "Slow", "Spear": "Sap", "Trident": "Topple", "Warhammer": "Push", "War Pick": "Sap", "Whip": "Slow"};
+
+/* ===== Class options: orders, weapon mastery, invocations, metamagic, manoeuvres, subclass summaries ===== */
+const ORDERS={
+ cleric:{label:'Divine Order',opts:{protector:['Protector','Templar','Martial weapon proficiency and heavy armour training.'],thaumaturge:['Thaumaturge','Thaumaturge','One extra cantrip, and add your Wis modifier (min +1) to Forbidden Lore (Arcana) and Imperial Creed (Religion) checks.']}},
+ druid:{label:'Primal Order',opts:{magician:['Magician','Seer','One extra cantrip, and add your Wis modifier (min +1) to Forbidden Lore (Arcana) and Xenobiology (Nature) checks.'],warden:['Warden','Warden','Martial weapon proficiency and medium armour training.']}}
+};
+function orderCantripBonus(cls,opts){return opts&&((cls==='cleric'&&opts.order==='thaumaturge')||(cls==='druid'&&opts.order==='magician'))?1:0;}
+/* weapon kinds you can master, keyed like WEAPONS */
+const MASTERY_KINDS=Object.entries(WEAPON_MASTERY).map(([n,p])=>{const k=N(n);return WEAPONS[k]?{key:k,name5e:n,to:WEAPONS[k].to,prop:p,ranged:!!WEAPONS[k].dice}:null;}).filter(Boolean).sort((a,b)=>a.to.localeCompare(b.to));
+function masteryCount(cls,l){switch(cls){case 'barbarian':return l>=10?4:l>=4?3:2;case 'fighter':return l>=16?6:l>=10?5:l>=4?4:3;case 'paladin':case 'ranger':case 'rogue':return 2;}return 0;}
+const INVOC={
+ pactblade:['Pact of the Blade','Pact of the Daemon Blade',1,null,'Conjure or bond a pact weapon; use your Cha for its attacks and deal necrotic, psychic or radiant damage.'],
+ pactchain:['Pact of the Chain','Pact of the Bound Familiar',1,null,'Gain Familiar Spirit with special warp-entity forms; it can attack with your reaction.'],
+ pacttome:['Pact of the Tome','Pact of the Forbidden Tome',1,null,'A grimoire grants three extra cantrips and two level 1 ritual powers from any list.'],
+ armorofshadows:['Armor of Shadows','Shroud of Shadows',1,null,'Cast Kinetic Shroud on yourself at will without a slot.'],
+ eldritchmind:['Eldritch Mind','Iron Mind',1,null,'Advantage on Constitution saves to keep concentration.'],
+ agonizingblast:['Agonizing Blast','Agonising Warp Blast',2,'cantrip','Add your Cha modifier to the damage of one damaging warlock cantrip.'],
+ devilssight:['Devil\'s Sight','Daemon Sight',2,null,'See normally in darkness, including warp-darkness, to 120 ft.'],
+ eldritchspear:['Eldritch Spear','Warp Lance',2,'cantrip','One damaging warlock cantrip reaches 30 ft × your warlock level.'],
+ fiendishvigor:['Fiendish Vigor','Daemonic Vigour',2,null,'Cast False Life on yourself at will without a slot, taking the maximum result.'],
+ lessonsfirstones:['Lessons of the First Ones','Lessons of the Old Ones',2,null,'Gain one origin feat of your choice.'],
+ maskofmanyfaces:['Mask of Many Faces','Mask of Many Faces',2,null,'Cast Psychic Veil (Disguise Self) at will without a slot.'],
+ mistyvisions:['Misty Visions','Warp Mirage',2,null,'Cast Silent Image at will without a slot.'],
+ otherworldlyleap:['Otherworldly Leap','Warp Leap',2,null,'Cast Kinetic Leap (Jump) on yourself at will without a slot.'],
+ repellingblast:['Repelling Blast','Repulsing Blast',2,'cantrip','One damaging warlock cantrip pushes Large or smaller targets 10 ft on a hit.'],
+ ascendantstep:['Ascendant Step','Warp Ascent',5,null,'Cast Levitate on yourself at will without a slot.'],
+ eldritchsmite:['Eldritch Smite','Warp Smite',5,'pactblade','Spend a pact slot when you hit with your pact weapon: +1d8 force per slot level plus 1d8, and knock Huge or smaller foes prone.'],
+ gazeoftwominds:['Gaze of Two Minds','Shared Sight',5,null,'Touch a willing creature to see and hear through its senses; cast powers from its position.'],
+ giftofthedepths:['Gift of the Depths','Void-lung',5,null,'Breathe without air, gain a swim speed, and cast Water Breathing once per long rest.'],
+ investmentchainmaster:['Investment of the Chain Master','Familiar\'s Empowerment',5,'pactchain','Your familiar gains flight or swimming, a bonus-action attack command, and better damage and saves.'],
+ masterofmyriadforms:['Master of Myriad Forms','Flesh-shaper',5,null,'Cast Alter Self at will without a slot.'],
+ onewithshadows:['One with Shadows','One with the Dark',5,null,'In dim light or darkness, become invisible until you move or act (uses a pact slot).'],
+ thirstingblade:['Thirsting Blade','Thirsting Blade',5,'pactblade','Attack twice with your pact weapon when you take the Attack action.'],
+ whispersofthegrave:['Whispers of the Grave','Whispers of the Dead',7,null,'Cast Death Psychometry (Speak with Dead) at will without a slot.'],
+ giftofprotectors:['Gift of the Protectors','Book of the Sworn',9,'pacttome','Allies who sign your book drop to 1 HP instead of 0, once per long rest each.'],
+ lifedrinker:['Lifedrinker','Lifedrinker',9,'pactblade','Pact-weapon hits deal +1d6 necrotic/psychic/radiant, and you can spend a Hit Die to heal.'],
+ visionsofdistantrealms:['Visions of Distant Realms','Far-sight',9,null,'Cast Warp Eye (Arcane Eye) at will without a slot.'],
+ devouringblade:['Devouring Blade','Soul-drinker Blade',12,'thirstingblade','Thirsting Blade grants three attacks instead of two.'],
+ witchsight:['Witch Sight','Witch-sight',15,null,'Truesight to 30 ft.']
+};
+function invocCount(l){return [0,1,3,3,3,5,5,6,6,7,7,7,8,8,8,9,9,9,10,10,10][Math.max(0,Math.min(20,l))];}
+const META={
+ careful:['Careful Spell','Shielded Manifestation',1,'Chosen creatures automatically succeed on the power\'s save and take no damage from it.'],
+ distant:['Distant Spell','Far-cast',1,'Double the range, or make a touch power reach 30 ft.'],
+ empowered:['Empowered Spell','Overcharge',1,'Reroll damage dice up to your Cha modifier.'],
+ extended:['Extended Spell','Sustained Will',1,'Double the duration, and gain advantage on concentration saves for it.'],
+ heightened:['Heightened Spell','Overwhelming Will',2,'One target has disadvantage on its save.'],
+ quickened:['Quickened Spell','Snap-manifest',2,'Cast an Action power as a bonus action (not if you already cast a levelled power this turn).'],
+ seeking:['Seeking Spell','Seeking Power',1,'Reroll a missed power attack.'],
+ subtle:['Subtle Spell','Silent Manifestation',1,'Cast without spoken or gestured components.'],
+ transmuted:['Transmuted Spell','Warp Transmutation',1,'Change the damage type to acid, cold, fire, lightning, poison or thunder.'],
+ twinned:['Twinned Spell','Twinned Manifestation',1,'Raise the power\'s level by one to add a second target where it allows.']
+};
+function metaCount(l){return l>=17?6:l>=10?4:l>=2?2:0;}
+const MANEUVERS={
+ ambush:['Ambush','Ambush','Add a superiority die to a Stealth or initiative roll.'],
+ baitswitch:['Bait and Switch','Swap Positions','Swap places with an ally within 5 ft; one of you adds the die to AC.'],
+ commandersstrike:['Commander\'s Strike','Order to Fire','Forgo an attack so an ally strikes with its reaction, adding your die to damage.'],
+ commandingpresence:['Commanding Presence','Command Presence','Add a superiority die to Intimidation, Performance or Persuasion.'],
+ disarming:['Disarming Attack','Disarm','Add the die to damage; the target drops a held item on a failed Str save.'],
+ distracting:['Distracting Strike','Covering Strike','Add the die to damage; the next ally attack on the target has advantage.'],
+ evasivefootwork:['Evasive Footwork','Evasive Footwork','Add the die to AC while you move.'],
+ feinting:['Feinting Attack','Feint','Bonus action: advantage on your next attack against a nearby foe, adding the die to damage.'],
+ goading:['Goading Attack','Draw Fire','Add the die to damage; the target has disadvantage attacking anyone but you.'],
+ lunging:['Lunging Attack','Lunge','Step 5 ft as part of the attack and add the die to damage.'],
+ maneuvering:['Maneuvering Attack','Reposition','Add the die to damage; an ally moves without provoking.'],
+ menacing:['Menacing Attack','Intimidating Strike','Add the die to damage; the target is Frightened on a failed Wis save.'],
+ parry:['Parry','Parry','Reaction: reduce melee damage by the die plus your Str or Dex modifier.'],
+ precision:['Precision Attack','Aimed Shot','Add the die to an attack roll after seeing it.'],
+ pushing:['Pushing Attack','Shove Back','Add the die to damage; push the target 15 ft on a failed Str save.'],
+ rally:['Rally','Rally the Squad','Bonus action: an ally gains temporary HP equal to the die plus your Cha modifier.'],
+ riposte:['Riposte','Riposte','Reaction when missed in melee: attack back, adding the die to damage.'],
+ sweeping:['Sweeping Attack','Sweeping Strike','On a melee hit, deal the die as damage to a second adjacent foe.'],
+ tactical:['Tactical Assessment','Tactical Auspex','Add the die to a History, Investigation or Insight check.'],
+ trip:['Trip Attack','Leg Sweep','Add the die to damage; Large or smaller targets fall prone on a failed Str save.']
+};
+function manCount(l){return l>=15?9:l>=10?7:l>=7?5:l>=3?3:0;}
+function superiority(l){return {dice:l>=15?6:l>=7?5:4,size:l>=18?12:l>=10?10:8};}
+function classOptionGroups(cls,level,sub,opts,cantrips){
+ const g=[];if(ORDERS[cls])g.push({id:'order',label:ORDERS[cls].label,single:true,max:1});
+ const mc=masteryCount(cls,level);if(mc)g.push({id:'masteries',label:'Weapon Mastery',max:mc});
+ if(cls==='warlock'){const n=invocCount(level);if(n)g.push({id:'invocations',label:'Warp Invocations',max:n});}
+ if(cls==='sorcerer'){const n=metaCount(level);if(n)g.push({id:'metamagic',label:'Warp Shaping (Metamagic)',max:n});}
+ if(cls==='fighter'&&sub==='Battle Master'){const n=manCount(level);if(n)g.push({id:'maneuvers',label:'Manoeuvres',max:n});}
+ return g;
+}
+function invocOK(k,level,opts,cantrips){const v=INVOC[k];if(level<v[2])return false;const req=v[3];if(!req)return true;
+ if(req==='cantrip')return (cantrips||[]).some(n=>{const i=SPELL_INFO[N(n)];return i&&i.lvl===0&&/damage/i.test(i.desc)&&(CLASS_SPELLS.warlock[0]||[]).includes(n);});
+ return (opts.invocations||[]).includes(req);}
+function trimOpts(cls,level,sub,opts,cantrips){
+ opts=opts||{};const out={order:ORDERS[cls]?opts.order||'':'',masteries:[],invocations:[],metamagic:[],maneuvers:[]};
+ for(const gp of classOptionGroups(cls,level,sub,opts,cantrips)){if(gp.id==='order')continue;let arr=(opts[gp.id]||[]).slice(0,gp.max);
+  if(gp.id==='invocations')arr=arr.filter(k=>INVOC[k]&&invocOK(k,level,{invocations:arr},cantrips));out[gp.id]=arr;}
+ return out;
+}
+function optionsMissing(cls,level,sub,opts,cantrips){const m=[];for(const gp of classOptionGroups(cls,level,sub,opts,cantrips)){const have=gp.id==='order'?(opts.order?1:0):(opts[gp.id]||[]).length;if(have<gp.max)m.push(`${gp.max-have} ${gp.label}`);}return m;}
+function classOptionsUI(ctx,cls,level,sub,opts,cantrips){
+ const groups=classOptionGroups(cls,level,sub,opts,cantrips);if(!groups.length)return '<p class="muted">No extra choices for this career at this level.</p>';
+ return groups.map(gp=>{
+  if(gp.id==='order'){const O=ORDERS[cls];return `<h3 class="sub-h">${esc(O.label)}</h3><div class="picks">${Object.entries(O.opts).map(([k,o])=>bCard(opts.order===k,ctx+'-opt',k,esc(o[1]),esc(o[0]),esc(o[2])).replace('data-act=',`data-g="order" data-act=`)).join('')}</div>`;}
+  const have=opts[gp.id]||[];const left=gp.max-have.length;
+  const head=`<h3 class="sub-h">${esc(gp.label)}: choose ${gp.max} <span class="count ${left>0?'':'ok'}">${left>0?left+' left':'done'}</span></h3>`;
+  const row=(k,t40,t5,txt,dis,extra)=>{const on=have.includes(k);return `<div class="opt${on?' on':''}"><button class="sp-add" data-act="${ctx}-opt" data-g="${gp.id}" data-v="${k}" aria-pressed="${on}" ${!on&&(left<=0||dis)?'disabled':''}>${on?'✓':'+'}</button><div><b>${esc(t40)}</b> <small class="muted">${esc(t5)}${extra?' · '+esc(extra):''}</small><div class="opt-t">${esc(txt)}</div></div></div>`;};
+  let rows='';
+  if(gp.id==='masteries'){const kinds=MASTERY_KINDS.filter(m=>cls!=='barbarian'||!m.ranged);rows=kinds.map(m=>row(m.key,m.to,m.name5e,`${m.prop}: ${reskinText(MASTERY_PROPS[m.prop]||'')}`,false)).join('');}
+  if(gp.id==='invocations')rows=Object.entries(INVOC).map(([k,v])=>{const ok=invocOK(k,level,opts,cantrips);const why=level<v[2]?`warlock level ${v[2]}`:v[3]==='cantrip'?'needs a damaging warlock cantrip':v[3]?`needs ${INVOC[v[3]][1]}`:'';return row(k,v[1],v[0],v[4],!ok,ok?'':why);}).join('');
+  if(gp.id==='metamagic')rows=Object.entries(META).map(([k,v])=>row(k,v[1],v[0],v[3],false,`${v[2]} Warp Point${v[2]>1?'s':''}`)).join('');
+  if(gp.id==='maneuvers'){const s=superiority(level);rows=`<p class="note" style="margin-top:0">${s.dice} superiority dice (d${s.size}), regained on a short or long rest.</p>`+Object.entries(MANEUVERS).map(([k,v])=>row(k,v[1],v[0],v[2],false)).join('');}
+  return head+`<div class="opts">${rows}</div>`;
+ }).join('');
+}
+function toggleOpt(opts,g,k,cls,level,sub,cantrips){
+ if(g==='order'){opts.order=opts.order===k?'':k;return;}
+ const gp=classOptionGroups(cls,level,sub,opts,cantrips).find(x=>x.id===g);if(!gp)return;
+ const arr=opts[g]=opts[g]||[];const i=arr.indexOf(k);
+ if(i>=0){arr.splice(i,1);if(g==='invocations'){opts.invocations=arr.filter(x=>invocOK(x,level,opts,cantrips));}return;}
+ if(arr.length>=gp.max){toastMsg('That count is full. Remove one first.');return;}arr.push(k);
+}
+function optionsSheet(src){
+ const o=src.opts||{};const out=[];const cls=(src.classes||[]).map(x=>x.cls);
+ for(const c of cls){if(ORDERS[c]&&o.order&&ORDERS[c].opts[o.order]){const v=ORDERS[c].opts[o.order];out.push([`${v[1]}`,`${ORDERS[c].label}: ${v[0]}`,v[2]]);}}
+ (o.masteries||[]).forEach(k=>{const m=MASTERY_KINDS.find(x=>x.key===k);if(m)out.push([`${m.to}: ${m.prop}`,`Weapon Mastery (${m.name5e})`,reskinText(MASTERY_PROPS[m.prop]||'')]);});
+ (o.invocations||[]).forEach(k=>{const v=INVOC[k];if(v)out.push([v[1],v[0],v[4]]);});
+ (o.metamagic||[]).forEach(k=>{const v=META[k];if(v)out.push([v[1],`${v[0]} · ${v[2]} WP`,v[3]]);});
+ (o.maneuvers||[]).forEach(k=>{const v=MANEUVERS[k];if(v)out.push([v[1],v[0],v[2]]);});
+ return out;
+}
+const SUBDESC={
+ 'Alchemist':'Brews medicae elixirs and strengthens healing and acid or fire powers.','Armorer':'Wears self-built power armour that is also a weapon.','Artillerist':'Deploys a servitor gun platform and boosts blast powers.','Battle Smith':'Fights beside a cyber-mastiff and uses Int for weapon attacks.',
+ 'Path of the Berserker':'Frenzied killer: extra attacks while raging and resistance to fear.','Path of the Totem Warrior':'Draws on a beast spirit for toughness, speed or senses.','Path of the Ancestral Guardian':'Ancestor-spirits shield allies and punish foes who ignore you.','Path of the Storm Herald':'Rage releases an aura of fire, lightning or cold.','Path of the Zealot':'Holy fury: extra radiant or necrotic damage and hard to kill.','Path of the Beast':'Rage grows claws, a bite or a tail.','Path of Wild Magic':'Rage triggers random warp surges.','Path of the Giant':'Grow larger, throw weapons and hurl foes.','Path of the World Tree':'Rage grants temporary HP and lets you move foes and allies around.','Path of the Wild Heart':'Draws on beast spirits for toughness, speed or senses.',
+ 'College of Lore':'Extra skills and stolen secrets; Cutting Words weakens foes.','College of Valor':'Frontline herald with armour, martial weapons and extra attacks.','College of Glamour':'Mesmerising Aeldari-style presence that charms and moves allies.','College of Swords':'Bladed showman with flourishes that add damage and defence.','College of Whispers':'Spy and blackmailer who strikes with psychic dread.','College of Creation':'Conjures objects and makes them dance.','College of Eloquence':'Unmatched persuader whose words can\'t be resisted.','College of Spirits':'Channels spirits of the dead for random boons.','College of Dance':'Unarmoured, agile fighter who moves with allies.',
+ 'Knowledge Domain':'Scholar-priest with extra languages, skills and mind-reading.','Life Domain':'Healer whose restorative prayers are stronger.','Light Domain':'Purging fire and blinding radiance against the dark.','Nature Domain':'Commands plants and beasts in the Emperor\'s name.','Tempest Domain':'Calls lightning and thunder; heavy armour.','Trickery Domain':'Infiltrator priest with illusions and a duplicate.','War Domain':'Battle priest with extra attacks and blessings of accuracy.','Forge Domain':'Machine-blessing smith with heavy armour and fire resistance.','Grave Domain':'Guardian at death\'s door who maximises healing on the fallen.','Order Domain':'Enforcer whose blessings let allies strike on command.','Peace Domain':'Binds allies together to share protection.','Twilight Domain':'Night-watcher granting darkvision and temporary HP.','Arcana Domain':'Psyker-confessor who learns warp powers and wards against them.',
+ 'Circle of the Land':'Draws power from a chosen terrain; recovers slots on a rest.','Circle of the Moon':'Battle-shaper whose Biomorph forms are strong combat beasts.','Circle of Dreams':'Healing and safe-haven powers drawn from the Aeldari webway.','Circle of the Shepherd':'Spirit totems and summoned beasts that empower allies.','Circle of Spores':'Necrotic spores and animated dead.','Circle of Stars':'Star-map seer who takes on constellation forms.','Circle of Wildfire':'Bonded fire spirit; burn and heal.','Circle of the Sea':'Storm and tide wrath around you.',
+ 'Champion':'Simple and deadly: crits on 19-20 and better athletics.','Battle Master':'Tactician with superiority dice and manoeuvres.','Eldritch Knight':'Warrior-psyker casting from the wizard list.','Arcane Archer':'Imbues shots with warp effects.','Cavalier':'Mounted defender who locks down foes.','Samurai':'Disciplined duellist with bursts of advantage.','Echo Knight':'Summons a warp echo of yourself to fight and swap places.','Psi Warrior':'Telekinetic strikes, shields and leaps.','Rune Knight':'Inscribes hexagrammic runes and grows to giant size.','Banneret':'Inspiring leader who heals and rallies allies.',
+ 'Way of the Open Hand':'Unarmed strikes that topple, push and stun.','Way of Shadow':'Teleports between shadows and casts darkness.','Way of the Four Elements':'Shapes elemental force through Inner Focus.','Way of the Drunken Master':'Stumbling, unpredictable dodger.','Way of the Kensei':'Master of chosen weapons.','Way of the Sun Soul':'Hurls radiant bolts.','Way of the Long Death':'Feeds on death; frightens and endures.','Way of Mercy':'Heals and harms with the same touch.','Way of the Astral Self':'Manifests spectral arms and form.','Way of the Ascendant Dragon':'Draconic breath and wings.','Warrior of the Elements':'Shapes elemental force through Inner Focus.','Warrior of Shadow':'Teleports between shadows and casts darkness.','Warrior of Mercy':'Heals and harms with the same touch.',
+ 'Oath of Devotion':'Righteous protector: aura against charm, holy weapon.','Oath of the Ancients':'Warden of life and light; resists powers.','Oath of Vengeance':'Relentless hunter of one chosen enemy.','Oath of Conquest':'Rules through fear and crushing control.','Oath of Redemption':'Peacemaker who absorbs harm for others.','Oath of Glory':'Heroic athlete who inspires allies.','Oath of the Watchers':'Guards against warp entities and psykers.','Oath of the Crown':'Duty-bound shield of the Imperium.','Oathbreaker':'Fallen crusader with dark auras.',
+ 'Hunter':'Big-game killer with extra damage options.','Beast Master':'Fights alongside a bonded beast.','Gloom Stalker':'Ambusher invisible to darkvision; strikes first.','Horizon Walker':'Steps through space and deals force damage.','Monster Slayer':'Studies a foe and counters its powers.','Fey Wanderer':'Aeldari-touched charmer with psychic strikes.','Swarmkeeper':'Commands a swarm of servo-drones.','Drakewarden':'Bonded drake companion.',
+ 'Thief':'Fast hands, climbing and using devices quickly.','Assassin':'Deadly first strikes and disguises.','Arcane Trickster':'Warp-tricks from the wizard list.','Inquisitive':'Reads lies and finds weak points.','Mastermind':'Grants advantage from afar and reads people.','Scout':'Skirmisher who moves before foes act.','Swashbuckler':'Duellist who slips away and fights alone.','Phantom':'Steals knowledge from the dead.','Soulknife':'Psychic blades and telepathy.',
+ 'Draconic Bloodline':'Armoured hide and empowered fire powers.','Draconic Sorcery':'Armoured hide and empowered elemental powers.','Wild Magic':'Unstable warp surges with luck to bend fate.','Divine Soul':'Psyker with access to faith powers.','Shadow Magic':'Darkness, an umbral hound and death-denial.','Storm Sorcery':'Flies on winds and calls storms.','Aberrant Mind':'Telepathy and warp-horror powers.','Aberrant Sorcery':'Telepathy and warp-horror powers.','Clockwork Soul':'Order-bound psyker who cancels chance.','Clockwork Sorcery':'Order-bound psyker who cancels chance.','Lunar Sorcery':'Phases of the moon shape your powers.','Wild Magic Sorcery':'Unstable warp surges with luck to bend fate.',
+ 'The Archfey':'Aeldari patron of charm and misdirection.','The Fiend':'Daemon patron: temporary HP on kills and fire.','Fiend Patron':'Daemon patron: temporary HP on kills and fire.','The Great Old One':'Alien warp entity granting telepathy and madness.','Great Old One Patron':'Alien warp entity granting telepathy and madness.','The Celestial':'Saintly patron of healing light.','Celestial Patron':'Saintly patron of healing light.','The Hexblade':'Bound daemon weapon; Cha for attacks.','The Fathomless':'Void leviathan tentacles and drowning cold.','The Genie':'Bound warp spirit with a pocket vessel.','The Undead':'Form of dread that frightens foes.','The Undying':'Cheats death; hard to kill.','Archfey Patron':'Aeldari patron of charm and misdirection.',
+ 'School of Abjuration':'Ward that absorbs damage; counter-powers.','School of Conjuration':'Summons and short-range teleports.','School of Divination':'Portent: replace rolls with foreseen ones.','School of Enchantment':'Mind control and charm.','School of Evocation':'Shapes blasts to spare allies; empowered damage.','School of Illusion':'Malleable, partly real illusions.','School of Necromancy':'Raises stronger undead servants; drains life.','School of Transmutation':'Transmuter\'s stone and shape-changing.','Bladesinging':'Aeldari blade-dancer with speed and defence.','War Magic':'Battle psyker who deflects attacks and powers.','Order of Scribes':'Lexmechanic with an awakened data-grimoire.','Chronurgy':'Manipulates time and initiative.','Graviturgy':'Manipulates gravity and weight.','Abjurer':'Ward that absorbs damage; counter-powers.','Diviner':'Portent: replace rolls with foreseen ones.','Evoker':'Shapes blasts to spare allies; empowered damage.','Illusionist':'Malleable, partly real illusions.'
+};
+function subDesc(name){return SUBDESC[name]||'';}
 
 </script>
 <script>
@@ -1203,7 +1358,7 @@ const BORIGIN=k=>B_ORIGINS.find(o=>o.key===k);
 const SKILL=k=>SKILLS.find(s=>s.key===k);
 function newBuild(){const b={step:0,cls:'fighter',sub:'',level:1,bg:'soldier',asiMode:'21',asi2:'str',asi1:'con',origin:'human',homeworld:'void',crewRole:'trader',keen:'perception',humanFeat:'skilled',
  method:'array',assign:{},buy:{str:8,dex:8,con:8,int:8,wis:8,cha:8},rolls:[],skills:[],extra:[],expertise:[],shield:true,can:[],sp:[],miCan:[],miSp:'',name:'',player:'',q:'',lvl:'all',
- picks:{},style:''};
+ picks:{},style:'',opts:{order:'',masteries:[],invocations:[],metamagic:[],maneuvers:[]}};
  autoAssign(b);autoAsi(b);return b;}
 function autoAssign(b){const pr=CLASS24[b.cls].primary;const pool=b.method==='roll'&&b.rolls.length?b.rolls:STD_ARRAY;
  const order=pool.map((v,i)=>[v,i]).sort((a,c)=>c[0]-a[0]).map(x=>x[1]);b.assign={};pr.forEach((a,i)=>b.assign[a]=order[i]);}
@@ -1230,12 +1385,14 @@ function bSkillState(b){
  return {fixed,classN,classList,extraN,extraLabel:extraLabel.join(' + '),keen,expN,prof};
 }
 function bList(b){return spellListFor(b.cls,b.level>=3?b.sub:'');}
-function bLimits(b){return spellLimits(b.cls,b.level,b.level>=3?b.sub:'');}
+function bLimits(b){return spellLimits(b.cls,b.level,b.level>=3?b.sub:'',b.opts);}
+function bSubNow(b){return b.level>=3?b.sub:'';}
+function bOptGroups(b){return classOptionGroups(b.cls,b.level,bSubNow(b),b.opts,b.can);}
 function bMI(b){const bg=BG(b.bg);return bg.feat==='magicinitiate'?bg.featList:(b.origin==='human'&&b.humanFeat==='magicinitiate'?'wizard':null);}
 function bAC(b,sc){const k=CLASS24[b.cls].kit;const dx=modOf(sc.dex);let ac;
  if(k.armor){const [base,cap]=ARMOR_AC[k.armor];ac=base+Math.min(dx,cap);if(b.style==='defense')ac+=1;}else if(k.unarmored)ac=10+dx+modOf(sc[k.unarmored]);else ac=10+dx;
  if(k.shield&&b.shield)ac+=2;return ac;}
-function bSteps(b){const s=['Career','Background','Origin','Characteristics','Skills'];
+function bSteps(b){const s=['Career','Background','Origin','Characteristics','Skills'];if(bOptGroups(b).length)s.push('Class options');
  if(bFeatLevels(b).length||b.level>=styleLevel(b.cls))s.push('Feats');s.push('Wargear');
  if((bList(b)&&maxPowerLevel(b.cls,b.level,b.level>=3?b.sub:'')>=0&&(bLimits(b).cantrips||bLimits(b).spells))||bMI(b))s.push('Powers');s.push('Finish');return s;}
 function bToSrc(b){
@@ -1251,7 +1408,7 @@ function bToSrc(b){
  const spells=[...b.can,...b.sp,...b.miCan,...(b.miSp?[b.miSp]:[])];
  return {v:2,name:b.name.trim()||'Unnamed',player:b.player.trim(),race:o.species,background:bg.name,alignment:'',
   classes:[{cls:b.cls,level:b.level,sub:b.level>=3?b.sub:''}],abilities:sc,maxHp:hp,ac:bAC(b,sc),speed:o.speed,skills,saves,weapons,
-  armor:c.kit.armor,shield:c.kit.shield&&b.shield,spells:[...new Set(spells)],feats,style:b.style||'',built:true,
+  armor:c.kit.armor,shield:c.kit.shield&&b.shield,spells:[...new Set(spells)],feats,style:b.style||'',built:true,opts:trimOpts(b.cls,b.level,bSubNow(b),b.opts,b.can),
   features:`${o.species} traits: ${SPECIES24_NOTE[o.key]}`,
   equipment:[c.kit.armor,c.kit.shield&&b.shield?'Shield':'',...c.kit.weapons,c.kit.gear,'Void suit, vox-bead'].filter(Boolean).join(', '),languages:'Low Gothic, one other',warnings:[]};
 }
@@ -1274,7 +1431,7 @@ function vBuild(){
  if(step==='Career'){
   const d=CLASSES[b.cls];
   body=`<div class="career-top">${levelStepper(b.level,'blevel','Starting level')}
-   <label class="f" style="flex:1 1 240px">Subclass${b.level<3?' (chosen at level 3)':''}<select data-b="sub" ${b.level<3?'disabled':''}>${opt('',b.level<3?'Unlocks at level 3':'Choose a subclass…',b.sub)}${d.subs.map(s=>opt(s[0],`${s[1]} (${s[0]})`,b.sub)).join('')}</select></label></div>
+   <label class="f" style="flex:1 1 240px">Subclass${b.level<3?' (chosen at level 3)':''}<select data-b="sub" ${b.level<3?'disabled':''}>${opt('',b.level<3?'Unlocks at level 3':'Choose a subclass…',b.sub)}${d.subs.map(s=>opt(s[0],`${s[1]} (${s[0]})`,b.sub)).join('')}</select>${b.sub&&b.level>=3?`<span class="subdesc">${esc(subDesc(b.sub))}</span>`:''}</label></div>
   <p class="note" style="margin:6px 0 16px">${b.level===1?'Most campaigns start at level 1. Ask your GM if you\'re starting higher.':`Starting at level ${b.level}: you'll choose ${bFeatLevels(b).length?`${bFeatLevels(b).length} feat or characteristic increase${bFeatLevels(b).length>1?'s':''} and `:''}any extra powers in the later steps.`}</p>
   <h3 class="sub-h" style="margin-top:0">Choose a career</h3>
   <div class="picks">${Object.entries(CLASSES).map(([k,c])=>{const t=c.trad?TRAD[c.trad].name:'No powers';return bCard(k===b.cls,'bcls',k,esc(c.career),`${esc(c.name)} · d${c.hd}`,`${t}${c.trad==='psyker'?' · <span class="perils">PERILS</span>':''}${k==='artificer'?' · <em>not in the 2024 PHB</em>':''}`);}).join('')}</div>`;
@@ -1325,6 +1482,9 @@ function vBuild(){
    <div class="togs">${ALL_SKILLS.map(k=>{const on=b.extra.includes(k);const taken=!on&&(ss.fixed.includes(k)||b.skills.includes(k)||k===ss.keen);return chip(k,on,'bextra',(!on&&eleft<=0)||taken);}).join('')}</div>`:''}
   ${ss.expN?`<h3 class="sub-h">Expertise: choose ${ss.expN} <span class="count ${ss.expN-b.expertise.length?'':'ok'}">${ss.expN-b.expertise.length?(ss.expN-b.expertise.length)+' left':'done'}</span></h3><p class="note" style="margin-top:0">Expertise doubles your proficiency bonus for that skill.</p><div class="togs">${[...ss.prof].map(k=>{const on=b.expertise.includes(k);return chip(k,on,'bexp',!on&&b.expertise.length>=ss.expN);}).join('')}</div>`:''}
   <p class="note">Saving throws: ${CLASS24[b.cls].saves.map(a=>ABIL_FULL[a]).join(' and ')}.</p>`;
+ }
+ else if(step==='Class options'){
+  body=`<p class="note" style="margin-top:0">Career-specific choices for a level ${b.level} ${esc(CLASSES[b.cls].career)}. Counts are fixed by level.</p>`+classOptionsUI('b',b.cls,b.level,bSubNow(b),b.opts,b.can);
  }
  else if(step==='Feats'){
   const cur=bScores(b);const fl=bFeatLevels(b);
@@ -1382,11 +1542,13 @@ function buildMissing(b){
  for(const L of bFeatLevels(b)){const p=b.picks[L];if(!p||(p.type==='asi'&&(!p.a1||!p.a2))||(p.type==='feat'&&(!p.key||(FEATS[p.key].abil.length&&!p.abil))))m.push(['Feats',`level ${L} choice`]);}
  const list=bList(b);if(list){const lim=bLimits(b);if(b.can.length<lim.cantrips)m.push(['Powers',`${lim.cantrips-b.can.length} cantrip${lim.cantrips-b.can.length>1?'s':''}`]);if(b.sp.length<lim.spells)m.push(['Powers',`${lim.spells-b.sp.length} more power${lim.spells-b.sp.length>1?'s':''}`]);}
  if(bMI(b)&&(b.miCan.length<2||!b.miSp))m.push(['Powers','Latent Gift picks']);
+ optionsMissing(b.cls,b.level,bSubNow(b),b.opts,b.can).forEach(x=>m.push(['Class options',x]));
  if(!b.name.trim())m.push(['Finish','a name']);
  return m.filter(x=>bSteps(b).includes(x[0]));
 }
 function trimToLimits(b){const ss=bSkillState(b);b.skills=b.skills.slice(0,ss.classN);b.extra=b.extra.slice(0,ss.extraN);b.expertise=b.expertise.filter(k=>ss.prof.has(k)).slice(0,ss.expN);
  const list=bList(b);if(!list){b.can=[];b.sp=[];}else{const lim=bLimits(b);const maxL=maxPowerLevel(b.cls,b.level,b.level>=3?b.sub:'');const ok=n=>{const s=SPELLS[N(n)];return s&&(CLASS_SPELLS[list][s.lvl]||[]).includes(n)&&s.lvl<=maxL;};b.can=b.can.filter(ok).slice(0,lim.cantrips);b.sp=b.sp.filter(ok).slice(0,lim.spells);}
+ b.opts=trimOpts(b.cls,b.level,bSubNow(b),b.opts,b.can);
  const fl=bFeatLevels(b);Object.keys(b.picks).forEach(L=>{if(!fl.includes(+L))delete b.picks[L];});if(b.level<styleLevel(b.cls))b.style='';}
 function buildClick(a,v,btn){
  const b=S.build;if(!b)return false;
@@ -1396,11 +1558,12 @@ function buildClick(a,v,btn){
   case 'bnext':b.step++;window.scrollTo(0,0);break;
   case 'bback':b.step=Math.max(0,b.step-1);window.scrollTo(0,0);break;
   case 'blevel':b.level=Math.max(1,Math.min(20,b.level+(+btn.dataset.d)));if(b.level<3)b.sub='';trimToLimits(b);break;
-  case 'bcls':if(b.cls!==v){b.cls=v;b.sub='';b.skills=[];b.expertise=[];b.can=[];b.sp=[];b.style='';autoAssign(b);autoAsi(b);trimToLimits(b);}break;
+  case 'bcls':if(b.cls!==v){b.cls=v;b.sub='';b.skills=[];b.expertise=[];b.can=[];b.sp=[];b.style='';b.opts={order:'',masteries:[],invocations:[],metamagic:[],maneuvers:[]};autoAssign(b);autoAsi(b);trimToLimits(b);}break;
   case 'bbg':if(b.bg!==v){b.bg=v;autoAsi(b);const bg=BG(v);b.skills=b.skills.filter(k=>!bg.skills.includes(k));b.extra=b.extra.filter(k=>!bg.skills.includes(k));b.miCan=[];b.miSp='';trimToLimits(b);}break;
   case 'borg':b.origin=v;b.extra=[];trimToLimits(b);break;
   case 'bmethod':b.method=v;if(v==='roll'&&!b.rolls.length)rollStats(b);if(v!=='buy')autoAssign(b);break;
   case 'broll':rollStats(b);autoAssign(b);break;
+  case 'b-opt':toggleOpt(b.opts,btn.dataset.g,v,b.cls,b.level,bSubNow(b),b.can);if(btn.dataset.g==='order')trimToLimits(b);break;
   case 'bstyle':b.style=b.style===v?'':v;break;
   case 'bskill':tg(b.skills,v,bSkillState(b).classN);b.expertise=b.expertise.filter(k=>bSkillState(b).prof.has(k));break;
   case 'bextra':tg(b.extra,v,bSkillState(b).extraN);b.expertise=b.expertise.filter(k=>bSkillState(b).prof.has(k));break;
@@ -1441,7 +1604,7 @@ function luTrad(cls,sub){const list=spellListFor(cls,sub);if(!list)return null;r
 function classSpellsOf(src,list){return (src.spells||[]).filter(n=>{const s=SPELLS[N(n)];return s&&(CLASS_SPELLS[list]||[])[s.lvl]&&CLASS_SPELLS[list][s.lvl].includes(n);});}
 function newLU(ch){
  const src=ch.src;const main=[...src.classes].sort((a,b)=>b.level-a.level)[0]||{cls:'fighter',level:0,sub:''};
- const lu={id:ch.id,step:0,cls:main.cls,mc:false,hpMode:'avg',roll:null,sub:'',pick:{type:'asi'},style:'',extra:[],expertise:[],q:'',lvl:'all'};
+ const lu={id:ch.id,step:0,cls:main.cls,mc:false,hpMode:'avg',roll:null,sub:'',pick:{type:'asi'},style:'',extra:[],expertise:[],q:'',lvl:'all',opts:clone(Object.assign({order:'',masteries:[],invocations:[],metamagic:[],maneuvers:[]},src.opts||{}))};
  luInitPowers(lu,src);return lu;
 }
 function luInitPowers(lu,src){const e=luClassEntry(src,lu.cls);const sub=lu.sub||(e&&e.sub)||'';const list=spellListFor(lu.cls,sub);
@@ -1451,12 +1614,12 @@ function luInfo(ch,lu){
  const tot=chTotalLevel(src)+1;const d=CLASSES[lu.cls];
  const needSub=newL>=3&&!sub;const featL=featLevels(lu.cls,newL).includes(newL);const style=newL===styleLevel(lu.cls)&&!src.style;
  const expGain=expertiseCount(lu.cls,newL)-expertiseCount(lu.cls,oldL)+(lu.pick.type==='feat'&&lu.pick.key==='skillexpert'?1:0);
- const list=spellListFor(lu.cls,sub);const lim=list?spellLimits(lu.cls,newL,sub):null;const maxL=list?maxPowerLevel(lu.cls,newL,sub):0;
+ const list=spellListFor(lu.cls,sub);const lim=list?spellLimits(lu.cls,newL,sub,lu.opts):null;const optG=classOptionGroups(lu.cls,newL,sub,lu.opts,lu.can);const maxL=list?maxPowerLevel(lu.cls,newL,sub):0;
  const gains=d.feats.filter(f=>f[0]===newL).map(f=>({to:f[1]==='Spellcasting'?(TRAD[d.trad]||{}).power||f[2]:f[2],from:f[1]}));
- return {e,oldL,newL,sub,tot,d,needSub,featL,style,expGain,list,lim,maxL,gains,trad:luTrad(lu.cls,sub)};
+ return {e,oldL,newL,sub,tot,d,needSub,featL,style,expGain,list,lim,maxL,gains,optG,trad:luTrad(lu.cls,sub)};
 }
 function luSteps(ch,lu){const i=luInfo(ch,lu);const s=['Class','Hit points'];if(i.needSub||lu.sub)s.push('Subclass');if(i.featL)s.push('Feat');if(i.style)s.push('Doctrine');
- if(i.expGain>0||(lu.pick.type==='feat'&&lu.pick.key==='skillexpert'))s.push('Skills');if(i.list&&i.lim&&(i.lim.cantrips||i.lim.spells))s.push('Powers');s.push('Review');return s;}
+ if(i.expGain>0||(lu.pick.type==='feat'&&lu.pick.key==='skillexpert'))s.push('Skills');if(i.optG.length)s.push('Class options');if(i.list&&i.lim&&(i.lim.cantrips||i.lim.spells))s.push('Powers');s.push('Review');return s;}
 function luHP(ch,lu){
  const src=ch.src;const i=luInfo(ch,lu);const hd=i.d.hd;const fb=i.featL?featBonus(lu.pick):{};
  const oldCon=modOf(src.abilities.con);const newCon=modOf(Math.min(20,src.abilities.con+(fb.con||0)));
@@ -1472,6 +1635,7 @@ function luMissing(ch,lu){const i=luInfo(ch,lu);const m=[];
  if(i.featL){const p=lu.pick;if((p.type==='asi'&&(!p.a1||!p.a2))||(p.type==='feat'&&(!p.key||(FEATS[p.key]&&FEATS[p.key].abil.length&&!p.abil))))m.push('Feat');}
  if(i.style&&!lu.style)m.push('Doctrine');
  if(lu.hpMode==='roll'&&!lu.roll)m.push('Hit points');
+ if(optionsMissing(lu.cls,i.newL,i.sub,lu.opts,lu.can).length)m.push('Class options');
  return m;}
 function vLevelUp(){
  const ch=S.party.find(c=>c.id===S.lu.id);if(!ch)return vParty();const lu=S.lu;const src=ch.src;
@@ -1489,7 +1653,10 @@ function vLevelUp(){
   <p class="note">Plus your Constitution modifier (${sgn(con)}). Max HP goes from <b>${src.maxHp}</b> to <b>${src.maxHp+luHP(ch,lu)}</b>.</p>`;
  }
  else if(step==='Subclass'){
-  body=`<p class="lede" style="margin-top:0">At level 3 your career specialises.</p><div class="picks">${i.d.subs.map(s=>bCard(lu.sub===s[0],'lusub',s[0],esc(s[1]),esc(s[0]),'')).join('')}</div>`;
+  body=`<p class="lede" style="margin-top:0">At level 3 your career specialises.</p><div class="picks">${i.d.subs.map(s=>bCard(lu.sub===s[0],'lusub',s[0],esc(s[1]),esc(s[0]),esc(subDesc(s[0])))).join('')}</div>`;
+ }
+ else if(step==='Class options'){
+  body=`<p class="note" style="margin-top:0">Choices for ${esc(CLASSES[lu.cls].career)} ${i.newL}. You can also swap one you already have.</p>`+classOptionsUI('lu',lu.cls,i.newL,i.sub,lu.opts,lu.can);
  }
  else if(step==='Feat'){
   body=`<p class="lede" style="margin-top:0">Level ${i.newL} lets you raise your characteristics or take a feat.</p>${featPickUI(i.newL,lu.pick,'lu',src.abilities)}`;
@@ -1543,6 +1710,8 @@ function applyLevelUp(ch,lu){
   const rec=featRecord(lu.pick,i.tot);if(rec){src.feats=src.feats||[];src.feats.push(rec);}
   if(lu.pick.type==='feat'&&FEATS[lu.pick.key]&&FEATS[lu.pick.key].save&&lu.pick.abil)src.saves[lu.pick.abil]=true;}
  if(lu.style)src.style=lu.style;
+ src.opts=Object.assign({order:'',masteries:[],invocations:[],metamagic:[],maneuvers:[]},src.opts||{});
+ for(const g of i.optG){if(g.id==='order')src.opts.order=lu.opts.order;else src.opts[g.id]=(lu.opts[g.id]||[]).slice(0,g.max);}
  src.skills=src.skills||{};lu.extra.forEach(k=>src.skills[k]=Math.max(1,src.skills[k]||0));lu.expertise.forEach(k=>src.skills[k]=2);
  src.maxHp=(src.maxHp||0)+gain;ch.state=ch.state||{};if(ch.state.hp!=null)ch.state.hp=Math.min(src.maxHp,ch.state.hp+gain);
  if(i.list){const keep=(src.spells||[]).filter(n=>!classSpellsOf(old,i.list).includes(n));src.spells=[...new Set([...keep,...lu.can,...lu.sp])];}
@@ -1559,10 +1728,11 @@ function luClick(a,v,btn){
   case 'lunext':lu.step++;window.scrollTo(0,0);break;
   case 'luback':lu.step=Math.max(0,lu.step-1);window.scrollTo(0,0);break;
   case 'luquit':S.lu=null;go('sheet');return true;
-  case 'lucls':lu.cls=v;lu.mc=false;lu.sub='';lu.pick={type:'asi'};lu.style='';lu.expertise=[];lu.extra=[];luInitPowers(lu,ch.src);break;
+  case 'lucls':lu.cls=v;lu.mc=false;lu.opts=clone(Object.assign({order:'',masteries:[],invocations:[],metamagic:[],maneuvers:[]},ch.src.opts||{}));lu.sub='';lu.pick={type:'asi'};lu.style='';lu.expertise=[];lu.extra=[];luInitPowers(lu,ch.src);break;
   case 'lumc':lu.cls=v;lu.mc=true;lu.sub='';lu.pick={type:'asi'};lu.style='';lu.expertise=[];lu.extra=[];luInitPowers(lu,ch.src);break;
   case 'luhp':lu.hpMode=v;if(v==='roll')lu.roll=1+Math.floor(Math.random()*i.d.hd);break;
   case 'lusub':lu.sub=v;luInitPowers(lu,ch.src);break;
+  case 'lu-opt':toggleOpt(lu.opts,btn.dataset.g,v,lu.cls,i.newL,i.sub,lu.can);break;
   case 'lustyle':lu.style=lu.style===v?'':v;break;
   case 'luextra':{const k=lu.extra.indexOf(v);if(k>=0)lu.extra.splice(k,1);else if(lu.extra.length<1)lu.extra.push(v);break;}
   case 'luexp':{const k=lu.expertise.indexOf(v);if(k>=0)lu.expertise.splice(k,1);else if(lu.expertise.length<i.expGain)lu.expertise.push(v);break;}
@@ -1580,12 +1750,12 @@ function luInput(t,isChange){const lu=S.lu;if(!lu)return false;
 
 /* Manage powers outside level-up (swap prepared powers) */
 function newPM(ch){const src=ch.src;const casters=src.classes.filter(x=>spellListFor(x.cls,x.sub));const e=[...casters].sort((a,b)=>b.level-a.level)[0];if(!e)return null;
- const list=spellListFor(e.cls,e.sub);const mine=classSpellsOf(src,list);return {id:ch.id,cls:e.cls,level:e.level,sub:e.sub,list,trad:luTrad(e.cls,e.sub),can:mine.filter(n=>SPELLS[N(n)].lvl===0),sp:mine.filter(n=>SPELLS[N(n)].lvl>0),q:'',lvl:'all'};}
-function vPowers(){const pm=S.pm;const ch=S.party.find(c=>c.id===pm.id);if(!ch)return vParty();const lim=spellLimits(pm.cls,pm.level,pm.sub);const maxL=maxPowerLevel(pm.cls,pm.level,pm.sub);
+ const list=spellListFor(e.cls,e.sub);const mine=classSpellsOf(src,list);return {opts:src.opts||{},id:ch.id,cls:e.cls,level:e.level,sub:e.sub,list,trad:luTrad(e.cls,e.sub),can:mine.filter(n=>SPELLS[N(n)].lvl===0),sp:mine.filter(n=>SPELLS[N(n)].lvl>0),q:'',lvl:'all'};}
+function vPowers(){const pm=S.pm;const ch=S.party.find(c=>c.id===pm.id);if(!ch)return vParty();const lim=spellLimits(pm.cls,pm.level,pm.sub,pm.opts);const maxL=maxPowerLevel(pm.cls,pm.level,pm.sub);
  return `<button class="back" data-act="pmquit">← Back to ${esc(ch.src.name)}</button><div class="page-h"><div class="grow"><div class="eyebrow">+++ ${esc(TRAD[pm.trad].power)} +++</div><h1>Manage powers</h1><p class="lede">${esc(CLASSES[pm.cls].career)} ${pm.level}. After a long rest you can swap prepared powers; keep within the counts.</p></div></div>
  ${powerPicker({list:pm.list,trad:pm.trad,maxLevel:maxL,can:pm.can,sp:pm.sp,canMax:lim.cantrips,spMax:lim.spells,spLabel:lim.label,act:'pmpk',q:pm.q,lvl:pm.lvl})}
  <div class="build-foot"><button class="btn" data-act="pmquit">Cancel</button><button class="btn primary" data-act="pmsave">Save powers</button></div>`;}
-function pmClick(a,v,btn){const pm=S.pm;if(!pm)return false;const ch=S.party.find(c=>c.id===pm.id);const lim=spellLimits(pm.cls,pm.level,pm.sub);
+function pmClick(a,v,btn){const pm=S.pm;if(!pm)return false;const ch=S.party.find(c=>c.id===pm.id);const lim=spellLimits(pm.cls,pm.level,pm.sub,pm.opts);
  switch(a){case 'pmquit':S.pm=null;go('sheet');return true;
   case 'pmpk':if(!pickerToggle(pm,btn.dataset.k,v,lim.cantrips,lim.spells))return true;break;
   case 'pmpk-lv':pm.lvl=v;break;
@@ -1852,7 +2022,7 @@ function vSheet(ch){
  </div><div>
   <section class="sec"><h2 class="sec-h">Weapons<small>tap to roll</small></h2>
    ${d.weapons.length?`<div class="tscroll"><table class="wtable"><thead><tr><th>Weapon</th><th>Hit</th><th>Damage</th><th>Range</th><th>Clip</th></tr></thead><tbody>
-   ${d.weapons.map((w,i)=>{const left=ammo[i]==null?w.clip:ammo[i];const isDc=/dc/i.test(w.atk);return `<tr><td><b>${esc(w.to)}</b><small>${esc(w.from)}${w.props.length?' · '+esc(w.props.join(', ')):''}</small></td>
+   ${d.weapons.map((w,i)=>{const left=ammo[i]==null?w.clip:ammo[i];const isDc=/dc/i.test(w.atk);return `<tr><td><b>${esc(w.to)}</b><small>${esc(w.from)}${w.props.length?' · '+esc(w.props.join(', ')):''}${(()=>{const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const m=k&&((s.opts||{}).masteries||[]).includes(k)&&MASTERY_KINDS.find(x=>x.key===k);return m?` · <span class="mastery" title="${esc(reskinText(MASTERY_PROPS[m.prop]||''))}">Mastery: ${esc(m.prop)}</span>`:'';})()}</small></td>
     <td>${w.atk?(isDc?`<span class="mono">${esc(w.atk)}</span>`:`<button class="roll" data-act="atk" data-i="${i}">${esc(w.atk)}</button>`):'—'}</td>
     <td>${w.dmg?`<button class="roll" data-act="dmg" data-i="${i}">${esc(w.dmg)}</button>`:'—'}</td>
     <td class="mono">${esc(w.range||(w.kind==='melee'?'Melee':'—'))}</td>
@@ -1874,6 +2044,7 @@ function vSheet(ch){
    <div class="trait"><b>${esc(d.crew[0])}, ship action.</b> ${esc(d.crew[1])} <span class="muted">Downtime: ${esc(d.crew[2])}</span></div>
   </section>
   ${(s.feats&&s.feats.length)||s.style?`<section class="sec"><h2 class="sec-h">Feats &amp; doctrine</h2>${s.style&&STYLES[s.style]?`<div class="trait"><b>${esc(STYLES[s.style][1])}</b> <small class="muted">${esc(STYLES[s.style][0])}</small>: ${esc(STYLES[s.style][2])}</div>`:''}${(s.feats||[]).map(f=>`<div class="trait"><b>${esc(f.w40)}</b> <small class="muted">${esc(f.name)}${f.origin?' · origin':' · level '+f.level}</small>: ${esc(f.text)}</div>`).join('')}</section>`:''}
+  ${optionsSheet(s).length?`<section class="sec"><h2 class="sec-h">Career choices</h2>${s.opts&&(s.opts.maneuvers||[]).length?`<p class="note" style="margin-top:0">${superiority((s.classes.find(x=>x.cls==='fighter')||{level:3}).level).dice} superiority dice, d${superiority((s.classes.find(x=>x.cls==='fighter')||{level:3}).level).size}.</p>`:''}${optionsSheet(s).map(o=>`<div class="trait"><b>${esc(o[0])}</b> <small class="muted">${esc(o[1])}</small>: ${esc(o[2])}</div>`).join('')}</section>`:''}
   <section class="sec"><h2 class="sec-h">Career features<small>lvl · 40k · 5e</small></h2>
    ${d.feats.map(f=>`<div class="feat${f.sub?' subc':''}"><span class="l">${f.lvl}</span><span><b>${esc(f.to)}</b> <small>${esc(f.from)}${d.careers.length>1?' · '+esc(f.cls):''}</small></span></div>`).join('')||'<p class="muted">No class set.</p>'}
   </section>
