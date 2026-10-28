@@ -253,6 +253,15 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 @media (prefers-reduced-motion:reduce){.die{animation:none}}
 
 
+.party-panel{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 22px;align-items:center;padding:14px 18px;margin-bottom:18px;border:1px solid var(--gold-dk);border-left:3px solid var(--gold);background:var(--rivets),var(--plate-bg)}
+.party-panel>p{margin:0}
+.party-panel>.row,.party-panel>.msg{grid-column:1/-1}
+.pcode{font-size:26px;color:var(--gold-hi);letter-spacing:.12em;text-shadow:0 0 14px rgba(200,162,74,.3)}
+.sel{word-break:break-all;user-select:all}
+.linkish{background:none;border:0;padding:0;color:var(--gold-hi);font-family:var(--f-caps);font-weight:700;letter-spacing:.03em;text-align:left}
+.linkish:hover{text-decoration:underline}
+.inp{background:var(--sunk);border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;color:var(--ink)}
+@media (max-width:560px){.party-panel{grid-template-columns:minmax(0,1fr)}}
 /* creator */
 .stepper{list-style:none;margin:0 0 22px;padding:0;display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--gold-dk)}
 .stepper li{flex:none}
@@ -1197,15 +1206,52 @@ function persist(ch,now){
  const go=()=>{const body=clone(ch);delete body.id;writeQ[ch.id]=(writeQ[ch.id]||Promise.resolve()).then(()=>DB.collection('party').doc(ch.id).set(body)).catch(e=>{toastMsg(e&&e.code==='invalid_argument'?'You can view this party but not change it.':'Couldn\'t save: '+(e&&e.message||'unknown error'));});};
  if(now)go();else writeT[ch.id]=setTimeout(go,500);
 }
-async function initStore(){
- S.party=lsLoad();render();
- let db=null;try{db=window.claude&&window.claude.use?await window.claude.use('db'):null;}catch(e){db=null;}
- if(!db)return;
- DB=db;S.store='shared';S.localOnly=S.party.slice();S.party=[];S.loading=true;render();
+const SUPA_URL='https://xpljuyatduvrbhiwfbwn.supabase.co';
+const SUPA_KEY='sb_publishable_zU8au39xaYFxmL3cZH09gQ_w95iJkD5';
+const SUPA_LIB='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
+const PCODE='rtm.party.code';
+const getCode=()=>{try{return localStorage.getItem(PCODE)||'';}catch(e){return '';}};
+const setCode=c=>{try{c?localStorage.setItem(PCODE,c):localStorage.removeItem(PCODE);}catch(e){}};
+const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.+)$/,'$1-$2').slice(0,9);
+function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=new Uint32Array(8);crypto.getRandomValues(r);r.forEach(x=>s+=a[x%a.length]);return s.slice(0,4)+'-'+s.slice(4);}
+/* Supabase party store, shaped like the claude db API the rest of the app uses */
+function supaDB(client,code){
+ const listeners=[];let last=0;
+ const chan=client.channel('party-'+code.replace('-',''),{config:{broadcast:{self:false}}});
+ async function refresh(){const {data,error}=await client.rpc('party_list',{p_party:code});
+  if(error){listeners.forEach(l=>l.err&&l.err({code:'unavailable',message:error.message}));return;}
+  const snap={docs:(data||[]).map(r=>({id:r.id,data:()=>r.data}))};last=Date.now();listeners.forEach(l=>l.next(snap));}
+ const ping=()=>{try{chan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(e){}};
+ chan.on('broadcast',{event:'changed'},()=>refresh()).subscribe();
+ setInterval(()=>{if(document.visibilityState==='visible'&&Date.now()-last>25000)refresh();},5000);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
+ return {code,collection:()=>({
+  onSnapshot(next,err){listeners.push({next,err});refresh();return ()=>{};},
+  doc:id=>({
+   set:async body=>{const {error}=await client.rpc('party_save',{p_party:code,p_id:id,p_data:body});if(error)throw error;last=Date.now();ping();},
+   delete:async()=>{const {error}=await client.rpc('party_delete',{p_party:code,p_id:id});if(error)throw error;ping();refresh();}
+  })})};
+}
+function attach(db,kind){
+ DB=db;S.store=kind;S.localOnly=lsLoad();S.party=[];S.loading=true;render();
  DB.collection('party').onSnapshot(snap=>{
-  S.loading=false;S.party=snap.docs.map(d=>Object.assign(clone(d.data()),{id:d.id}));
+  S.loading=false;S.storeErr=null;S.party=snap.docs.map(d=>Object.assign(clone(d.data()),{id:d.id}));
   const a=document.activeElement;if(a&&a.matches&&a.matches('[data-live]')){S.pending=true;return;}render();
- },e=>{S.loading=false;S.storeErr=e.code;render();});
+ },e=>{S.loading=false;S.storeErr=e.message||e.code;render();});
+}
+async function joinParty(code){
+ code=normCode(code);if(code.length<9){toastMsg('Party codes look like VOID-7K3Q.');return;}
+ S.loading=true;S.store='connecting';render();
+ try{await loadScript(SUPA_LIB);const client=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:false}});
+  setCode(code);attach(supaDB(client,code),'party');
+ }catch(e){S.loading=false;S.store='local';S.storeErr='Couldn\'t reach the party server. Check your connection and try again.';S.party=lsLoad();render();}
+}
+async function initStore(){
+ S.party=lsLoad();
+ const h=location.hash.match(/^#join-([A-Za-z0-9]{4}-?[A-Za-z0-9]{4})$/);if(h){setCode(normCode(h[1]));try{history.replaceState(null,'',location.pathname);}catch(e){}}
+ render();
+ if(window.claude&&window.claude.use){let db=null;try{db=await window.claude.use('db');}catch(e){}if(db){attach(db,'shared');return;}}
+ S.supaAvail=true;const code=getCode();if(code)joinParty(code);else render();
 }
 document.addEventListener('focusout',()=>{if(S.pending){S.pending=false;setTimeout(render,0);}});
 
@@ -1236,17 +1282,38 @@ function render(){
 }
 function exampleChar(){return {id:'example',example:true,src:sampleSrc(),choices:{homeworld:'void',crewRole:'voidmaster'},state:{}};}
 function hpOf(ch,d){const st=ch.state||{};return st.hp==null?d.maxHp:st.hp;}
-function storeChip(){return S.store==='shared'?`<span class="store shared"><i></i>Shared party: everyone with this page sees the same crew</span>`:`<span class="store"><i></i>Saved in this browser only</span>`;}
+function storeChip(){
+ if(S.store==='shared')return `<span class="store shared"><i></i>Shared party: everyone with this page sees the same crew</span>`;
+ if(S.store==='party')return `<span class="store shared"><i></i>Party ${esc(DB.code)} · live</span>`;
+ if(S.store==='connecting')return `<span class="store"><i></i>Connecting…</span>`;
+ return `<span class="store"><i></i>Saved in this browser only</span>`;}
+function partyPanel(){
+ if(!S.supaAvail)return '';
+ const inviteUrl=DB&&DB.code?location.origin+location.pathname+'#join-'+DB.code.replace('-',''):'';
+ if(S.store==='party')return `<div class="party-panel"><div><div class="eyebrow">Party code</div><div class="pcode mono">${esc(DB.code)}</div></div>
+  <p class="muted">Everyone who joins with this code shares the same crew. Changes appear for the whole table within seconds.</p>
+  <div class="row"><button class="btn sm" data-act="pcopy" data-v="${esc(inviteUrl)}">Copy invite link</button><span class="mono muted sel" style="font-size:12px">${esc(inviteUrl)}</span>${S.confirmLeave?`<span class="confirm">Leave this party on this device? <button class="btn sm danger" data-act="pleave">Leave</button><button class="btn sm" data-act="pstay">Stay</button></span>`:`<button class="btn sm ghost" data-act="paskleave">Leave party</button>`}</div>${S.storeErr?`<p class="msg err">Can't reach the party right now: ${esc(S.storeErr)}</p>`:''}</div>`;
+ return `<div class="party-panel"><div><div class="eyebrow">Play together</div><div style="font-family:var(--f-caps);font-weight:700;letter-spacing:.06em">Join or start a party</div></div>
+  <p class="muted">A party keeps everyone's sheets in one place, saved online. The GM starts it and shares the code; players join with it.</p>
+  <div class="row"><input id="pjoin" class="inp" style="max-width:160px;text-transform:uppercase" placeholder="VOID-7K3Q" maxlength="9" aria-label="Party code"><button class="btn" data-act="pjoin">Join</button><span class="muted">or</span><button class="btn primary" data-act="pnew">Start a new party</button></div>
+  ${S.storeErr?`<p class="msg err">${esc(S.storeErr)}</p>`:''}</div>`;
+}
+function gmTable(list){
+ if(list.length<2&&S.store==='local')return '';
+ const rows=list.map(ch=>{const d=derive(ch);const st=ch.state||{};const hp=hpOf(ch,d);const per=d.skills.find(k=>k.key==='perception');const used=Object.values(st.slots||{}).reduce((a,b)=>a+b,0);const tot=d.cast.slots.reduce((a,b)=>a+b,0);
+  return `<tr><td><button class="linkish" data-act="open" data-id="${esc(ch.id)}">${esc(ch.src.name)}</button><small>${esc(ch.src.player||'')}</small></td><td>${esc(d.careers.map(c=>c.career+' '+c.level).join(' / '))}</td><td class="mono">${d.ac}</td><td class="mono" style="color:${hp<=d.maxHp/4?'var(--blood)':hp<=d.maxHp/2?'var(--warn)':'var(--ok)'}">${hp}/${d.maxHp}${st.temp?` +${st.temp}`:''}</td><td class="mono">${10+per.total}</td><td class="mono">${tot?`${tot-used}/${tot}`:'—'}</td><td class="mono" style="color:${(st.corruption||0)>=25?'#ff8487':'inherit'}">${st.corruption||0}</td><td class="mono" style="color:${(st.insanity||0)>=25?'#c7a3f0':'inherit'}">${st.insanity||0}</td></tr>`;}).join('');
+ return `<section class="sec" style="margin-top:28px"><h2 class="sec-h">At a glance<small>GM view</small></h2><div class="tscroll"><table class="wtable"><thead><tr><th>Character</th><th>Career</th><th>AC</th><th>HP</th><th>Passive Awareness</th><th>Slots left</th><th>Corruption</th><th>Insanity</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
 
 function vParty(){
  const list=S.party.slice().sort((a,b)=>(a.src.name||'').localeCompare(b.src.name||''));
  const cards=list.map(ch=>card(ch)).join('');
- const migrate=S.store==='shared'&&S.localOnly.length&&!S.loading?`<div class="empty"><p>${S.localOnly.length} character${S.localOnly.length>1?'s are':' is'} saved only in this browser.</p><button class="btn" data-act="migrate">Add to the shared party</button></div>`:'';
+ const migrate=(S.store==='shared'||S.store==='party')&&S.localOnly.length&&!S.loading?`<div class="empty"><p>${S.localOnly.length} character${S.localOnly.length>1?'s are':' is'} saved only in this browser.</p><button class="btn" data-act="migrate">Add ${S.localOnly.length>1?'them':'it'} to the party</button></div>`:'';
  const empty=!list.length&&!S.loading?`<div class="empty"><p>No one has been converted yet. Create one step by step, or import a D&amp;D Beyond PDF or spreadsheet. The example below shows what a converted sheet looks like.</p><div class="row"><button class="btn primary" data-act="newbuild">Create a character</button><button class="btn" data-act="go" data-v="import">Import a character</button></div></div>`:'';
  return `<div class="page-h"><div class="grow"><div class="eyebrow">+++ Manifest of the dynasty +++</div><h1>The crew</h1><p class="lede">${list.length?`${list.length} crew member${list.length>1?'s':''} under the Warrant of Trade.`:'Your party, converted from 5e and ready to play.'}</p><div class="thought">+++ Thought for the day: ${esc(THOUGHTS[new Date().getDate()%THOUGHTS.length])} +++</div></div>
   <div class="row">${storeChip()}<button class="btn" data-act="newbuild">Create a character</button><button class="btn primary" data-act="go" data-v="import">Import a character</button></div></div>
-  ${migrate}${empty}${S.loading?'<p class="muted">Loading the crew…</p>':''}
-  <div class="roster">${cards}${!list.length&&!S.loading?card(exampleChar()):''}</div>`;
+  ${partyPanel()}${migrate}${empty}${S.loading?'<p class="muted">Loading the crew…</p>':''}
+  <div class="roster">${cards}${!list.length&&!S.loading?card(exampleChar()):''}</div>${list.length?gmTable(list):''}`;
 }
 function card(ch){
  const d=derive(ch);const st=ch.state||{};const hp=hpOf(ch,d);
@@ -1433,6 +1500,12 @@ async function handleFile(file){
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
  if(a==='newbuild'){S.build=newBuild();go('build');return;}
+ if(a==='pnew'){joinParty(newCode());return;}
+ if(a==='pjoin'){const v=($('#pjoin')||{}).value;joinParty(v);return;}
+ if(a==='paskleave'){S.confirmLeave=true;render();return;}
+ if(a==='pstay'){S.confirmLeave=false;render();return;}
+ if(a==='pleave'){setCode('');location.reload();return;}
+ if(a==='pcopy'){const t=b.dataset.v;const done=()=>toastMsg('Invite link copied.');if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,()=>{const n=document.querySelector('.sel');if(n){const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);}toastMsg('Select and copy the link shown.');});}return;}
  if(S.view==='build'&&a!=='go'&&buildClick(a,b.dataset.v,b))return;const ch=S.view==='sheet'?(S.cur==='example'?null:cur()):null;
  const st=ch?(ch.state=ch.state||{}):null;
  switch(a){
