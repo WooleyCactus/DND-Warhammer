@@ -390,7 +390,7 @@ function resize(){const r=$('#stage').getBoundingClientRect();
 function fit(){if(!S.meta)return;const r=$('#stage').getBoundingClientRect();const s=Math.max(.2,Math.min(3,Math.min(r.width/(S.meta.w*CELL),r.height/(S.meta.h*CELL))*.96));
  S.view={s,x:(r.width-S.meta.w*CELL*s)/2,y:(r.height-S.meta.h*CELL*s)/2};draw();}
 // Fit the whole map, unless that makes squares too small to drag (phones): then zoom in on your token or the start.
-function firstView(){fit();const MIN=36;if(CELL*S.view.s>=MIN)return;S.view.s=MIN/CELL;
+function firstView(){fit();if(CELL*S.view.s>=22)return;S.view.s=36/CELL;
  const t=(S.role&&S.tokens['pc-'+S.role])||S.tokens[curTurnId()]||Object.values(S.tokens).find(x=>x.kind==='pc');
  centerOn(t||{x:S.meta.start.x,y:S.meta.start.y,size:1});}
 function zoomAt(f,px,py){const v=S.view,ns=Math.max(.2,Math.min(4,v.s*f));v.x=px-(px-v.x)*ns/v.s;v.y=py-(py-v.y)*ns/v.s;v.s=ns;draw();}
@@ -440,7 +440,7 @@ function paint(){
   ctx.globalAlpha=1;
   if(t.id===S.sel){ctx.strokeStyle='#fff';ctx.lineWidth=1.5*dpr;ctx.setLineDash([5*dpr,4*dpr]);ctx.strokeRect(x0+1,y0+1,sz-2,sz-2);ctx.setLineDash([]);
    const n=st.name+(t.hidden?' (hidden)':'');ctx.font=`600 ${12*dpr}px 'Alegreya Sans',sans-serif`;const tw=ctx.measureText(n).width;
-   if(!(S.drag&&S.drag.moved)){ctx.fillStyle='rgba(13,12,10,.9)';ctx.fillRect(cx-tw/2-5*dpr,y0-20*dpr,tw+10*dpr,17*dpr);ctx.fillStyle='#E8DEC6';ctx.fillText(n,cx,y0-11*dpr);}}
+   if(!(S.drag&&S.drag.moved)){ctx.fillStyle='rgba(13,12,10,.9)';ctx.fillRect(cx-tw/2-5*dpr,y0+sz+3*dpr,tw+10*dpr,17*dpr);ctx.fillStyle='#E8DEC6';ctx.fillText(n,cx,y0+sz+12*dpr);}}
  }
  // pings
  S.pings=S.pings.filter(p=>now-p.t<2200);
