@@ -38,3 +38,31 @@ $$;
 
 revoke execute on function public.party_list(text), public.party_save(text, text, jsonb), public.party_delete(text, text) from public;
 grant execute on function public.party_list(text), public.party_save(text, text, jsonb), public.party_delete(text, text) to anon, authenticated;
+
+-- Star charts: one shared chart per party, same access pattern.
+create table if not exists public.charts (
+  party text primary key,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.charts enable row level security;
+revoke all on public.charts from anon, authenticated;
+
+create or replace function public.chart_get(p_party text)
+returns jsonb
+language sql security definer set search_path = public as $$
+  select data from public.charts where party = upper(p_party);
+$$;
+
+create or replace function public.chart_save(p_party text, p_data jsonb)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_party is null or length(p_party) < 8 then raise exception 'invalid party code'; end if;
+  if octet_length(p_data::text) > 500000 then raise exception 'chart too large'; end if;
+  insert into public.charts (party, data, updated_at) values (upper(p_party), p_data, now())
+  on conflict (party) do update set data = excluded.data, updated_at = now();
+end $$;
+
+revoke execute on function public.chart_get(text), public.chart_save(text, jsonb) from public;
+grant execute on function public.chart_get(text), public.chart_save(text, jsonb) to anon, authenticated;

@@ -288,6 +288,83 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* gear */
+.gi{width:22px;height:22px;flex:none;color:var(--gold)}
+.gi.sm{width:15px;height:15px;vertical-align:-3px}
+.wt-ic .gi{width:20px;height:20px;vertical-align:-5px;margin-right:6px}
+.gws{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin:6px 0 16px}
+.gw{display:flex;gap:12px;border:1px solid var(--line);background:var(--plate-bg);padding:10px 12px}
+.gw-ic{display:grid;place-items:center;width:38px;height:38px;flex:none;border:1px solid var(--gold-dk);background:var(--sunk)}
+.gw-ic .gi{width:24px;height:24px}
+.gw-b{flex:1;min-width:0}
+.gw-b b{font-family:var(--f-caps);letter-spacing:.03em;color:var(--parch)}
+.gw-b small{display:block;color:var(--muted);font-size:12.5px}
+.gw-ammo{display:flex;gap:8px;align-items:center;margin-top:6px}
+.gw-bar{flex:1;height:8px;background:var(--sunk);box-shadow:inset 0 0 0 1px #000}
+.gw-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold-dk),var(--gold))}
+.gw-bar span.low{background:linear-gradient(90deg,var(--blood-dk),var(--blood))}
+.gw-ctl{margin-top:8px;gap:6px}
+.gw-spare{display:inline-flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted);margin-left:auto}
+.gw-spare .step{width:24px;height:24px;font-size:13px}
+.gcats{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 22px}
+.gcat{margin-bottom:10px}
+.gi-row{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.gi-row .gw-ic{width:30px;height:30px}.gi-row .gw-ic .gi{width:19px;height:19px}
+.gi-n{flex:1;min-width:0;color:var(--parch)}
+.gi-q{display:inline-flex;gap:5px;align-items:center}
+.gi-q .step{width:26px;height:26px;font-size:14px}
+.gi-q .mono{min-width:30px;text-align:center;color:var(--gold-hi)}
+.gi-x{background:none;border:0;color:var(--muted);font-size:18px;padding:0 4px}
+.gi-x:hover{color:#ff8a8d}
+.gadd{margin-top:10px;padding-top:10px;border-top:1px solid var(--gold-dk)}
+.gadd .tog{flex-direction:row;gap:6px;align-items:center}
+.gorig{margin-top:12px;font-size:14px}.gorig summary{cursor:pointer;color:var(--muted);font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+/* star chart */
+.ch-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.ch-map{position:relative;border:1px solid var(--gold-dk);background:radial-gradient(ellipse at 50% 60%,#0d2622 0%,#06100f 55%,#030606 100%);height:min(70vh,620px);overflow:hidden;box-shadow:inset 0 0 60px rgba(0,0,0,.8),0 2px 0 #000}
+.ch-map::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(127,224,200,.035) 0 1px,transparent 1px 3px)}
+.ch-holo,#chsvg{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.ch-holo canvas{display:block}
+#chsvg[hidden]{display:none}
+.ch-loading{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:#7fe0c8;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+.ch-tools{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;z-index:2;max-width:calc(100% - 20px)}
+.ch-hint{position:absolute;left:10px;bottom:10px;right:10px;z-index:2;background:rgba(10,9,8,.85);border:1px solid var(--gold-dk);padding:8px 12px;font-size:14px}
+.ch-panel{border:1px solid var(--line);background:var(--rivets),var(--plate-bg);padding:14px 16px;min-width:0;max-height:min(70vh,620px);overflow:auto}
+.ch-title{font-family:var(--f-caps);font-size:22px;color:var(--gold-hi);margin:2px 0 8px;letter-spacing:.03em}
+.ch-desc{margin:0 0 10px;color:var(--parch)}
+.ch-list{display:flex;flex-direction:column;margin-top:10px}
+.ch-li{display:flex;gap:10px;align-items:center;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:8px 2px;width:100%;color:var(--ink)}
+.ch-li:hover{background:linear-gradient(90deg,rgba(200,162,74,.1),transparent)}
+.ch-li small{display:block;color:var(--muted);font-size:12.5px}
+.ch-dot{flex:none;width:12px;height:12px;border-radius:50%;display:inline-block;background:#7fe0c8}
+.ch-dot.starport{background:#EBCB7A;box-shadow:0 0 0 2px #16130f,0 0 0 3.5px #C8A24A}
+.ch-dot.station{border-radius:2px;transform:rotate(45deg);background:#C8A24A}
+.ch-dot.anomaly{background:transparent;border:2px dashed #ff5a5f}
+.ch-dot.ruin{border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);background:#b48ae8}
+.ch-sw{flex:none;display:inline-block;width:26px;height:0;border-top:3px solid #7fe0c8;vertical-align:middle}
+.ch-sw.turbulent{border-top:3px dashed #E4A24A}
+.ch-sw.perilous{border-top:3px dotted #ff5a5f}
+.ch-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:14px;font-size:13px;color:var(--muted)}
+.ch-legend div{display:flex;gap:8px;align-items:center}
+.ch-ship{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--gold-dk);background:rgba(200,162,74,.08);margin-bottom:10px}
+.ch-ship b{font-family:var(--f-caps);color:var(--gold-hi)}
+.ch-plot{margin-top:10px;padding:8px 12px;border-left:3px solid var(--gold);background:rgba(200,162,74,.08);font-size:14px}
+.ch-plot .perilous,.ch-desc .perilous{color:#ff8a8d}.ch-plot .turbulent,.ch-desc .turbulent{color:#f0b660}.ch-plot .stable,.ch-desc .stable{color:#7fe0c8}
+#chsvg .ch-name{fill:#d8f5ec;font-family:var(--f-caps);font-size:13px;letter-spacing:.04em;paint-order:stroke;stroke:#000;stroke-width:3px}
+#chsvg .ch-hidden{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+#chsvg .ch-region{fill:rgba(127,224,200,.55);font-family:var(--f-caps);font-weight:700;font-size:26px;letter-spacing:.2em;text-transform:uppercase}
+#chsvg .ch-route{stroke:#7fe0c8;stroke-width:2;stroke-opacity:.85}
+#chsvg .ch-route.turbulent{stroke:#E4A24A;stroke-dasharray:10 6}
+#chsvg .ch-route.perilous{stroke:#ff5a5f;stroke-dasharray:4 5}
+#chsvg .ch-route.hid{stroke-opacity:.35}
+#chsvg .ch-route.on{stroke:#EBCB7A;stroke-width:4;stroke-dasharray:none}
+#chsvg .ch-route.sel{stroke-width:4}
+#chsvg .ch-hit{stroke:transparent;stroke-width:14}
+#chsvg .ch-tag{fill:#0a0908;stroke:#7fe0c8;stroke-width:1}
+#chsvg .ch-tag.turbulent{stroke:#E4A24A}#chsvg .ch-tag.perilous{stroke:#ff5a5f}
+#chsvg .ch-days{fill:#e8dec6;font-family:var(--f-mono);font-size:10px}
+#chsvg .ch-node{cursor:pointer}
+@media (max-width:860px){.ch-wrap{grid-template-columns:minmax(0,1fr)}.ch-map{height:58vh}.ch-panel{max-height:none}}
 /* turn + how */
 .turn{margin-bottom:28px}
 .rage-t{margin-bottom:12px;border-color:var(--blood);color:#ff9a9c;background:rgba(94,15,18,.25)}
@@ -376,6 +453,9 @@ details.mc summary{cursor:pointer;font-family:var(--f-caps);font-weight:700;lett
  .vital.hp{grid-column:1/-1}
  .brand small{display:none}
  .brand b{font-size:18px}
+ .top-in{row-gap:6px}
+ .nav{margin-left:0;width:100%;overflow-x:auto;gap:2px}
+ .nav button,.nav a{padding:6px 10px;font-size:12px;letter-spacing:.1em;white-space:nowrap}
  .sheet-seal{display:none}
  .pk-head{position:static}
  .picks{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -1359,6 +1439,7 @@ const parts=[];
 parts.push(sec('start','How it works','Your character keeps every 5e number: level, proficiency, ability scores, HP, AC, spell slots and save DCs. What changes is the fiction, plus four house rules: firearms, armour, psychic Perils, and Corruption &amp; Insanity.',
 `<ol class="g-steps"><li><b>New character:</b> open the app and choose <b>Create</b>. It follows D&amp;D Beyond's 2024 order: Career, Background, Origin, Characteristics, Skills, Wargear, Powers.</li>
 <li><b>Existing character:</b> choose <b>Import</b> and upload your D&amp;D Beyond PDF (Export to PDF on your character page) or a spreadsheet. Check what was read, fix anything missed, then convert.</li>
+<li><b>Star Chart:</b> a 3D hololith of known systems, starports and Warp routes. Drag to rotate, pinch or scroll to zoom, tap a location for details, and plot a course from the ship. The GM unlocks GM mode with a PIN to add places and reveal them as you discover them.</li>
 <li><b>At the table:</b> tap any bonus to see exactly what to roll, with tick boxes for situational extras (raging, Killing Strike, a marked target, Bless, critical hits). Roll your own dice, or tap Roll for me. The <b>Your turn</b> panel lists what you can do with your action, bonus action and reaction, and tracks limited uses.</li></ol>
 <p class="note">Characters on the public site are saved in your own browser. Use the same device each session.</p>`));
 
