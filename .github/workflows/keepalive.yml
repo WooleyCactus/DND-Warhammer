@@ -1,0 +1,23 @@
+name: Keep Supabase awake
+
+# Free Supabase projects pause after 7 days without activity.
+# This calls the party API every 3 days so it stays live between sessions.
+on:
+  schedule:
+    - cron: "17 15 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping database
+        env:
+          SUPABASE_URL: https://xpljuyatduvrbhiwfbwn.supabase.co
+          SUPABASE_KEY: sb_publishable_zU8au39xaYFxmL3cZH09gQ_w95iJkD5
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$SUPABASE_URL/rest/v1/rpc/party_list" \
+            -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json" \
+            -d '{"p_party":"KEEP-ALIV"}')
+          echo "Supabase responded $code"
+          test "$code" = "200"
