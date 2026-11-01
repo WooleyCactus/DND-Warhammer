@@ -496,6 +496,7 @@ details.mc summary{cursor:pointer;font-family:var(--f-caps);font-weight:700;lett
  .pick{padding:10px}
  .pick-t{font-size:13.5px}
 }
+@media (max-width:520px){.nav{gap:0;max-width:100%;overflow-x:auto;scrollbar-width:none}.nav button,.nav a{padding:6px 8px;letter-spacing:.06em;white-space:nowrap}}
 </style>
 </head>
 <body>
@@ -2726,7 +2727,7 @@ function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit
 
 /* ---------- views ---------- */
 function render(){
- $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="guide.html">Guide</a>';
+ $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="map.html">Map</a><a href="guide.html">Guide</a>';
  const app=$('#app');
  if(S.view==='party')app.innerHTML=vParty();
  else if(S.view==='import')app.innerHTML=vImport();
