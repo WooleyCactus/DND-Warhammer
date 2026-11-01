@@ -291,6 +291,37 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* loadout */
+.loadout{margin-bottom:24px}
+.lo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px}
+.lo{display:grid;grid-template-columns:118px minmax(0,1fr);gap:0;border:1px solid var(--line);border-left:3px solid var(--rc);background:var(--rivets),var(--plate-bg);box-shadow:inset 0 1px 0 rgba(255,230,180,.05),0 2px 0 #000;min-width:0}
+.lo-art{position:relative;display:grid;place-items:center;padding:14px 8px 26px;background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--rc) 22%,transparent),transparent 70%),var(--sunk);border-right:1px solid var(--line)}
+.lo-ic{width:104px;height:104px;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 45%,transparent))}
+.lo-rar{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--rc)}
+.lo-body{padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.lo-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lo-head b{display:block;font-family:var(--f-caps);font-size:18px;letter-spacing:.03em;color:var(--parch)}
+.lo-head small{display:block;color:var(--muted);font-size:12.5px}
+.lo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.lo-stat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 10px;border:1px solid var(--line);background:var(--sunk);text-align:left;min-width:0;color:var(--ink)}
+button.lo-stat{cursor:pointer}button.lo-stat:hover{border-color:var(--gold);box-shadow:0 0 10px rgba(200,162,74,.25)}
+.lo-stat .k{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lo-stat .v{font-family:var(--f-mono);font-size:19px;color:var(--gold-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lo-stat small{font-size:11.5px;color:var(--muted)}
+.lo-ammo{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.lo-ammo .gw-bar{flex:1 1 90px;min-width:70px}
+.lo-tags{display:flex;flex-wrap:wrap;gap:5px}
+.lo-tags:empty{display:none}
+.lo-tag{font-size:12px;padding:1px 8px;border:1px solid var(--line);color:var(--parch);background:rgba(0,0,0,.25)}
+.lo-tag.m{border-color:var(--gold-dk);color:var(--gold)}
+.lo-edit{border-top:1px solid var(--gold-dk);padding-top:10px}
+.lo-atts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.lo-att{display:flex;gap:8px;align-items:flex-start;text-align:left;padding:6px 8px;border:1px solid var(--line);background:var(--sunk);color:var(--ink)}
+.lo-att.on{border-color:var(--rc);background:color-mix(in srgb,var(--rc) 14%,var(--sunk))}
+.lo-att b{display:block;font-size:13.5px}.lo-att small{display:block;font-size:12px;color:var(--muted)}
+.lo-foot{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-size:14px;color:var(--parch)}
+.lo-legend{margin-top:8px}.lo-legend summary{cursor:pointer;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:560px){.lo{grid-template-columns:minmax(0,1fr)}.lo-art{display:flex;justify-content:flex-start;gap:12px;padding:10px 14px;border-right:0;border-bottom:1px solid var(--line);background:radial-gradient(circle at 46px 50%,color-mix(in srgb,var(--rc) 24%,transparent),transparent 120px),var(--sunk)}.lo-ic{width:68px;height:68px}.lo-rar{position:static;text-align:left;font-size:11.5px}.lo-stat .v{font-size:16px}.lo-stat{padding:6px 8px}}
 /* gear */
 .gi{width:22px;height:22px;flex:none;color:var(--gold)}
 .gi.sm{width:15px;height:15px;vertical-align:-3px}
@@ -939,7 +970,7 @@ function derive(ch){
  const skills=SKILLS.map(k=>{const pr=+(s.skills[k.key]||0);return {...k,prof:pr,total:mods[k.ab]+pr*pb};});
  const saves=ABIL.map(a=>({a,prof:!!s.saves[a],total:mods[a]+(s.saves[a]?pb:0)}));
  const cast=castingInfo(careers,mods,pb);
- const weapons=s.weapons.map(w=>convertWeapon(w,cast.primaryTrad));
+ const weapons=s.weapons.map((w,i)=>{const cw=convertWeapon(w,cast.primaryTrad);return typeof applyWeaponMods==='function'?applyWeaponMods(cw,((ch.state||{}).wx||{})[i]||{}):cw;});
  const armor=s.armor?armorTo(s.armor):null;
  const trad=cast.primaryTrad||'psyker';
  const spells=s.spells.map(n=>{const sp=SPELLS[N(n)];const r=spell40k(sp?sp.name:n,trad);return {src:sp?sp.name:n,lvl:sp?sp.lvl:null,school:sp?SCHOOL[sp.school]:null,...r,perils:trad==='psyker'&&!!sp&&sp.lvl>0};})
@@ -1899,20 +1930,22 @@ function initParts(ch,d){const c=rollCtx(ch,d);const p=[['Dexterity',d.mods.dex]
 function weaponCalc(ch,d){
  const s=ch.src;const c=rollCtx(ch,d);
  return d.weapons.map((w,i)=>{
-  const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const b=k&&W5E[k];const plus=+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);
+  const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const b=k&&W5E[k];const plus=w.bonus!=null?w.bonus:+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);const delta=w.bonus!=null?w.bonus-(w.basePlus||0):0;const T3=['','Mastercrafted','Archeotech','Relic'][Math.min(3,plus)]||'Enhancement';
   const props=b?b[2]:'';const ranged=/ranged/.test(props);const fin=/finesse/.test(props);
   const abil=ranged?'dex':fin?(d.mods.dex>=d.mods.str?'dex':'str'):'str';
   let atkParts,dmgDice,dmgFlat,dmgType;
   if(s.built&&b){
-   atkParts=[[ABIL_FULL[abil],d.mods[abil]],['Proficiency',c.pb]];if(plus)atkParts.push(['Mastercrafted',plus]);if(s.style==='archery'&&ranged)atkParts.push(['Marksman Doctrine',2]);
+   atkParts=[[ABIL_FULL[abil],d.mods[abil]],['Proficiency',c.pb]];if(plus)atkParts.push([T3,plus]);if(s.style==='archery'&&ranged)atkParts.push(['Marksman Doctrine',2]);
    const W=WEAPONS[k];dmgDice=W&&W.dice?W.dice:b[0];dmgType=W&&W.dice?W.type:b[1];
-   dmgFlat=[[ABIL_FULL[abil],d.mods[abil]]];if(plus)dmgFlat.push(['Mastercrafted',plus]);
+   dmgFlat=[[ABIL_FULL[abil],d.mods[abil]]];if(plus)dmgFlat.push([T3,plus]);
    if(s.style==='dueling'&&!ranged&&!/two/.test(props))dmgFlat.push(['Duellist Doctrine',2]);
    if(c.gwm&&/heavy/.test(props)&&!ranged)dmgFlat.push(['Executioner\'s Stroke',c.pb]);
   }else{
    const a=num(w.atk);atkParts=a!=null&&!/dc/i.test(w.atk)?[['From sheet',a]]:null;
    const m=String(w.dmg||'').match(/(\d+d\d+|\d+)\s*([+\-−]\s*\d+)?\s*(.*)$/);dmgDice=m?m[1]:'';dmgFlat=m&&m[2]?[['From sheet',num(m[2])]]:[];dmgType=m?m[3]:'';
+   if(delta){if(atkParts)atkParts.push(['Enhancement change',delta]);dmgFlat.push(['Enhancement change',delta]);}
   }
+  if(typeof attachParts==='function'){if(atkParts)atkParts.push(...attachParts(w,'atk'));if(dmgDice)dmgFlat.push(...attachParts(w,'dmg'));}
   const melee=!ranged;const strMelee=melee&&abil==='str';
   return {i,w,k,props,ranged,abil,atkParts,dmgDice,dmgFlat,dmgType:(dmgType||'').trim(),strMelee,
    atkText:atkParts?sgn(totalOf(atkParts)):(w.atk||'—'),dmgText:dmgDice?`${dmgDice}${totalOf(dmgFlat)?' '+sgn(totalOf(dmgFlat)).replace(/^([+-])/,'$1 '):''} ${(dmgType||'').trim()}`.trim():(w.dmg||'—')};
@@ -2125,8 +2158,7 @@ function vGear(ch,d){
   return `<div class="gcat"><div class="tk-h">${label}</div>${items.map(it=>`<div class="gi-row"><span class="gw-ic">${gIcon(iconFor(it.name))}</span><span class="gi-n">${esc(it.name)}</span>
    <span class="gi-q"><button class="step" data-act="gq" data-id="${it.id}" data-d="-1" aria-label="Use one"${ex?' disabled':''}>−</button><span class="mono">${it.cat==='money'?Number(it.qty).toLocaleString():it.qty}</span><button class="step" data-act="gq" data-id="${it.id}" data-d="1" aria-label="Add one"${ex?' disabled':''}>+</button></span>
    ${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Remove ${esc(it.name)}">×</button>`}</div>`).join('')}</div>`;}).join('');
- return `<section class="sec"><h2 class="sec-h">Gear<small>weapons, ammo, kit</small></h2>
-  ${d.weapons.length?`<div class="tk-h" style="margin-top:4px">Weapons</div><div class="gws">${weap}</div>`:''}
+ return `<section class="sec"><h2 class="sec-h">Gear<small>ammo, grenades, kit</small></h2>
   <div class="gcats">${groups||'<p class="muted">No gear recorded.</p>'}</div>
   ${ex?'':`<div class="gadd"><div class="row"><input id="gaddn" class="inp" placeholder="Add an item, e.g. 2 krak grenades" style="flex:1 1 200px"><button class="btn sm" data-act="gadd">Add</button></div>
   <div class="togs" style="margin-top:8px">${QUICK.map(([n])=>`<button class="tog" data-act="gquick" data-v="${esc(n)}">${gIcon(iconFor(n),'sm')} ${esc(n)}</button>`).join('')}</div></div>`}
@@ -2146,6 +2178,102 @@ function gearClick(a,b,ch){
  }
  persist(ch);render();return true;
 }
+
+/* ===== Loadout: rarity, enhancement, attachments, large weapon cards ===== */
+const RARITY={common:['Standard issue','#b4ae9f'],uncommon:['Mastercrafted','#6fcf8e'],rare:['Archeotech','#5aa9e6'],veryrare:['Relic','#b07cf0'],legendary:['Artefact','#f0a33a']};
+const RAR_BY_BONUS=['common','uncommon','rare','veryrare'];
+const TIER_NAME=['','Mastercrafted ','Archeotech ','Relic '];
+const ATTACH={
+ reddot:{n:'Red-dot sight',for:'ranged',atk:1,t:'+1 to attack rolls.',ov:'dot'},
+ scope:{n:'Telescopic sight',for:'rifle',t:'No disadvantage at long range.',ov:'scope'},
+ supp:{n:'Suppressor',for:'pistol',t:'Shots are silent; firing from hiding doesn\'t give away your position.',ov:'supp'},
+ extmag:{n:'Extended magazine',for:'clip',clip:1.5,t:'Clip size +50%.',ov:'mag'},
+ hotshot:{n:'Hot-shot cells',for:'las',dmg:2,clip:0.5,t:'+2 damage; clip size halved.',ov:'hot'},
+ bayonet:{n:'Bayonet',for:'rifle',t:'Can make melee attacks: 1d4 + Str piercing.',ov:'bayo'},
+ launcher:{n:'Underslung grenade launcher',for:'rifle',t:'Fire a grenade from your gear at 60/180 ft instead of throwing it.',ov:'gl'},
+ mono:{n:'Monomolecular edge',for:'blade',dmg:1,t:'+1 damage.',ov:'mono'},
+ shock:{n:'Shock coil',for:'melee',t:'On a hit, the target can\'t take reactions until its next turn.',ov:'shock'},
+ grip:{n:'Duelling grip',for:'melee',atk:1,t:'+1 to attack rolls.',ov:'grip'}
+};
+function weaponKind(w){const k=iconFor(w.to+' '+w.from);const ranged=w.kind==='ranged';const two=(w.props||[]).includes('Two-handed');
+ return {ranged,melee:w.kind==='melee',rifle:ranged&&two,pistol:ranged&&!two,las:k==='las',clip:!!w.baseClip,blade:['blade','power','chain'].includes(k)};}
+function attachOK(key,w){const f=ATTACH[key].for;return !!weaponKind(w)[f];}
+function wxOf(ch,i){return ((ch.state||{}).wx||{})[i]||{};}
+/* applied inside derive(): mutates the converted weapon with rarity, bonus and attachments */
+function applyWeaponMods(w,wx){
+ const basePlus=+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);
+ const bonus=wx.bonus==null?basePlus:+wx.bonus;
+ const att=(wx.att||[]).filter(k=>ATTACH[k]);
+ w.baseClip=w.clip||null;w.basePlus=basePlus;w.bonus=bonus;w.att=att;
+ let clip=w.clip;att.forEach(k=>{if(ATTACH[k].clip&&clip)clip=Math.max(1,Math.round(clip*ATTACH[k].clip));});w.clip=clip;
+ w.rarity=wx.rarity||RAR_BY_BONUS[Math.min(3,bonus)]||'common';
+ w.to=TIER_NAME[Math.min(3,bonus)]+String(w.to).replace(/^(Mastercrafted|Archeotech|Relic) /,'');
+ return w;
+}
+function attachParts(w,kind){const out=[];(w.att||[]).forEach(k=>{const A=ATTACH[k];const v=kind==='atk'?A.atk:A.dmg;if(v)out.push([A.n,v]);});return out;}
+
+/* big composited icon: base weapon glyph + attachment overlays */
+const OVL={
+ dot:'<rect x="9" y="6.5" width="3" height="2.5" rx=".5"/><circle cx="10.5" cy="7.7" r=".5" fill="currentColor"/>',
+ scope:'<rect x="6.5" y="6" width="7" height="2.6" rx="1.2"/><path d="M8 8.6v1.4M12 8.6v1.4"/>',
+ supp:'<rect x="19.5" y="10.6" width="4" height="2.6" rx=".8"/>',
+ mag:'<path d="M9.5 14v6.5h3V14"/><path d="M9.5 17.5h3"/>',
+ hot:'<path d="M5 15l-2 4h3l-1 3 4-5H6l1-2z"/>',
+ bayo:'<path d="M18 13.2l5.5 1.3-5.5 1.1z"/>',
+ gl:'<rect x="11" y="14.2" width="8" height="2.4" rx="1.2"/>',
+ mono:'<path d="M8 15.5l9.5-9.5" stroke-dasharray="1 1.5"/>',
+ shock:'<path d="M18 3l-2 4h3l-3 5"/>',
+ grip:'<path d="M3 19l2 2M4.5 17.5l2 2"/>'
+};
+function bigIcon(w){const key=iconFor(w.to+' '+w.from);const col=RARITY[w.rarity][1];
+ return `<svg class="lo-ic" viewBox="0 0 24 24" aria-hidden="true" style="color:${col}"><g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">${GI[key]||GI.box}</g>
+ <g fill="none" stroke="#efe6d2" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".92">${(w.att||[]).map(k=>OVL[ATTACH[k].ov]||'').join('')}</g></svg>`;}
+
+function vLoadout(ch,d){
+ const s=ch.src;const st=ch.state||{};const ex=!!ch.example;const ammo=st.ammo||{};const wcs=weaponCalc(ch,d);const c=rollCtx(ch,d);
+ if(!d.weapons.length)return '';
+ const cards=wcs.map((wc,i)=>{const w=wc.w;const r=RARITY[w.rarity];const left=ammo[i]==null?w.clip:ammo[i];const sp=spareOf(ch,i,w);const pct=w.clip?Math.round(100*left/w.clip):0;
+  const mk=wc.k&&((s.opts||{}).masteries||[]).includes(wc.k)&&MASTERY_KINDS.find(x=>x.key===wc.k);
+  const editing=S.loEdit===i&&!ex;
+  return `<article class="lo" style="--rc:${r[1]}">
+   <div class="lo-art">${bigIcon(w)}<span class="lo-rar">${esc(r[0])}</span></div>
+   <div class="lo-body">
+    <div class="lo-head"><div><b>${esc(w.to)}</b><small>${esc(w.from)}${(w.props||[]).length?' · '+esc(w.props.join(', ')):''}</small></div>${ex?'':`<button class="btn sm ghost" data-act="loedit" data-i="${i}" aria-expanded="${editing}">${editing?'Done':'Customise'}</button>`}</div>
+    <div class="lo-stats">
+     ${wc.atkParts?`<button class="lo-stat" data-act="how" data-kind="atk" data-k="${i}"><span class="k">Hit</span><span class="v">${esc(wc.atkText)}</span></button>`:`<div class="lo-stat st"><span class="k">Hit</span><span class="v">${esc(w.atk||'—')}</span></div>`}
+     ${wc.dmgDice?`<button class="lo-stat" data-act="how" data-kind="dmg" data-k="${i}"><span class="k">Damage</span><span class="v">${esc(wc.dmgText.replace(/\s+\S+$/,''))}</span><small>${esc(wc.dmgType)}</small></button>`:''}
+     <div class="lo-stat st"><span class="k">Range</span><span class="v">${esc(w.range||'Melee')}</span>${w.range?'<small>ft</small>':''}</div>
+    </div>
+    ${w.clip?`<div class="lo-ammo"><div class="gw-bar"><span style="width:${pct}%"${pct<=25?' class="low"':''}></span></div><span class="mono">${left}/${w.clip}</span>
+     <button class="btn sm" data-act="shot" data-i="${i}"${ex||!left?' disabled':''}>Fire</button>${(w.props||[]).includes('Burst')?`<button class="btn sm" data-act="shot3" data-i="${i}"${ex||left<3?' disabled':''}>Burst</button>`:''}<button class="btn sm" data-act="reload" data-i="${i}"${ex?' disabled':''}>Reload</button>
+     <span class="gw-spare" title="Spare clips">${gIcon('ammo','sm')}<button class="step" data-act="spare" data-i="${i}" data-d="-1" aria-label="Remove a spare clip"${ex?' disabled':''}>−</button><span class="mono">${sp}</span><button class="step" data-act="spare" data-i="${i}" data-d="1" aria-label="Add a spare clip"${ex?' disabled':''}>+</button></span></div>`:''}
+    <div class="lo-tags">${mk?`<span class="lo-tag m" title="${esc(reskinText(MASTERY_PROPS[mk.prop]||''))}">Mastery: ${esc(mk.prop)}</span>`:''}${(w.att||[]).map(k=>`<span class="lo-tag" title="${esc(ATTACH[k].t)}">${esc(ATTACH[k].n)}</span>`).join('')}</div>
+    ${editing?loEditor(ch,w,i):''}
+   </div></article>`;}).join('');
+ const props=[...new Set(d.weapons.flatMap(w=>w.props))].filter(p=>PROP_TEXT[p]);
+ return `<section class="sec loadout"><h2 class="sec-h">Loadout<small>tap Hit or Damage for how to roll</small></h2><div class="lo-grid">${cards}</div>
+  <div class="lo-foot">${d.armor||s.shield?`<span>${gIcon('armour','sm')} ${d.armor?`<b>${esc(d.armor.to)}</b> <span class="muted">(${esc(s.armor)})</span>`:''}${s.shield?`${d.armor?' · ':''}<b>Combat shield</b> <span class="muted">+2 AC</span>`:''}</span>`:''}
+  ${c.extraAtk>1?`<span>${c.extraAtk} attacks per Attack action</span>`:''}</div>
+  ${props.length?`<details class="lo-legend"><summary>Weapon properties</summary><div class="legend">${props.map(p=>`<div><b>${esc(p)}.</b> ${esc(PROP_TEXT[p])}</div>`).join('')}</div></details>`:''}</section>`;
+}
+function loEditor(ch,w,i){
+ const wx=wxOf(ch,i);const opts=Object.entries(ATTACH).filter(([k])=>attachOK(k,w));
+ return `<div class="lo-edit"><div class="fields">
+  <label class="f"><span>Rarity</span><select data-lo="rarity" data-i="${i}">${opt('','Match enhancement',wx.rarity||'')}${Object.entries(RARITY).map(([k,v])=>opt(k,v[0],wx.rarity||'')).join('')}</select></label>
+  <label class="f"><span>Enhancement</span><select data-lo="bonus" data-i="${i}">${[0,1,2,3].map(b=>opt(b,b?`+${b} (${TIER_NAME[b].trim()})`:'None',w.bonus)).join('')}</select></label></div>
+  <div class="tk-h" style="margin-top:10px">Attachments</div>
+  ${opts.length?`<div class="lo-atts">${opts.map(([k,A])=>{const on=(w.att||[]).includes(k);return `<button class="lo-att${on?' on':''}" data-act="loatt" data-i="${i}" data-v="${k}" aria-pressed="${on}"><svg viewBox="0 0 24 24" class="gi"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${OVL[A.ov]}</g></svg><span><b>${esc(A.n)}</b><small>${esc(A.t)}</small></span></button>`;}).join('')}</div>`:'<p class="muted">No attachments fit this weapon.</p>'}
+  <p class="note">Attachments are house rules. Hit, damage and clip size update automatically; the rest are reminders. Enhancement adds to hit and damage like a +1/+2/+3 weapon.</p></div>`;
+}
+function loClick(a,b,ch){
+ const st=ch.state=ch.state||{};
+ if(a==='loedit'){S.loEdit=S.loEdit===+b.dataset.i?null:+b.dataset.i;render();return true;}
+ if(a==='loatt'){const i=+b.dataset.i,k=b.dataset.v;st.wx=st.wx||{};const wx=st.wx[i]=st.wx[i]||{};wx.att=wx.att||[];const j=wx.att.indexOf(k);if(j>=0)wx.att.splice(j,1);else wx.att.push(k);
+  if(st.ammo&&st.ammo[i]!=null){const w=derive(ch).weapons[i];st.ammo[i]=Math.min(st.ammo[i],w.clip||0);}persist(ch);render();return true;}
+ return false;
+}
+function loInput(t){if(!t.dataset.lo)return false;const ch=cur();if(!ch)return true;const st=ch.state=ch.state||{};const i=+t.dataset.i;st.wx=st.wx||{};const wx=st.wx[i]=st.wx[i]||{};
+ if(t.dataset.lo==='rarity')wx.rarity=t.value||undefined;if(t.dataset.lo==='bonus')wx.bonus=+t.value;persist(ch);render();return true;}
 
 /* ===== Hololith: 3D star chart (three.js r128), same data and actions as the flat chart ===== */
 const THREE_URL='https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
@@ -2771,6 +2899,7 @@ function vSheet(ch){
   <div class="vital"><span class="k">Hit dice</span><span class="v" style="font-size:18px">${hd}</span></div>
   <div class="vital"><span class="k">Rest</span><div class="row"><button class="btn sm" data-act="short">Short</button><button class="btn sm" data-act="long">Long</button></div></div>
  </div>
+ ${vLoadout(ch,d)}
  <div class="meters">${meter('corruption','Corruption',CORRUPTION,'cor')}${meter('insanity','Insanity',INSANITY,'ins')}</div>
  ${turnPanel(ch,d)}
 
@@ -2782,16 +2911,7 @@ function vSheet(ch){
    ${d.skills.map(k=>`<button class="sk" data-act="how" data-kind="skill" data-k="${k.key}"><span class="dot p${k.prof}" title="${['Untrained','Proficient','Expertise'][k.prof]}"></span><span class="n">${esc(k.w40)}${k.w40!==k.name?`<small>${esc(k.name)} · ${k.ab.toUpperCase()}</small>`:`<small>${k.ab.toUpperCase()}</small>`}</span><span class="b">${sgn(totalOf(skillParts(ch,d,k.key).parts))}</span></button>`).join('')}
   </div></section>
  </div><div>
-  <section class="sec"><h2 class="sec-h">Weapons<small>tap for how to roll</small></h2>
-   ${d.weapons.length?`<div class="tscroll"><table class="wtable"><thead><tr><th>Weapon</th><th>Hit</th><th>Damage</th><th>Range</th><th>Clip</th></tr></thead><tbody>
-   ${weaponCalc(ch,d).map((wc,i)=>{const w=wc.w;const left=ammo[i]==null?w.clip:ammo[i];const isDc=/dc/i.test(w.atk)&&!wc.atkParts;return `<tr><td><span class="wt-ic">${gIcon(iconFor(w.to+' '+w.from))}</span><b>${esc(w.to)}</b><small>${esc(w.from)}${w.props.length?' · '+esc(w.props.join(', ')):''}${(()=>{const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const m=k&&((s.opts||{}).masteries||[]).includes(k)&&MASTERY_KINDS.find(x=>x.key===k);return m?` · <span class="mastery" title="${esc(reskinText(MASTERY_PROPS[m.prop]||''))}">Mastery: ${esc(m.prop)}</span>`:'';})()}</small></td>
-    <td>${wc.atkParts?`<button class="roll" data-act="how" data-kind="atk" data-k="${i}">${esc(wc.atkText)}</button>`:(w.atk?`<span class="mono">${esc(w.atk)}</span>`:'—')}</td>
-    <td>${wc.dmgDice?`<button class="roll" data-act="how" data-kind="dmg" data-k="${i}">${esc(wc.dmgText)}</button>`:'—'}</td>
-    <td class="mono">${esc(w.range||(w.kind==='melee'?'Melee':'—'))}</td>
-    <td>${w.clip?`<span class="ammo"><button class="step" style="width:24px;height:24px" data-act="shot" data-i="${i}" aria-label="Fire one shot">−</button>${left}/${w.clip}<button class="btn sm ghost" data-act="reload" data-i="${i}">Reload</button></span>`:'—'}</td></tr>`;}).join('')}
-   </tbody></table></div>${propsUsed.length?`<div class="legend">${propsUsed.map(p=>`<div><b>${esc(p)}.</b> ${esc(PROP_TEXT[p])}</div>`).join('')}</div>`:''}`:'<p class="muted">No attacks recorded.</p>'}
-   ${d.armor||s.shield?`<p style="margin:12px 0 0">${d.armor?`<b>${esc(d.armor.to)}</b> <span class="muted">(${esc(s.armor)}, AC ${esc(d.armor.ac)})</span>`:''}${s.shield?`${d.armor?' · ':''}<b>Combat shield</b> <span class="muted">+2 AC</span>`:''}</p>`:''}
-  </section>
+
 
   ${d.cast.trads.length||d.spells.length?`<section class="sec"><h2 class="sec-h">${esc(TRAD[d.cast.primaryTrad||'psyker'].power)}<small>40k · 5e source</small></h2>
    ${d.cast.trads.map(t=>`<div class="trad"><b>${esc(TRAD[t.trad].name)}</b><span>Save DC <span class="mono">${t.dc}</span></span><span>Attack <button class="roll" data-act="d20" data-l="${esc(TRAD[t.trad].name)} attack" data-m="${t.atk}">${sgn(t.atk)}</button></span><span class="muted">${esc(t.classes.join(', '))} · ${t.abil.toUpperCase()}</span></div>`).join('')}
@@ -2893,6 +3013,7 @@ document.addEventListener('click',e=>{
   case 'pact':{const j=+b.dataset.j;const u=st.pact||0;st.pact=j<u?j:j+1;persist(ch);render();break;}
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{const i=+b.dataset.i;const w=d.weapons[i];const sp=spareOf(ch,i,w);if(sp<=0){toastMsg(w.to+': no spare clips left.');break;}st.ammo=st.ammo||{};if((st.ammo[i]==null?w.clip:st.ammo[i])>=w.clip){toastMsg('Clip is already full.');break;}st.spare=st.spare||{};st.spare[i]=sp-1;st.ammo[i]=w.clip;persist(ch);render();toastMsg(`${w.to} reloaded. ${sp-1} spare clip${sp-1===1?'':'s'} left.`);break;}
+  case 'loedit':case 'loatt':loClick(a,b,ch);break;
   case 'gq':case 'gdel':case 'gadd':case 'gquick':case 'spare':case 'shot3':gearClick(a,b,ch);break;
   case 'rage':st.raging=!st.raging;persist(ch);render();break;
   case 'res':{const k=b.dataset.k,j=+b.dataset.j;st.res=st.res||{};const u2=st.res[k]||0;st.res[k]=j<u2?j:j+1;persist(ch);render();break;}
@@ -2921,6 +3042,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
  const t=e.target;
+ if(S.view==='sheet'&&loInput(t))return;
  if(S.view==='chart'&&chartInput(t,true))return;
  if(t.dataset.how!=null&&S.how){const ad=S.how.addons[+t.dataset.how];ad.on=t.checked;if(ad.d20&&t.checked)S.how.addons.forEach(x=>{if(x!==ad&&x.d20&&x.d20!==ad.d20)x.on=false;});drawHow();return;}
  if(S.view==='build'&&(t.dataset.b||t.dataset.fp)){buildInput(t,true);return;}
