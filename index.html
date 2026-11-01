@@ -2446,7 +2446,7 @@ function gmClick(a){
  if(a==='gmoff'){try{localStorage.removeItem('rtm.gm.'+chartKey());}catch(e){}render();toastMsg('Left GM mode on this device.');return true;}
  if(a==='gmok'){const p=(document.getElementById('gmpin')||{}).value||'';if(p.length<4){S.gmErr='Use at least 4 characters.';drawGmPrompt();return true;}
   sha(p).then(h=>{if(!S.chart.gmHash){S.chart.gmHash=h;chartSave(true);}if(h!==S.chart.gmHash){S.gmErr='That PIN doesn\'t match.';drawGmPrompt();return;}
-   try{localStorage.setItem('rtm.gm.'+chartKey(),h);}catch(e){}S.gmPrompt=false;drawGmPrompt();render();toastMsg('GM mode unlocked on this device.');});return true;}
+   try{localStorage.setItem('rtm.gm.'+chartKey(),h);const pc=getCode();if(pc){localStorage.setItem('rtm.map.pin.'+pc,p);localStorage.setItem('rtm.map.role.'+pc,'gm');}}catch(e){}S.gmPrompt=false;drawGmPrompt();render();toastMsg('GM mode unlocked on this device.');});return true;}
  return false;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='gmpin')gmClick('gmok');if(e.key==='Escape'&&S.gmPrompt){S.gmPrompt=false;drawGmPrompt();}});
@@ -2959,7 +2959,7 @@ function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit
 
 /* ---------- views ---------- */
 function render(){
- $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="map.html">Map</a><a href="guide.html">Guide</a>';
+ $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="map.html">Map</a>'+(gmNow()?'<a href="gm.html">GM</a>':'')+'<a href="guide.html">Guide</a>';
  const app=$('#app');
  if(S.view==='party')app.innerHTML=vParty();
  else if(S.view==='import')app.innerHTML=vImport();
@@ -3305,5 +3305,6 @@ render();initStore();
 
 </script>
 
+<script src="polls.js"></script>
 </body>
 </html>

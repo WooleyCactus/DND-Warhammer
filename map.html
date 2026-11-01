@@ -98,6 +98,7 @@ label.ck{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-siz
   <span class="code" id="codeLbl"></span>
   <span class="sp"></span>
   <select id="role" aria-label="Who are you?"></select>
+  <a href="gm.html" id="gmLink" title="GM screen" hidden>GM screen</a>
   <a href="./" title="Character sheets">Sheets</a>
  </header>
  <main>
@@ -271,7 +272,7 @@ async function connect(code){
   .on('broadcast',{event:'hid'},({payload})=>{if(S.gm)loadMap();else{delete S.tokens[payload.id];changed();}})
   .on('broadcast',{event:'del'},({payload})=>{if(payload.id==='*')S.tokens={};else delete S.tokens[payload.id];if(S.sel&&!S.tokens[S.sel])S.sel=null;changed();})
   .on('broadcast',{event:'drag'},({payload})=>{const t=S.tokens[payload.id];if(t&&!(S.drag&&S.drag.id===t.id)){t.x=payload.x;t.y=payload.y;changed(true);}})
-  .on('broadcast',{event:'meta'},({payload})=>{S.meta=payload.meta;terrainDirty();changed();})
+  .on('broadcast',{event:'meta'},({payload})=>{if(!S.gm&&payload.meta&&payload.meta.live===false){loadMap();return;}S.meta=payload.meta;terrainDirty();changed();})
   .on('broadcast',{event:'reload'},()=>loadMap())
   .on('broadcast',{event:'ping'},({payload})=>addPing(payload.x,payload.y,payload.c))
   .subscribe(st=>{setStatus(st==='SUBSCRIBED'?'live':st==='CHANNEL_ERROR'||st==='TIMED_OUT'?'off':'connecting');if(st==='SUBSCRIBED')loadAll();});
@@ -285,7 +286,7 @@ async function loadChars(){
  try{const rows=await rpc('party_list',{p_party:S.code});const out={};
   (rows||[]).forEach(r=>{const d=r.data||{},src=d.src||{},st=d.state||{};const max=+src.maxHp||0;
    out[r.id]={id:r.id,name:src.name||'Unnamed',maxHp:max,hp:st.hp==null?max:+st.hp,ac:src.ac,speed:+src.speed||30};});
-  S.chars=out;renderRole();ensureMyToken();changed();
+  S.chars=out;renderRole();ensureMyToken();ensurePartyTokens();changed();
  }catch(e){}
 }
 async function loadMap(){
@@ -295,11 +296,11 @@ async function loadMap(){
   S.gm=S.role==='gm'&&!!r.gm;
   const m=r.meta&&r.meta.cells?r.meta:null;
   if(!S.meta||!m||m.cells!==S.meta.cells||m.w!==S.meta.w)terrainDirty();
-  S.meta=m;S.tokens=r.tokens||{};
+  S.meta=m;S.tokens=r.tokens||{};S.veiled=!m&&!!r.meta&&r.meta.live===false;S.pmeta=S.veiled?r.meta:null;
   if(S.drag&&S.tokens[S.drag.id]){S.tokens[S.drag.id].x=S.drag.x;S.tokens[S.drag.id].y=S.drag.y;}
   if(S.sel&&!S.tokens[S.sel])S.sel=null;
   setStatus(S.status==='off'?'connecting':S.status);
-  ensureMyToken();
+  ensureMyToken();ensurePartyTokens();
   if(S.meta&&!S.fitted){S.fitted=true;firstView();}
   changed();renderRole();
  }catch(e){setStatus('off');}
@@ -312,14 +313,16 @@ function stats(t){if(t.kind==='pc'&&t.charId&&S.chars[t.charId]){const c=S.chars
  return{name:t.name||'?',hp:t.hp,maxHp:t.maxHp,ac:t.ac,speed:+t.speed||30};}
 const canMove=t=>S.gm||!!t.free||(t.kind==='pc'&&!!S.role&&t.charId===S.role);
 const canEdit=t=>S.gm||(t.kind==='pc'&&!!S.role&&t.charId===S.role);
+// Would players see this token right now? (hidden tokens, and enemies while the map is veiled, stay private)
+const shown=t=>!t.hidden&&(t.kind==='pc'||!S.meta||S.meta.live!==false);
 function saveToken(t){
  S.tokens[t.id]=t;changed();
- send(t.hidden?'hid':'tok',t.hidden?{id:t.id}:{t});
+ send(shown(t)?'tok':'hid',shown(t)?{t}:{id:t.id});
  (S.gm?rpc('map_token_put',{p_party:S.code,p_pin:S.pin,p_token:t}):rpc('map_pc_put',{p_party:S.code,p_token:t})).catch(fail);
 }
 function moveToken(t,x,y){
  t.x=x;t.y=y;changed();
- send(t.hidden?'hid':'tok',t.hidden?{id:t.id}:{t});
+ send(shown(t)?'tok':'hid',shown(t)?{t}:{id:t.id});
  (S.gm?rpc('map_token_put',{p_party:S.code,p_pin:S.pin,p_token:t}):rpc('map_move',{p_party:S.code,p_id:t.id,p_x:x,p_y:y})).catch(fail);
 }
 function delToken(id){
@@ -329,7 +332,7 @@ function delToken(id){
 let metaT=null;
 function saveMeta(now){
  S.metaVer++;clearTimeout(metaT);
- const go=()=>{const meta=S.meta;const big=JSON.stringify(meta).length>90000;send(big?'reload':'meta',big?{}:{meta});
+ const go=()=>{const meta=S.meta;const big=meta.live===false||JSON.stringify(meta).length>90000;send(big?'reload':'meta',big?{}:{meta});
   rpc('map_save_meta',{p_party:S.code,p_pin:S.pin,p_meta:meta}).then(()=>{if(big)send('reload',{});}).catch(fail);};
  if(now)go();else metaT=setTimeout(go,500);
 }
@@ -338,6 +341,12 @@ function occupied(x,y,s,skip){for(const t of Object.values(S.tokens)){if(t.id===
 function freeSpot(x,y,s,skip){return S.meta?nearestWalk(S.meta,x,y,s,(xx,yy,ss)=>occupied(xx,yy,ss,skip)):null;}
 function pcToken(c){const p=freeSpot(S.meta.start.x,S.meta.start.y,1);const ids=Object.keys(S.chars).sort();
  return{id:'pc-'+c.id,kind:'pc',charId:c.id,name:c.name,color:PC_COLORS[Math.max(0,ids.indexOf(c.id))%PC_COLORS.length],x:p?p.x:0,y:p?p.y:0,size:1,cond:[]};}
+function ensurePartyTokens(){
+ if(!S.gm||!S.meta)return;if(ensurePartyTokens.busy)return;
+ const miss=Object.values(S.chars).filter(c=>!S.tokens['pc-'+c.id]);if(!miss.length)return;
+ ensurePartyTokens.busy=true;setTimeout(()=>ensurePartyTokens.busy=false,3000);
+ miss.forEach(c=>{const tk=pcToken(c);S.tokens[tk.id]=tk;saveToken(tk);});}
+function setLive(on){S.meta.live=on;saveMeta(true);send('reload',{});changed();toast(on?'Map revealed to players.':'Map hidden from players.');}
 function ensureMyToken(){
  if(!S.meta||!S.role||S.role==='gm'||!S.chars[S.role])return;
  if(S.tokens['pc-'+S.role])return;
@@ -399,14 +408,14 @@ function rangeFor(t,ox,oy){const key=[t.id,ox,oy,t.size||1,S.metaVer,S.meta&&S.m
  if(!rangeCache||rangeCache.key!==key)rangeCache={key,d:flood(S.meta,ox,oy,t.size||1)};return rangeCache.d;}
 const label=t=>{if(t.label)return t.label;const n=(stats(t).name||'?').trim();const num=(n.match(/(\d+)$/)||[])[1];const w=n.replace(/\s*\d+$/,'').split(/\s+/);
  return num?(w[0][0]+num):(w.length>1?w[0][0]+w[1][0]:n.slice(0,2));};
-function curTurnId(){const I=S.meta&&S.meta.init;if(!I||!I.on)return null;return I.order[I.turn]||null;}
+function curTurnId(){const I=(S.meta||S.pmeta||{}).init;if(!I||!I.on)return null;return I.order[I.turn]||null;}
 let raf=0;
 function changed(soft){S.ver++;if(!soft)renderPanel();draw();}
 function draw(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;paint();});}
 function paint(){
  const W=cv.width,H=cv.height;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#08070a';ctx.fillRect(0,0,W,H);
  if(!S.meta){ctx.fillStyle='#A0957D';ctx.font=`${16*dpr}px 'Alegreya Sans',sans-serif`;ctx.textAlign='center';
-  ctx.fillText(S.code?(S.gm?'No map yet — make one on the GM tab.':'Waiting for the GM to set up a map…'):'',W/2,H/2);return;}
+  ctx.fillText(S.code?(S.gm?'No map yet — make one on the GM tab.':S.veiled?'The GM hasn\u2019t revealed the map yet.':'Waiting for the GM to set up a map…'):'',W/2,H/2);return;}
  if(terrStale)buildTerrain();
  const cs=CELL*S.view.s*dpr,ox=S.view.x*dpr,oy=S.view.y*dpr,m=S.meta;
  ctx.imageSmoothingEnabled=true;ctx.drawImage(terr,ox,oy,m.w*cs,m.h*cs);
@@ -457,7 +466,7 @@ function hit(c){const l=Object.values(S.tokens).sort((p,q)=>(q.id===S.sel)-(p.id
  return l.find(t=>c.x>=t.x&&c.x<t.x+(t.size||1)&&c.y>=t.y&&c.y<t.y+(t.size||1))||null;}
 function myColor(){const t=S.role&&S.tokens['pc-'+S.role];return t?t.color:S.gm?'#B3262A':'#E8DEC6';}
 function doPing(c){if(!S.meta||c.x<0||c.y<0||c.x>=S.meta.w||c.y>=S.meta.h)return;const col=myColor();addPing(c.x,c.y,col);send('ping',{x:c.x,y:c.y,c:col});}
-function revertDrag(){const d=S.drag;S.drag=null;if(!d)return;const t=S.tokens[d.id];if(t&&d.moved){t.x=d.ox;t.y=d.oy;send('drag',{id:t.id,x:t.x,y:t.y});}draw();}
+function revertDrag(){const d=S.drag;S.drag=null;if(!d)return;const t=S.tokens[d.id];if(t&&d.moved){t.x=d.ox;t.y=d.oy;if(shown(t))send('drag',{id:t.id,x:t.x,y:t.y});}draw();}
 function paintCell(c){const m=S.meta;if(!m||c.x<0||c.y<0||c.x>=m.w||c.y>=m.h)return;const i=c.y*m.w+c.x;if(m.cells[i]===S.brush)return;
  m.cells=m.cells.slice(0,i)+S.brush+m.cells.slice(i+1);terrainDirty();S.painted=true;draw();}
 let dragSent=0;
@@ -482,7 +491,7 @@ cv.addEventListener('pointermove',e=>{
  if(S.drag&&pr&&pr.moved){const t=S.tokens[S.drag.id];if(!t){S.drag=null;return;}const c=cellAt(e.offsetX,e.offsetY),s=t.size||1;
   const x=Math.max(0,Math.min(S.meta.w-s,c.x-S.drag.gx)),y=Math.max(0,Math.min(S.meta.h-s,c.y-S.drag.gy));
   if(!S.drag.moved){S.drag.moved=true;S.sel=t.id;renderPanel();}
-  if(x!==S.drag.x||y!==S.drag.y){S.drag.x=x;S.drag.y=y;t.x=x;t.y=y;const n=Date.now();if(n-dragSent>90&&!t.hidden){dragSent=n;send('drag',{id:t.id,x,y});}draw();}return;}
+  if(x!==S.drag.x||y!==S.drag.y){S.drag.x=x;S.drag.y=y;t.x=x;t.y=y;const n=Date.now();if(n-dragSent>90&&shown(t)){dragSent=n;send('drag',{id:t.id,x,y});}draw();}return;}
  if(S.pan){S.view.x=S.pan.vx+e.offsetX-S.pan.x;S.view.y=S.pan.vy+e.offsetY-S.pan.y;draw();}
 });
 function endPtr(e){
@@ -515,10 +524,10 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textar
  if(e.key==='Delete'&&t&&S.gm&&confirm(`Remove ${stats(t).name} from the map?`))delToken(t.id);});
 
 /* ---------- role ---------- */
-function renderRole(){const sel=$('#role');const chars=Object.values(S.chars).sort((a,b)=>a.name.localeCompare(b.name));
+function renderRole(){$('#gmLink').hidden=!S.gm;const sel=$('#role');const chars=Object.values(S.chars).sort((a,b)=>a.name.localeCompare(b.name));
  const html=`<option value="">Watching</option>${chars.map(c=>`<option value="${esc(c.id)}">Playing ${esc(c.name)}</option>`).join('')}<option value="gm">GM${S.gm?'':' (PIN)'}</option>`;
  if(sel.innerHTML!==html)sel.innerHTML=html;sel.value=S.role&&(S.role==='gm'||S.chars[S.role])?S.role:'';}
-$('#role').onchange=e=>{const v=e.target.value;S.role=v;lsSet('rtm.map.role.'+S.code,v);S.sel=null;
+$('#role').onchange=e=>{const v=e.target.value;S.role=v;lsSet('rtm.map.role.'+S.code,v);S.sel=null;if(window.RTMPolls)RTMPolls.check();
  if(v==='gm'){S.tab='gm';if(S.pin)loadMap();else{S.gm=false;changed();}}
  else{S.gm=false;if(S.tab==='gm')S.tab='turn';loadMap();}
  changed();};
@@ -542,7 +551,7 @@ function renderPanel(force){
  renderBanner();
 }
 document.addEventListener('focusout',()=>setTimeout(()=>{if(panelPending&&!($('#side').contains(document.activeElement)&&document.activeElement.matches('input,select')))renderPanel(true);},0));
-function renderBanner(){const b=$('#banner');const id=curTurnId();const t=id&&S.tokens[id];const I=S.meta&&S.meta.init;
+function renderBanner(){const b=$('#banner');const id=curTurnId();const t=id&&S.tokens[id];const I=(S.meta||S.pmeta||{}).init;
  if(t&&S.role&&t.charId===S.role){b.hidden=false;b.textContent='Your turn · Round '+I.round;}
  else if(t&&S.gm){b.hidden=false;b.textContent=stats(t).name+'’s turn · Round '+I.round;}
  else b.hidden=true;}
@@ -552,10 +561,12 @@ const legend=()=>`<h3>Terrain</h3><div class="legend">
  <span><i class="lg" style="background:#3a3128"></i>Rubble · 2× move</span><span><i class="lg" style="background:#6b1f22"></i>Hazard</span></div>
  <p class="muted" style="margin:0">Each square is 5 ft. Diagonals count as 5 ft. Long-press or double-click a square to ping it for everyone.</p>`;
 function turnPanel(){
- const I=(S.meta&&S.meta.init)||{on:false,order:[],turn:0,round:1};
+ const I=((S.meta||S.pmeta||{}).init)||{on:false,order:[],turn:0,round:1};
  const toks=Object.values(S.tokens);const cur=curTurnId();
- if(!S.meta)return`<p class="muted">${S.gm?'Make a map on the GM tab first.':'Waiting for the GM to set up a map.'}</p>${S.role?'':'<p class="muted">Pick your character at the top so you can move your token.</p>'}`;
  let h='';
+ if(S.gm&&S.meta)h+=`<div class="row" style="justify-content:space-between;background:var(--sunk);border:1px solid ${S.meta.live===false?'var(--blood-dk)':'var(--line)'};padding:8px"><span>${S.meta.live===false?'🔒 Map hidden from players':'👁 Players can see the map'}</span><button data-act="${S.meta.live===false?'reveal':'veil'}">${S.meta.live===false?'Reveal':'Hide'}</button></div>`;
+ if(S.veiled)h+=`<p class="muted" style="margin:0">The GM hasn't revealed the map yet.</p>`;
+ if(!S.meta&&!S.veiled)return`<p class="muted">${S.gm?'Make a map on the GM tab first.':'Waiting for the GM to set up a map.'}</p>${S.role?'':'<p class="muted">Pick your character at the top so you can move your token.</p>'}`;
  if(I.on){
   const order=I.order.filter(id=>S.tokens[id]);
   h+=`<h3>Round ${I.round}</h3><div class="list">${order.map(id=>{const t=S.tokens[id],st=stats(t);
@@ -566,9 +577,9 @@ function turnPanel(){
   h+=`<h3>Initiative</h3><p class="muted" style="margin:0">${S.gm?'Enter everyone\'s initiative, then start combat.':'Enter your initiative roll. The GM starts combat.'}</p>`;
   const sorted=toks.slice().sort((a,b)=>(+b.init||-99)-(+a.init||-99));
   h+=`<div class="list">${sorted.map(t=>{const st=stats(t);return`<div class="it ${t.id===S.sel?'sel':''}" data-pick="${esc(t.id)}"><span class="sw" style="background:${esc(t.color)}"></span><span class="nm">${esc(st.name)}${t.hidden?' 👁':''}</span>${canEdit(t)?`<input type="number" inputmode="numeric" data-init="${esc(t.id)}" value="${esc(t.init==null?'':t.init)}" placeholder="init">`:`<span class="hp">${esc(t.init==null||t.init===''?'–':t.init)}</span>`}</div>`;}).join('')||'<p class="muted">No tokens on the map yet.</p>'}</div>`;
-  if(S.gm)h+=`<button class="pri" data-act="startcombat" ${toks.length?'':'disabled'}>Start combat</button>`;
+  if(S.gm)h+=`<button class="pri" data-act="startcombat" ${toks.length?'':'disabled'}>${S.meta.live===false?'Start combat &amp; reveal map':'Start combat'}</button>`;
  }
- return h+legend();
+ return h+(S.veiled?'':legend());
 }
 function tokenPanel(){
  const t=S.sel&&S.tokens[S.sel];
@@ -602,6 +613,7 @@ function gmPanel(){
  <label>Size<select id="gSize">${Object.entries(SIZES).map(([k,v])=>`<option value="${k}" ${g.size===k?'selected':''}>${v[2]}</option>`).join('')}</select></label></div>
  <div class="row"><label style="flex:1">Seed (same seed = same map)<input id="gSeed" value="${esc(g.seed)}"></label><button data-act="reroll" title="New seed" style="align-self:flex-end">🎲</button></div>
  <button class="pri" data-act="gen">${S.meta?'Replace map':'Generate map'}</button>
+ <p class="muted" style="margin:0">New maps start hidden from players. Starting combat reveals it, or use Reveal on the Turn tab.</p>
  ${S.meta?`<h3>Edit terrain</h3><div class="row"><button data-act="mode-move" class="${S.mode==='move'?'on':''}">Move tokens</button><button data-act="mode-paint" class="${S.mode==='paint'?'on':''}">Paint</button></div>
  ${S.mode==='paint'?`<div class="chips">${[['.','Floor'],['#','Wall'],['+','Door'],['c','Cover'],['d','Rubble'],['h','Hazard'],[' ','Erase']].map(([k,n])=>`<button data-brush="${k}" class="${S.brush===k?'on':''}">${n}</button>`).join('')}</div><p class="muted" style="margin:0">Drag across the map to paint. Two fingers still pan and zoom.</p>`:''}
  <h3>Add enemies</h3>
@@ -636,13 +648,15 @@ $('#side').addEventListener('click',e=>{
   case'reroll':S.gen={theme:$('#gTheme').value,size:$('#gSize').value,seed:String(1000+Math.floor(Math.random()*9000))};renderPanel(true);break;
   case'gen':{S.gen={theme:$('#gTheme').value,size:$('#gSize').value,seed:$('#gSeed').value.trim()||'1'};
    if(S.meta&&!confirm('Replace the current map for everyone? Tokens stay and get moved to open squares.'))return;
-   const[w,h]=SIZES[S.gen.size];const m=generate(S.gen.theme,w,h,S.gen.seed);m.init=S.meta&&S.meta.init||{on:false,order:[],turn:0,round:1};
+   const[w,h]=SIZES[S.gen.size];const m=generate(S.gen.theme,w,h,S.gen.seed);m.init=S.meta&&S.meta.init||{on:false,order:[],turn:0,round:1};m.live=false;
    S.meta=m;terrainDirty();S.fitted=true;fit();saveMeta(true);
    const toks=Object.values(S.tokens);const placed={};
    toks.forEach(tk=>{const s=tk.size||1;const anchor=tk.kind==='pc'?m.start:m.foe;
     const p=nearestWalk(m,anchor.x,anchor.y,s,(x,y,ss)=>Object.values(placed).some(o=>x<o.x+o.s&&x+ss>o.x&&y<o.y+o.s&&y+ss>o.y));
     if(p){placed[tk.id]={x:p.x,y:p.y,s};if(p.x!==tk.x||p.y!==tk.y)saveToken(Object.assign({},tk,{x:p.x,y:p.y}));}});
    changed();break;}
+  case'reveal':setLive(true);break;
+  case'veil':setLive(false);break;
   case'mode-move':S.mode='move';renderPanel(true);break;
   case'mode-paint':S.mode='paint';S.sel=null;renderPanel(true);draw();break;
   case'addnpc':{const n=readNpcForm();const c=viewCenterCell();const existing=Object.values(S.tokens).filter(x=>x.kind!=='pc'&&(x.name||'').replace(/\s*\d+$/,'')===n.name).length;
@@ -659,7 +673,7 @@ $('#side').addEventListener('click',e=>{
    const tk=Object.assign({},t,{id:'n-'+uid(),x:p.x,y:p.y,hp:t.maxHp,name:`${base} ${n}`,label:'',cond:[]});S.tokens[tk.id]=tk;S.sel=tk.id;saveToken(tk);break;}
   case'del':if(t&&confirm(`Remove ${stats(t).name} from the map?`))delToken(t.id);break;
   case'startcombat':{const order=Object.values(S.tokens).sort((a,b)=>(+b.init||-99)-(+a.init||-99)||(a.kind==='pc'?-1:1)).map(x=>x.id);
-   S.meta.init={on:true,order,turn:0,round:1};saveMeta(true);changed();const f=S.tokens[order[0]];if(f)centerOn(f);break;}
+   S.meta.init={on:true,order,turn:0,round:1};const wasHidden=S.meta.live===false;S.meta.live=true;saveMeta(true);if(wasHidden)send('reload',{});changed();const f=S.tokens[order[0]];if(f)centerOn(f);break;}
   case'sortinit':{I.order=Object.values(S.tokens).sort((a,b)=>(+b.init||-99)-(+a.init||-99)).map(x=>x.id);I.turn=0;saveMeta(true);changed();break;}
   case'next':case'prev':{const order=I.order.filter(id=>S.tokens[id]);if(!order.length)return;const curId=curTurnId();let i=Math.max(0,order.indexOf(curId));
    i+=b.dataset.act==='next'?1:-1;if(i>=order.length){i=0;I.round++;}if(i<0){i=order.length-1;I.round=Math.max(1,I.round-1);}
@@ -691,5 +705,6 @@ let toastT=0;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=fals
  $('#joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('#joinBtn').click();});
 })();
 </script>
+<script src="polls.js"></script>
 </body>
 </html>
