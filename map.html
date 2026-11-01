@@ -527,7 +527,15 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textar
 function renderRole(){$('#gmLink').hidden=!S.gm;const sel=$('#role');const chars=Object.values(S.chars).sort((a,b)=>a.name.localeCompare(b.name));
  const html=`<option value="">Watching</option>${chars.map(c=>`<option value="${esc(c.id)}">Playing ${esc(c.name)}</option>`).join('')}<option value="gm">GM${S.gm?'':' (PIN)'}</option>`;
  if(sel.innerHTML!==html)sel.innerHTML=html;sel.value=S.role&&(S.role==='gm'||S.chars[S.role])?S.role:'';}
-$('#role').onchange=e=>{const v=e.target.value;S.role=v;lsSet('rtm.map.role.'+S.code,v);S.sel=null;if(window.RTMPolls)RTMPolls.check();
+async function claimChar(id){const c=S.chars[id];const name=c?c.name:'this character';let claimed=false;
+ try{claimed=((await rpc('char_claims',{p_party:S.code}))||[]).includes(id);}catch(e){}
+ const pin=prompt(claimed?`Enter ${name}'s player PIN.`:`Set a player PIN for ${name} (4 or more characters). You'll only need it again on a new device.`);
+ if(!pin)return false;if(pin.length<4){toast('PINs are 4 or more characters.');return false;}
+ try{if(!await rpc('char_claim',{p_party:S.code,p_char:id,p_pin:pin})){toast('That PIN doesn\u2019t match.');return false;}}catch(e){toast(e.message||'Couldn\u2019t check the PIN.');return false;}
+ lsSet('rtm.key.'+S.code+'.'+id,pin);return true;}
+$('#role').onchange=async e=>{const v=e.target.value;
+ if(v&&v!=='gm'&&!lsGet('rtm.key.'+S.code+'.'+v)&&!await claimChar(v)){e.target.value=S.role&&(S.role==='gm'||S.chars[S.role])?S.role:'';return;}
+ S.role=v;lsSet('rtm.map.role.'+S.code,v);S.sel=null;if(window.RTMPolls)RTMPolls.check();
  if(v==='gm'){S.tab='gm';if(S.pin)loadMap();else{S.gm=false;changed();}}
  else{S.gm=false;if(S.tab==='gm')S.tab='turn';loadMap();}
  changed();};

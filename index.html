@@ -2890,7 +2890,7 @@ function persist(ch,now){
  ch.updatedAt=Date.now();
  if(!DB){lsSave();return;}
  clearTimeout(writeT[ch.id]);
- const go=()=>{const body=clone(ch);delete body.id;writeQ[ch.id]=(writeQ[ch.id]||Promise.resolve()).then(()=>DB.collection('party').doc(ch.id).set(body)).catch(e=>{toastMsg(e&&e.code==='invalid_argument'?'You can view this party but not change it.':'Couldn\'t save: '+(e&&e.message||'unknown error'));});};
+ const go=()=>{const body=clone(ch);delete body.id;writeQ[ch.id]=(writeQ[ch.id]||Promise.resolve()).then(()=>DB.collection('party').doc(ch.id).set(body)).catch(e=>{toastMsg(e&&e.code==='invalid_argument'?'You can view this party but not change it.':'Couldn\'t save: '+(e&&e.message||'unknown error'));if(DB&&DB.refresh)DB.refresh();});};
  if(now)go();else writeT[ch.id]=setTimeout(go,500);
 }
 const SUPA_URL='https://xpljuyatduvrbhiwfbwn.supabase.co';
@@ -2901,6 +2901,8 @@ const getCode=()=>{try{return localStorage.getItem(PCODE)||'';}catch(e){return '
 const setCode=c=>{try{c?localStorage.setItem(PCODE,c):localStorage.removeItem(PCODE);}catch(e){}};
 const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.+)$/,'$1-$2').slice(0,9);
 function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=new Uint32Array(8);crypto.getRandomValues(r);r.forEach(x=>s+=a[x%a.length]);return s.slice(0,4)+'-'+s.slice(4);}
+/* Player PIN for this character on this device, else the GM PIN; the server decides if it may save. */
+function authFor(code,id){try{return localStorage.getItem('rtm.key.'+code+'.'+id)||localStorage.getItem('rtm.map.pin.'+code)||null;}catch(e){return null;}}
 /* Supabase party store, shaped like the claude db API the rest of the app uses */
 function supaDB(client,code){
  const listeners=[];let last=0;
@@ -2912,10 +2914,10 @@ function supaDB(client,code){
  chan.on('broadcast',{event:'changed'},()=>refresh()).on('broadcast',{event:'chart'},()=>{if(window.__chartPing)window.__chartPing();}).subscribe();
  setInterval(()=>{if(document.visibilityState==='visible'&&Date.now()-last>25000)refresh();},5000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
- return {code,client,chan,collection:()=>({
+ return {code,client,chan,refresh,collection:()=>({
   onSnapshot(next,err){listeners.push({next,err});refresh();return ()=>{};},
   doc:id=>({
-   set:async body=>{const {error}=await client.rpc('party_save',{p_party:code,p_id:id,p_data:body});if(error)throw error;last=Date.now();ping();},
+   set:async body=>{const {error}=await client.rpc('party_save',{p_party:code,p_id:id,p_data:Object.assign({},body,{_auth:authFor(code,id)})});if(error)throw error;last=Date.now();ping();},
    delete:async()=>{const {error}=await client.rpc('party_delete',{p_party:code,p_id:id});if(error)throw error;ping();refresh();}
   })})};
 }

@@ -10,6 +10,8 @@
  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const code=()=>{const c=norm(get('rtm.party.code'));return c.length===9?c:'';};
  const me=()=>{const c=code();const r=c&&get('rtm.map.role.'+c);return r&&r!=='gm'?r:'';};
+ const key=id=>get('rtm.key.'+code()+'.'+id);
+ let needPin='';
  let client=null,chan=null,chanCode='',open=[],busy=false,skip={};
  function load(){return new Promise((ok,no)=>{if(window.supabase)return ok();const s=document.createElement('script');s.src=LIB;s.onload=ok;s.onerror=no;document.head.appendChild(s);});}
  async function ready(){
@@ -24,7 +26,9 @@
  async function check(){
   if(busy)return;const m=me();if(!m){draw();return;}
   if(!await ready())return;busy=true;
-  try{const{data,error}=await client.rpc('poll_open',{p_party:code(),p_char:m});if(!error)open=(data||[]).filter(p=>!skip[p.id]);}catch(e){}
+  try{const{data,error}=await client.rpc('poll_mine',{p_party:code(),p_char:m,p_pin:key(m)});
+   if(error){if(/PIN/.test(error.message||'')){needPin=m;open=[];}}else{needPin='';open=(data||[]).filter(p=>!skip[p.id]);}}catch(e){}
+  meBar();
   busy=false;draw();
  }
  const css=`#rtm-poll{position:fixed;inset:0;z-index:50;display:grid;place-items:end center;background:rgba(5,4,3,.6);padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
@@ -37,7 +41,9 @@
  #rtm-poll .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
  #rtm-poll button{font:700 14px 'Alegreya Sans',sans-serif;padding:9px 14px;border:1px solid #7A5C1E;background:#2A1E10;color:#EBCB7A;cursor:pointer}
  #rtm-poll button.later{background:transparent;color:#2A1E10}
- #rtm-me{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:40;background:#1B1815;border:1px solid #7A5C1E;color:#E8DEC6;padding:8px 10px 8px 14px;display:flex;gap:10px;align-items:center;font:14px 'Alegreya Sans',sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.6);max-width:calc(100% - 24px)}
+ #rtm-me{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:40;background:#1B1815;border:1px solid #7A5C1E;color:#E8DEC6;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;font:15px 'Alegreya Sans',sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.6);width:max-content;max-width:min(460px,calc(100% - 24px))}
+ #rtm-me>span{flex:1 1 220px}
+ #rtm-me #rtm-pin{flex:1 1 120px;min-width:0}
  #rtm-me button{font:700 13px 'Alegreya Sans',sans-serif;padding:6px 10px;border:1px solid #7A5C1E;background:#C8A24A;color:#140F06;cursor:pointer}
  #rtm-me button.x{background:transparent;color:#A0957D;border-color:transparent}`;
  function host(id){let el=document.getElementById(id);if(!el){if(!document.getElementById('rtm-poll-css')){const st=document.createElement('style');st.id='rtm-poll-css';st.textContent=css;document.head.appendChild(st);}
@@ -58,21 +64,39 @@
   if(a==='send'){const p=open[0];if(!p)return;const d=p.data||{};const r=document.querySelector('#rtm-poll input[name=rtmopt]:checked');const t=(document.getElementById('rtm-txt')||{}).value||'';
    if((d.opts||[]).length&&!r&&!t.trim()){b.textContent='Pick an answer';return;}
    const ans={choice:r?(d.opts||[])[+r.value]:null,text:t.trim()||null};b.disabled=true;
-   const{error}=await client.rpc('poll_answer',{p_party:code(),p_id:p.id,p_char:me(),p_answer:ans});
+   const{error}=await client.rpc('poll_reply',{p_party:code(),p_id:p.id,p_char:me(),p_pin:key(me()),p_answer:ans});
    if(error){b.disabled=false;b.textContent='Couldn’t send, try again';return;}
    try{chan.send({type:'broadcast',event:'answered',payload:{id:p.id}});}catch(err){}
    open.shift();const h=document.getElementById('rtm-poll');if(h)h.dataset.id='';draw();return;}
-  if(a==='me'){const c=code();put('rtm.map.role.'+c,b.dataset.id);meBar();check();return;}
+  if(a==='me'){const h=document.getElementById('rtm-me');if(h){h.dataset.step='pin';h.dataset.id='';}meBar();const i=document.getElementById('rtm-pin');if(i)i.focus();return;}
+  if(a==='pin'){const id=b.dataset.id;const i=document.getElementById('rtm-pin');const pin=i?i.value:'';const msg=document.getElementById('rtm-msg');
+   if(pin.length<4){if(msg)msg.textContent='4 or more characters.';return;}
+   if(!await ready())return;b.disabled=true;
+   const{data,error}=await client.rpc('char_claim',{p_party:code(),p_char:id,p_pin:pin});b.disabled=false;
+   if(error||!data){if(msg)msg.textContent=error?(error.message||'Couldn\u2019t check that.'):'That PIN doesn\u2019t match.';return;}
+   const c=code();put('rtm.key.'+c+'.'+id,pin);put('rtm.map.role.'+c,id);needPin='';const h=document.getElementById('rtm-me');if(h)h.remove();check();return;}
   if(a==='nome'){put('rtm.me.skip.'+code()+'.'+b.dataset.id,'1');meBar();return;}
  });
  // On the sheets app: offer "This is my character" so polls reach the right device.
+ async function claimedSet(){if(!await ready())return[];try{const{data}=await client.rpc('char_claims',{p_party:code()});return data||[];}catch(e){return[];}}
+ let claimsCache={t:0,ids:[]};
  function meBar(){
   const el=document.getElementById('rtm-me');let ch=null;
   try{if(typeof S!=='undefined'&&S.view==='sheet'&&typeof cur==='function')ch=cur();}catch(e){}
   const c=code();const role=c&&get('rtm.map.role.'+c);
-  if(!ch||!c||role||get('rtm.me.skip.'+c+'.'+ch.id)||(typeof gmNow==='function'&&gmNow())){if(el)el.remove();return;}
-  const name=(ch.src&&ch.src.name)||'this character';const h=host('rtm-me');if(h.dataset.id===ch.id)return;h.dataset.id=ch.id;
-  h.innerHTML=`<span>Is <b>${esc(name)}</b> your character?</span><button data-a="me" data-id="${esc(ch.id)}">Yes, that's me</button><button class="x" data-a="nome" data-id="${esc(ch.id)}" aria-label="No">✕</button>`;
+  let target=null,mode='';
+  if(needPin&&needPin===role){target={id:role,name:(ch&&ch.id===role&&ch.src&&ch.src.name)||'your character'};mode='again';}
+  else if(ch&&c&&!role&&!get('rtm.me.skip.'+c+'.'+ch.id)&&!(typeof gmNow==='function'&&gmNow())){target={id:ch.id,name:(ch.src&&ch.src.name)||'this character'};mode='ask';}
+  if(!target){if(el)el.remove();return;}
+  const h=host('rtm-me');const step=h.dataset.step==='pin'||mode==='again'?'pin':'ask';const sig=target.id+step;if(h.dataset.id===sig)return;h.dataset.id=sig;
+  if(step==='ask'){h.innerHTML=`<span>Is <b>${esc(target.name)}</b> your character?</span><button data-a="me">Yes, that's me</button><button class="x" data-a="nome" data-id="${esc(target.id)}" aria-label="No">✕</button>`;return;}
+  const fresh=Date.now()-claimsCache.t>20000;
+  const draw=claimed=>{h.innerHTML=`<span style="display:flex;flex-direction:column;gap:2px"><span>${claimed?`Enter <b>${esc(target.name)}</b>'s player PIN`:`Set a player PIN for <b>${esc(target.name)}</b>`}</span><small id="rtm-msg" style="color:#e0a0a0">${mode==='again'?'This device needs your PIN again.':claimed?'':'4+ characters. Only needed again on a new device.'}</small></span>
+   <input id="rtm-pin" type="password" autocomplete="off" style="font:inherit;padding:5px 6px;background:#0A0908;color:#E8DEC6;border:1px solid #3B3229">
+   <button data-a="pin" data-id="${esc(target.id)}">${claimed?'Unlock':'Set PIN'}</button>`;
+   const i=document.getElementById('rtm-pin');if(i)i.addEventListener('keydown',e=>{if(e.key==='Enter'){const bb=h.querySelector('[data-a=pin]');if(bb)bb.click();}});};
+  draw(claimsCache.ids.includes(target.id));
+  if(fresh)claimedSet().then(ids=>{claimsCache={t:Date.now(),ids};if(h.dataset.id===sig&&!document.activeElement.isSameNode(document.getElementById('rtm-pin'))){draw(ids.includes(target.id));}});
  }
  window.RTMPolls={check,setMe:id=>{const c=code();if(c){put('rtm.map.role.'+c,id);check();}}};
  setInterval(()=>{meBar();},1200);

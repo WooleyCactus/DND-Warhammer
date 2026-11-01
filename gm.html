@@ -149,7 +149,7 @@ function subscribe(){
 function setStatus(st){G.status=st==='SUBSCRIBED'?'live':st==='CHANNEL_ERROR'||st==='TIMED_OUT'?'off':'connecting';$('#dot').className='dot '+(G.status==='live'?'live':G.status==='off'?'off':'');}
 async function loadAll(){await Promise.all([loadData(),loadChars(),loadMap(),loadPolls()]);render();}
 async function loadData(){try{const r=await rpc('gm_get',{p_party:G.code,p_pin:G.pin});G.data=norm(r.data);}catch(e){toast(e.message);if(/PIN/.test(e.message||''))relock();}}
-async function loadChars(){try{G.chars=(await rpc('party_list',{p_party:G.code}))||[];if(G.tab==='party'||G.tab==='polls')renderSoft();}catch(e){}}
+async function loadChars(){try{G.chars=(await rpc('party_list',{p_party:G.code}))||[];try{G.claims=(await rpc('char_claims',{p_party:G.code}))||[];}catch(e){}if(G.tab==='party'||G.tab==='polls')renderSoft();}catch(e){}}
 async function loadMap(){try{G.map=await rpc('map_get',{p_party:G.code,p_pin:G.pin});if(G.tab==='session'||G.tab==='party')renderSoft();}catch(e){}}
 let mapT=0;function loadMapSoon(){clearTimeout(mapT);mapT=setTimeout(loadMap,800);}
 async function loadPolls(){try{G.polls=(await rpc('poll_list',{p_party:G.code,p_pin:G.pin}))||[];renderTabs();if(G.tab==='polls')renderSoft();}catch(e){}}
@@ -231,7 +231,7 @@ function arcCard(a,i){
 function vParty(){
  if(!G.chars.length)return`<section class="box"><p class="empty" style="margin:0">No characters in party ${esc(G.code)} yet. Players join with the invite link from the Party page and create their characters.</p></section>`;
  return G.chars.map(r=>{const c=charInfo(r);const t=tokenFor(c.id);const f=c.max?Math.max(0,Math.min(1,c.hp/c.max)):1;const open=G.edit&&G.edit.id===c.id;
-  return`<section class="box"><div class="pc"><div><div style="font:700 17px var(--f-display);color:var(--gold-hi)">${esc(c.name)}</div><div class="muted">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div></div>
+  return`<section class="box"><div class="pc"><div><div style="font:700 17px var(--f-display);color:var(--gold-hi)">${esc(c.name)}</div><div class="muted">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div><div class="row" style="margin-top:4px">${(G.claims||[]).includes(c.id)?`<span class="tag done">🔒 Player PIN set</span><button class="sm ghost" data-act="pinreset" data-id="${esc(c.id)}" data-name="${esc(c.name)}">Reset PIN</button>`:'<span class="tag">No player PIN yet</span>'}</div></div>
    <div class="row"><button class="${open?'on':''}" data-act="editpc" data-id="${esc(c.id)}">${open?'Close':'GM override'}</button></div></div>
    <div class="hpbar"><i style="width:${f*100}%;background:${f>.5?'var(--ok)':f>.25?'var(--warn)':'var(--blood)'}"></i></div>
    <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>Speed <b>${c.speed}</b></span><span>Passive Perception <b>${c.pp}</b></span>
@@ -310,7 +310,7 @@ function vPolls(){
   <label class="ck"><input type="checkbox" id="pF" ${D.free?'checked':''}> Also let them write something</label>
   <div><div class="muted" style="margin-bottom:4px">Send to</div><div class="row">${chars.length?chars.map(c=>`<button class="sm ${D.to.includes(c.id)?'on':''}" data-act="pto" data-id="${esc(c.id)}">${esc(c.name)}</button>`).join('')+`<button class="sm ghost" data-act="ptoall">All</button>`:'<span class="empty">No characters yet.</span>'}</div></div>
   <div class="row"><span style="flex:1"></span><button class="pri" data-act="psend" ${chars.length?'':'disabled'}>Send poll</button></div>
-  <p class="muted" style="margin:0">A player only gets it once their device knows which character is theirs (they pick it on the map, or tap "Yes, that's me" on their sheet).</p></section>
+  <p class="muted" style="margin:0">A player gets it once they've claimed their character with a player PIN (on the map, or "Yes, that's me" on their sheet).</p></section>
  <section class="box"><h2>Sent</h2>${list.length?list.map(g=>`<div class="card"><div class="row"><b style="flex:1">${esc(g.data.q)}</b><span class="muted">${new Date(g.at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span><button class="sm ghost" data-act="pdel" data-g="${esc(g.id)}">Remove</button></div>
   ${g.rows.map(p=>`<div class="ans"><span class="who">${esc(nm(p.char_id))}</span>${p.answer?`<span>${p.answer.choice?`<b>${esc(p.answer.choice)}</b>`:''}${p.answer.choice&&p.answer.text?' — ':''}${esc(p.answer.text||'')}</span>`:'<span class="empty">waiting…</span>'}</div>`).join('')}</div>`).join(''):'<p class="empty" style="margin:0">No polls sent yet.</p>'}</section>`;
 }
@@ -365,6 +365,7 @@ $('#main').addEventListener('click',async e=>{
   case'eaddi':{const t=val('newItem');if(!t)return;const q=+$('#newQty').value||1;G.edit.d.state.inv.push({id:'g'+uid(),name:t,qty:q,cat:'gear'});G.edit.changed.add('state.inv');render();break;}
   case'erm':{getPath(G.edit.d,b.dataset.p).splice(+b.dataset.i,1);G.edit.changed.add(b.dataset.p);render();break;}
   case'eapply':await applyEdit();break;
+  case'pinreset':if(confirm(`Clear ${b.dataset.name}'s player PIN? Their player sets a new one next time they pick the character.`)){try{await rpc('char_reset',{p_party:G.code,p_gm_pin:G.pin,p_char:b.dataset.id});toast('PIN cleared.',true);await loadChars();render();}catch(err){toast(err.message);}}break;
   case'maplive':await mapMeta(m=>{m.live=b.dataset.v==='1';},b.dataset.v==='1'?'Map revealed to players.':'Map hidden from players.');break;
   case'nextturn':await mapMeta(m=>{const I=m.init;const toks=G.map.tokens||{};const order=(I.order||[]).filter(id=>toks[id]);if(!order.length)return false;let i=order.indexOf(I.order[I.turn]);i=i<0?0:i+1;if(i>=order.length){i=0;I.round++;}I.order=order;I.turn=i;});break;
   case'endcombat':if(confirm('End combat for everyone?'))await mapMeta(m=>{m.init={on:false,order:[],turn:0,round:1};},'Combat ended.');break;
@@ -380,7 +381,7 @@ async function applyEdit(){
   const d=clone(fresh.data);d.src=d.src||{};d.state=d.state||{};
   E.changed.forEach(p=>setPath(d,p,clone(getPath(E.d,p)===undefined?null:getPath(E.d,p))));
   d.updatedAt=Date.now();
-  await rpc('party_save',{p_party:G.code,p_id:E.id,p_data:d});
+  await rpc('party_save',{p_party:G.code,p_id:E.id,p_data:Object.assign({},d,{_auth:G.pin})});
   try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
   toast('Applied to '+((d.src&&d.src.name)||'the sheet')+'.',true);G.edit=null;await loadChars();render();
  }catch(err){toast('Couldn’t apply: '+(err.message||'unknown error'));}
