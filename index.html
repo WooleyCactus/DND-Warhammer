@@ -2316,7 +2316,8 @@ const STD_ITEMS=[
  I('Combat shield','armour','common','+2 AC while carried.'),
  I('Thrones','money','common','Imperial currency.')
 ];
-Object.entries(ATTACH).forEach(([k,A])=>STD_ITEMS.push(I(A.n,'attachment',['reddot','supp','extmag','bayonet','grip'].includes(k)?'common':'uncommon',A.t+' Fits: '+A.for+'.',{att:k})));
+const FIT_LABEL={ranged:'any ranged weapon',rifle:'two-handed ranged weapons',pistol:'one-handed ranged weapons',clip:'any weapon with a clip',las:'las weapons',blade:'blades',melee:'melee weapons',any:'any weapon'};
+Object.entries(ATTACH).forEach(([k,A])=>STD_ITEMS.push(I(A.n,'attachment',['reddot','supp','extmag','bayonet','grip'].includes(k)?'common':'uncommon',A.t+' Fits '+FIT_LABEL[A.for]+'.',{att:k})));
 function niceKey(k){return k.replace(/(hand|light|heavy|short|long|great|battle|war|quarter|morning)(?=[a-z])/,'$1 ').replace(/^./,c=>c.toUpperCase());}
 const STD_WEAPONS=Object.keys(W5E).filter(k=>WEAPONS[k]).map(k=>I(WEAPONS[k].to,'weapon','common',`${WEAPONS[k].dice?WEAPONS[k].dice+' '+WEAPONS[k].type:W5E[k][0]+' '+W5E[k][1]}${WEAPONS[k].range?', '+WEAPONS[k].range+' ft':''}. 5e: ${niceKey(k)}.`,{base:k,gmOnly:true}));
 function hbItems(){return (S.chart&&S.chart.catalog)||[];}

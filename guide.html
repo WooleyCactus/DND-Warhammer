@@ -288,6 +288,59 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .summary b{font-family:var(--f-caps);letter-spacing:.04em}
 
 
+/* armoury */
+.gi-row{border-left:3px solid var(--rc,transparent);padding-left:8px}
+.gi-n{background:none;border:0;padding:0;text-align:left;color:var(--parch);font:inherit;cursor:pointer}
+.gi-n small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.hb{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#f0a33a;border:1px solid #8a5a1a;padding:0 4px;margin-left:4px}
+.ac{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ac #gq{flex:1 1 220px}
+.ac-qty{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.ac-qty input{width:64px}
+.ac-cats{margin-top:8px}
+.ac-res{display:flex;flex-direction:column;margin-top:6px;max-height:340px;overflow:auto}
+.ac-res:empty{display:none}
+.ac-i{display:flex;gap:10px;align-items:center;text-align:left;padding:7px 8px;border:0;border-left:3px solid var(--rc);border-bottom:1px solid var(--line);background:var(--sunk);color:var(--ink);width:100%}
+.ac-i:hover,.ac-i:focus-visible{background:rgba(200,162,74,.1)}
+.ac-i b{color:var(--parch)}.ac-i small{display:block;color:var(--muted);font-size:12px}
+.ac-i .gw-ic{width:32px;height:32px}
+.hbp{margin-top:14px;border:1px solid #8a5a1a;padding:10px 12px;background:rgba(240,163,58,.05)}
+.hbp summary{cursor:pointer;font-family:var(--f-caps);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;color:#f0a33a}
+.hb-list .gi-row{gap:8px}
+.lo-tag.cap{border-style:dashed;color:var(--muted)}
+.lo-desc{color:var(--parch)!important;font-style:italic}
+.confirm-att{flex-wrap:wrap;justify-content:space-between}
+/* loadout */
+.loadout{margin-bottom:24px}
+.lo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px}
+.lo{display:grid;grid-template-columns:118px minmax(0,1fr);gap:0;border:1px solid var(--line);border-left:3px solid var(--rc);background:var(--rivets),var(--plate-bg);box-shadow:inset 0 1px 0 rgba(255,230,180,.05),0 2px 0 #000;min-width:0}
+.lo-art{position:relative;display:grid;place-items:center;padding:14px 8px 26px;background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--rc) 22%,transparent),transparent 70%),var(--sunk);border-right:1px solid var(--line)}
+.lo-ic{width:104px;height:104px;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 45%,transparent))}
+.lo-rar{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--rc)}
+.lo-body{padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.lo-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lo-head b{display:block;font-family:var(--f-caps);font-size:18px;letter-spacing:.03em;color:var(--parch)}
+.lo-head small{display:block;color:var(--muted);font-size:12.5px}
+.lo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.lo-stat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 10px;border:1px solid var(--line);background:var(--sunk);text-align:left;min-width:0;color:var(--ink)}
+button.lo-stat{cursor:pointer}button.lo-stat:hover{border-color:var(--gold);box-shadow:0 0 10px rgba(200,162,74,.25)}
+.lo-stat .k{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lo-stat .v{font-family:var(--f-mono);font-size:19px;color:var(--gold-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lo-stat small{font-size:11.5px;color:var(--muted)}
+.lo-ammo{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.lo-ammo .gw-bar{flex:1 1 90px;min-width:70px}
+.lo-tags{display:flex;flex-wrap:wrap;gap:5px}
+.lo-tags:empty{display:none}
+.lo-tag{font-size:12px;padding:1px 8px;border:1px solid var(--line);color:var(--parch);background:rgba(0,0,0,.25)}
+.lo-tag.m{border-color:var(--gold-dk);color:var(--gold)}
+.lo-edit{border-top:1px solid var(--gold-dk);padding-top:10px}
+.lo-atts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.lo-att{display:flex;gap:8px;align-items:flex-start;text-align:left;padding:6px 8px;border:1px solid var(--line);background:var(--sunk);color:var(--ink)}
+.lo-att.on{border-color:var(--rc);background:color-mix(in srgb,var(--rc) 14%,var(--sunk))}
+.lo-att b{display:block;font-size:13.5px}.lo-att small{display:block;font-size:12px;color:var(--muted)}
+.lo-foot{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-size:14px;color:var(--parch)}
+.lo-legend{margin-top:8px}.lo-legend summary{cursor:pointer;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:560px){.lo{grid-template-columns:minmax(0,1fr)}.lo-art{display:flex;justify-content:flex-start;gap:12px;padding:10px 14px;border-right:0;border-bottom:1px solid var(--line);background:radial-gradient(circle at 46px 50%,color-mix(in srgb,var(--rc) 24%,transparent),transparent 120px),var(--sunk)}.lo-ic{width:68px;height:68px}.lo-rar{position:static;text-align:left;font-size:11.5px}.lo-stat .v{font-size:16px}.lo-stat{padding:6px 8px}}
 /* gear */
 .gi{width:22px;height:22px;flex:none;color:var(--gold)}
 .gi.sm{width:15px;height:15px;vertical-align:-3px}
@@ -1428,6 +1481,530 @@ function subDesc(name){return SUBDESC[name]||'';}
 
 </script>
 <script>
+/* ===== Roll math, "how to roll" cards, and the turn helper ===== */
+const W5E={club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
+function clsLevel(src,c){const e=(src.classes||[]).find(x=>x.cls===c);return e?e.level:0;}
+function hasFeat(src,k){return (src.feats||[]).some(f=>f.key===k);}
+function rollCtx(ch,d){
+ const s=ch.src;const pb=d.pb;const L=c=>clsLevel(s,c);const o=s.opts||{};
+ const extraAtk=Math.max(L('fighter')>=20?4:L('fighter')>=11?3:L('fighter')>=5?2:1,(L('barbarian')>=5||L('paladin')>=5||L('ranger')>=5||L('monk')>=5)?2:1,(o.invocations||[]).includes('devouringblade')?3:(o.invocations||[]).includes('thirstingblade')?2:1);
+ const champ=L('fighter')>=3&&s.classes.some(x=>x.cls==='fighter'&&x.sub==='Champion');
+ return {pb,L,o,extraAtk,
+  jack:L('bard')>=2?Math.floor(pb/2):0,reliable:L('rogue')>=11,crit:champ?(L('fighter')>=15?18:19):20,
+  rageDmg:L('barbarian')?(L('barbarian')>=16?4:L('barbarian')>=9?3:2):0,sneak:L('rogue')?Math.ceil(L('rogue')/2):0,
+  sup:(o.maneuvers||[]).length?superiority(L('fighter')).size:0,
+  mark:(s.spells||[]).some(n=>/Hunter's Mark|^Hex$/.test(n)),
+  alert:hasFeat(s,'alert'),gwm:hasFeat(s,'greatweaponmaster'),lucky:hasFeat(s,'lucky'),
+  thaum:(L('cleric')&&o.order==='thaumaturge')||(L('druid')&&o.order==='magician')?Math.max(1,d.mods.wis):0,
+  thaumSkills:L('cleric')&&o.order==='thaumaturge'?['arcana','religion']:L('druid')&&o.order==='magician'?['arcana','nature']:[],
+  agon:(o.invocations||[]).includes('agonizingblast'),martial:L('monk')?(L('monk')>=17?12:L('monk')>=11?10:L('monk')>=5?8:6):0};
+}
+function skillParts(ch,d,key){const c=rollCtx(ch,d);const sk=d.skills.find(x=>x.key===key);const p=[[ABIL_FULL[sk.ab],d.mods[sk.ab]]];
+ if(sk.prof===2)p.push(['Expertise',2*c.pb]);else if(sk.prof===1)p.push(['Proficiency',c.pb]);else if(c.jack)p.push(['Jack of All Trades',c.jack]);
+ if(c.thaumSkills.includes(key))p.push([CLASSES[c.L('cleric')?'cleric':'druid'].name==='Cleric'?'Thaumaturge':'Seer',c.thaum]);
+ const notes=[];if(c.reliable&&sk.prof)notes.push('Reliable Talent: if the d20 shows 9 or lower, treat it as 10.');
+ if(sk.ab==='str')notes.push(c.rageDmg?'While raging (Blood Frenzy): roll with advantage.':'');
+ if(key==='stealth'&&ch.src.armor&&/Chain mail|Splint|Plate|Scale mail|Half plate|Ring mail/i.test(ch.src.armor))notes.push('Your armour gives disadvantage on Concealment.');
+ return {parts:p,notes:notes.filter(Boolean),prof:sk.prof};}
+function totalOf(parts){return parts.reduce((a,x)=>a+x[1],0);}
+function initParts(ch,d){const c=rollCtx(ch,d);const p=[['Dexterity',d.mods.dex]];if(c.alert)p.push(['Ever-vigilant (Alert)',c.pb]);if(c.jack)p.push(['Jack of All Trades',c.jack]);return p;}
+function weaponCalc(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);
+ return d.weapons.map((w,i)=>{
+  const k=WEAPON_KEYS.find(k=>N(w.from).includes(k));const b=k&&W5E[k];const plus=w.bonus!=null?w.bonus:+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);const delta=w.bonus!=null?w.bonus-(w.basePlus||0):0;const T3=['','Mastercrafted','Archeotech','Relic'][Math.min(3,plus)]||'Enhancement';
+  const props=b?b[2]:'';const ranged=/ranged/.test(props);const fin=/finesse/.test(props);
+  const abil=ranged?'dex':fin?(d.mods.dex>=d.mods.str?'dex':'str'):'str';
+  let atkParts,dmgDice,dmgFlat,dmgType;
+  if((s.built||w.calc)&&b){
+   atkParts=[[ABIL_FULL[abil],d.mods[abil]],['Proficiency',c.pb]];if(plus)atkParts.push([T3,plus]);if(s.style==='archery'&&ranged)atkParts.push(['Marksman Doctrine',2]);
+   const W=WEAPONS[k];dmgDice=W&&W.dice?W.dice:b[0];dmgType=W&&W.dice?W.type:b[1];
+   dmgFlat=[[ABIL_FULL[abil],d.mods[abil]]];if(plus)dmgFlat.push([T3,plus]);
+   if(s.style==='dueling'&&!ranged&&!/two/.test(props))dmgFlat.push(['Duellist Doctrine',2]);
+   if(c.gwm&&/heavy/.test(props)&&!ranged)dmgFlat.push(['Executioner\'s Stroke',c.pb]);
+  }else{
+   const a=num(w.atk);atkParts=a!=null&&!/dc/i.test(w.atk)?[['From sheet',a]]:null;
+   const m=String(w.dmg||'').match(/(\d+d\d+|\d+)\s*([+\-−]\s*\d+)?\s*(.*)$/);dmgDice=m?m[1]:'';dmgFlat=m&&m[2]?[['From sheet',num(m[2])]]:[];dmgType=m?m[3]:'';
+   if(delta){if(atkParts)atkParts.push(['Enhancement change',delta]);dmgFlat.push(['Enhancement change',delta]);}
+  }
+  if(typeof attachParts==='function'){if(atkParts)atkParts.push(...attachParts(w,'atk'));if(dmgDice)dmgFlat.push(...attachParts(w,'dmg'));}
+  const melee=!ranged;const strMelee=melee&&abil==='str';
+  return {i,w,k,props,ranged,abil,atkParts,dmgDice,dmgFlat,dmgType:(dmgType||'').trim(),strMelee,
+   atkText:atkParts?sgn(totalOf(atkParts)):(w.atk||'—'),dmgText:dmgDice?`${dmgDice}${totalOf(dmgFlat)?' '+sgn(totalOf(dmgFlat)).replace(/^([+-])/,'$1 '):''} ${(dmgType||'').trim()}`.trim():(w.dmg||'—')};
+ });
+}
+function powerAttacks(ch,d){
+ const c=rollCtx(ch,d);const out=[];const trad=d.cast.primaryTrad||'psyker';const t=d.cast.trads[0];if(!t)return out;const lvl=d.lvl;
+ for(const sp of d.spells){const info=SPELL_INFO[N(sp.src)];if(!info)continue;const m=info.desc.match(/(\d+)d(\d+)\s+(Acid|Bludgeoning|Cold|Fire|Force|Lightning|Necrotic|Piercing|Poison|Psychic|Radiant|Slashing|Thunder)\s+damage/i);if(!m)continue;
+  const atk=/spell attack/i.test(info.desc);const sv=(info.desc.match(/(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/i)||[])[1];
+  const tier=info.lvl===0?(lvl>=17?4:lvl>=11?3:lvl>=5?2:1):1;let n=+m[1],beams=1;
+  if(info.lvl===0){if(/beam/i.test(info.desc))beams=tier;else n=n*tier;}
+  const flat=sp.src==='Eldritch Blast'&&c.agon?d.mods.cha:0;
+  out.push({name:sp.name40k,src:sp.src,lvl:info.lvl,atk:atk?t.atk:null,save:sv||null,dc:t.dc,dice:`${n}d${m[2]}`,flat,beams,type:m[3],note:info.lvl>0?'More damage from a higher slot (see the power).':''});}
+ return out;
+}
+/* ---- limited resources ---- */
+function resources(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);const L=c.L;const r=[];const pb=d.pb;
+ const t=(arr,l)=>arr[Math.max(0,Math.min(19,l-1))];
+ if(L('barbarian'))r.push({k:'rage',label:'Blood Frenzy (Rage)',max:t([2,2,3,3,3,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6],L('barbarian')),reset:'long',note:`+${c.rageDmg} damage on Str melee hits; resist bludgeoning, piercing, slashing; advantage on Str checks and saves. Regain one use on a short rest.`,partial:true});
+ if(L('bard'))r.push({k:'insp',label:'Rousing Oratory (Bardic Inspiration)',max:Math.max(1,d.mods.cha),reset:L('bard')>=5?'short':'long',note:`Bonus action: give an ally a d${L('bard')>=15?12:L('bard')>=10?10:L('bard')>=5?8:6} to add to a roll.`});
+ if(L('cleric')>=2)r.push({k:'cd',label:'Invoke the Emperor (Channel Divinity)',max:L('cleric')>=18?4:L('cleric')>=6?3:2,reset:'short',note:'Regain one use on a short rest, all on a long rest.',partial:true});
+ if(L('paladin')>=3)r.push({k:'pcd',label:'Invoke the Emperor (Channel Divinity)',max:L('paladin')>=11?3:2,reset:'short',note:'Regain one use on a short rest, all on a long rest.',partial:true});
+ if(L('druid')>=2)r.push({k:'ws',label:'Biomorph (Wild Shape)',max:L('druid')>=17?4:L('druid')>=6?3:2,reset:'short',note:'Bonus action. Regain one use on a short rest.',partial:true});
+ if(L('fighter'))r.push({k:'sw',label:'Second Wind',max:L('fighter')>=10?4:L('fighter')>=4?3:2,reset:'short',note:`Bonus action: heal 1d10 + ${L('fighter')}. Regain one use on a short rest.`,partial:true});
+ if(L('fighter')>=2)r.push({k:'as',label:'Combat Stimm (Action Surge)',max:L('fighter')>=17?2:1,reset:'short',note:'Take one extra action this turn (not a Magic action).'});
+ if(L('fighter')>=9)r.push({k:'ind',label:'Iron Will (Indomitable)',max:L('fighter')>=17?3:L('fighter')>=13?2:1,reset:'long',note:`Reroll a failed save, adding +${L('fighter')}.`});
+ if(c.sup)r.push({k:'sup',label:`Superiority dice (d${c.sup})`,max:superiority(L('fighter')).dice,reset:'short',note:'Spend one to fuel a manoeuvre.'});
+ if(L('monk')>=2)r.push({k:'focus',label:'Inner Focus (Focus Points)',max:L('monk'),reset:'short',note:'Flurry of Blows, Patient Defence, Step of the Wind: 1 point each.'});
+ if(L('paladin'))r.push({k:'loh',label:'Laying of Hands (HP pool)',max:5*L('paladin'),reset:'long',pool:true,note:'Bonus action: restore HP from this pool, or spend 5 to cure poison.'});
+ if(L('ranger'))r.push({k:'hm',label:'Markerlight (free casts)',max:t([2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6],L('ranger')),reset:'long',note:'Cast Markerlight (Hunter\'s Mark) without a slot.'});
+ if(L('sorcerer')>=2)r.push({k:'sp',label:'Warp Points (Sorcery Points)',max:L('sorcerer'),reset:'long',note:'Fuel Warp Shaping, or convert to and from power slots.'});
+ if(L('sorcerer'))r.push({k:'is',label:'Innate Sorcery',max:2,reset:'long',note:'Bonus action for 1 minute: +1 power save DC and advantage on power attacks.'});
+ if(L('wizard'))r.push({k:'ar',label:'Psychic Recovery (Arcane Recovery)',max:1,reset:'long',note:`After a short rest, recover slots totalling up to ${Math.ceil(L('wizard')/2)} levels.`});
+ if(c.lucky)r.push({k:'luck',label:'The Emperor\'s Favour (Luck points)',max:pb,reset:'long',note:'Gain advantage on a d20 roll, or impose disadvantage on an attack against you.'});
+ return r;
+}
+function turnKit(ch,d){
+ const s=ch.src;const c=rollCtx(ch,d);const L=c.L;const sp=s.spells||[];const has=n=>sp.includes(n);const o=c.o;
+ const A=[],B=[],R=[],O=[],F=[];
+ A.push(['Attack',c.extraAtk>1?`Make ${c.extraAtk} weapon attacks.`:'Make one weapon attack.']);
+ if(d.cast.trads.length)A.push(['Use a power',`Cast one of your powers (save DC ${d.cast.trads[0].dc}, attack ${sgn(d.cast.trads[0].atk)}).`]);
+ if(L('cleric')>=2||L('paladin')>=3)A.push(['Invoke the Emperor','Channel Divinity option (uses a charge).']);
+ A.push(['Other actions','Dash, Disengage, Dodge, Help, Hide, Ready, Search, or use an object.']);
+ if(L('barbarian'))B.push(['Blood Frenzy (Rage)',`Start raging if not in heavy armour: +${c.rageDmg} Str melee damage, resistance, advantage on Str.`]);
+ if(L('fighter'))B.push(['Second Wind',`Heal 1d10 + ${L('fighter')}.`]);
+ if(L('rogue')>=2)B.push(['Cunning Action','Dash, Disengage or Hide.']);
+ if(L('rogue')>=3)B.push(['Steady Aim','Advantage on your next attack if you haven\'t moved (speed becomes 0).']);
+ if(L('monk')){B.push(['Close-combat strike',`One unarmed strike (d${c.martial} + Dex).`]);if(L('monk')>=2)B.push(['Focus techniques','Flurry of Blows (2 strikes), Patient Defence (Disengage + Dodge) or Step of the Wind (Dash + Disengage): 1 Focus each.']);}
+ if(L('bard'))B.push(['Rousing Oratory','Give an ally an inspiration die.']);
+ if(L('paladin'))B.push(['Laying of Hands','Heal from your pool.']);
+ if(L('druid')>=2)B.push(['Biomorph','Take a beast form.']);
+ if(L('sorcerer'))B.push(['Innate Sorcery','+1 save DC and advantage on power attacks for 1 minute.']);
+ if(c.mark)B.push([has('Hex')?'Daemon\'s Mark (Hex)':'Markerlight (Hunter\'s Mark)','Mark a target: +1d6 damage on your hits against it (concentration).']);
+ if(has('Healing Word'))B.push([spell40k('Healing Word',d.cast.primaryTrad).name40k,'Heal an ally at range as a bonus action.']);
+ if(has('Misty Step'))B.push([spell40k('Misty Step',d.cast.primaryTrad).name40k,'Teleport up to 30 ft.']);
+ if(has('Spiritual Weapon'))B.push([spell40k('Spiritual Weapon',d.cast.primaryTrad).name40k,'Summon or attack with your floating weapon.']);
+ B.push(['Off-hand attack','If holding two Light weapons, attack with the other (no ability modifier to damage unless you have Twin-weapon Doctrine).']);
+ R.push(['Opportunity attack','When a foe leaves your reach, make one melee attack.']);
+ if(L('rogue')>=5)R.push(['Uncanny Dodge','Halve the damage of an attack that hits you.']);
+ if(L('monk')>=3)R.push(['Deflect Rounds','Reduce attack damage; spend 1 Focus to redirect it.']);
+ if((o.maneuvers||[]).includes('riposte'))R.push(['Riposte','When a foe misses you in melee, attack back (superiority die).']);
+ if((o.maneuvers||[]).includes('parry'))R.push(['Parry','Reduce melee damage (superiority die).']);
+ [['Shield','+5 AC until your next turn.'],['Absorb Elements','Resist elemental damage; add 1d6 to your next melee hit.'],['Counterspell','Stop a power being cast.'],['Hellish Rebuke','Burn a foe who damaged you.'],['Silvery Barbs','Force a reroll.']].forEach(([n,t])=>{if(has(n))R.push([spell40k(n,d.cast.primaryTrad).name40k,t]);});
+ if(hasFeat(s,'sentinel'))R.push(['Bulwark Sentinel','Strike a foe that attacks an ally next to you.']);
+ if(c.sneak)O.push(['Killing Strike (Sneak Attack)',`+${c.sneak}d6 once per turn when you hit with a finesse or ranged weapon and have advantage, or an ally is next to the target.`]);
+ if(L('monk')>=5)O.push(['Nerve Strike (Stunning Strike)','On a hit, spend 1 Focus: Con save or Stunned.']);
+ if(hasFeat(s,'savageattacker'))O.push(['Savage Attacker','Roll weapon damage dice twice and use either.']);
+ if(c.gwm)O.push(['Executioner\'s Stroke','After a crit or a kill with a melee weapon, make one attack as a bonus action.']);
+ if(L('barbarian')>=2)F.push(['Reckless Assault','Gain advantage on Str melee attacks this turn; attacks against you have advantage.']);
+ if(L('fighter')>=2)F.push(['Combat Stimm (Action Surge)','Take one extra action.']);
+ if(c.crit<20)F.push(['Improved Critical',`Your weapon attacks crit on ${c.crit}–20.`]);
+ if(c.reliable)F.push(['Reliable Talent','Proficient skill checks treat a d20 roll of 9 or lower as 10.']);
+ return {A,B,R,O,F};
+}
+
+/* ---- How-to-roll card ---- */
+function openHow(ch,kind,key){
+ const d=derive(ch);const c=rollCtx(ch,d);const st=ch.state||{};const raging=!!st.raging;
+ let h={kind,title:'',dice:'1d20',parts:[],notes:[],addons:[],d20:true,crit:c.crit};
+ const adv=[{k:'adv',label:'Advantage: roll 2d20, keep the higher',d20:'adv'},{k:'dis',label:'Disadvantage: roll 2d20, keep the lower',d20:'dis'}];
+ const bless={k:'bless',label:'Blessed (Bless / Emperor\'s Blessing): add 1d4',expr:'1d4'};
+ if(kind==='skill'){const sk=d.skills.find(x=>x.key===key);const r=skillParts(ch,d,key);h.title=`${sk.w40} check`;h.sub=`${sk.name} · ${ABIL_FULL[sk.ab]}`;h.parts=r.parts;h.notes=r.notes;h.addons=[...adv,{k:'ins',label:'Inspired by an ally: add their die (e.g. 1d6)',expr:'1d6'}];if(sk.ab==='str'&&raging)h.addons[0].on=true;if(c.reliable&&r.prof)h.reliable=true;}
+ else if(kind==='check'){h.title=`${ABIL_FULL[key]} check`;h.parts=[[ABIL_FULL[key],d.mods[key]]];if(c.jack)h.parts.push(['Jack of All Trades',c.jack]);h.addons=[...adv];if(key==='str'&&raging)h.addons[0].on=true;}
+ else if(kind==='save'){const sv=d.saves.find(x=>x.a===key);h.title=`${ABIL_FULL[key]} save`;h.parts=[[ABIL_FULL[key],d.mods[key]]];if(sv.prof)h.parts.push(['Proficiency',c.pb]);h.addons=[...adv,bless];if(key==='str'&&raging)h.addons[0].on=true;
+  if(clsLevel(ch.src,'paladin')>=6)h.parts.push(['Aura of Faith',Math.max(1,d.mods.cha)]);}
+ else if(kind==='init'){h.title='Initiative';h.parts=initParts(ch,d);h.addons=[...adv];if(clsLevel(ch.src,'barbarian')>=7)h.addons[0].on=true,h.notes.push('Feral Instinct: advantage on initiative.');}
+ else if(kind==='atk'){const wc=weaponCalc(ch,d)[key];h.title=`${wc.w.to} attack`;h.sub=wc.w.from;h.parts=wc.atkParts||[['Bonus',num(wc.w.atk)||0]];h.wi=key;
+  h.addons=[...adv,bless];if(clsLevel(ch.src,'barbarian')>=2&&wc.strMelee)h.addons.push({k:'reck',label:'Reckless Assault: advantage (foes get advantage on you)',d20:'adv'});
+  if((c.o.maneuvers||[]).includes('precision'))h.addons.push({k:'prec',label:`Aimed Shot: add a superiority die (1d${c.sup})`,expr:`1d${c.sup}`,res:'sup'});
+  h.notes.push(c.crit<20?`Critical hit on a natural ${c.crit}–20: roll double damage dice.`:'Critical hit on a natural 20: roll double damage dice.');
+  const mk=wc.k&&(c.o.masteries||[]).includes(wc.k)&&MASTERY_KINDS.find(x=>x.key===wc.k);if(mk)h.notes.push(`Mastery ${mk.prop}: ${reskinText(MASTERY_PROPS[mk.prop])}`);
+  if(c.extraAtk>1)h.notes.push(`You get ${c.extraAtk} attacks with the Attack action.`);}
+ else if(kind==='dmg'){const wc=weaponCalc(ch,d)[key];h.title=`${wc.w.to} damage`;h.sub=wc.dmgType;h.d20=false;h.dice=wc.dmgDice||'0';h.parts=wc.dmgFlat;
+  h.addons=[{k:'crit',label:'Critical hit: double the damage dice',crit:true}];
+  if(c.rageDmg&&wc.strMelee)h.addons.push({k:'rage',label:`Raging: +${c.rageDmg}`,flat:c.rageDmg,on:raging});
+  if(c.sneak&&(wc.ranged||/finesse/.test(wc.props)))h.addons.push({k:'sneak',label:`Killing Strike (once per turn): +${c.sneak}d6`,expr:`${c.sneak}d6`});
+  if(c.mark)h.addons.push({k:'mark',label:'Target is marked (Markerlight / Hex): +1d6',expr:'1d6'});
+  if(c.sup)h.addons.push({k:'sup',label:`Manoeuvre: add a superiority die (1d${c.sup})`,expr:`1d${c.sup}`,res:'sup'});
+  if(/two/.test(wc.props)&&ch.src.style==='greatweapon')h.notes.push('Heavy Weapons Doctrine: treat any 1 or 2 on a damage die as a 3.');
+  if(hasFeat(ch.src,'savageattacker'))h.notes.push('Savage Attacker (once per turn): roll the weapon dice twice and keep either total.');
+  const wp=(d.weapons[key]||{}).props||[];if(wp.includes('Chain (crit +1d6)'))h.notes.push('Chain weapon: on a critical hit, add another 1d6.');if(wp.includes('Explosive'))h.notes.push('Explosive: on a critical hit, roll the damage dice three times instead of twice.');
+  if(/versatile/.test(wc.props))h.notes.push('Versatile: used two-handed, the weapon\'s die is one size larger.');}
+ else if(kind==='patk'){const pa=powerAttacks(ch,d)[key];h.title=`${pa.name} attack`;h.sub=pa.src;h.parts=[['Power attack',pa.atk]];h.addons=[...adv,bless];h.notes.push(pa.beams>1?`${pa.beams} separate beams: roll each attack separately.`:'Critical hit on a natural 20: double the damage dice.');}
+ else if(kind==='pdmg'){const pa=powerAttacks(ch,d)[key];h.title=`${pa.name} damage`;h.sub=`${pa.type}${pa.save?` · ${pa.save} save DC ${pa.dc}, half on a success`:''}`;h.d20=false;h.dice=pa.dice;h.parts=pa.flat?[['Agonising Warp Blast',pa.flat]]:[];h.addons=[{k:'crit',label:'Critical hit: double the damage dice',crit:true}];if(pa.beams>1)h.notes.push(`Per beam (${pa.beams} beams).`);if(pa.note)h.notes.push(pa.note);}
+ S.how={id:ch.id,...h};drawHow();
+}
+function howFormula(h){
+ const on=h.addons.filter(a=>a.on);const advOn=on.some(a=>a.d20==='adv'),disOn=on.some(a=>a.d20==='dis');
+ let dice=h.d20?(advOn&&!disOn?'2d20, keep the higher':disOn&&!advOn?'2d20, keep the lower':'1d20'):h.dice;
+ if(!h.d20&&on.some(a=>a.crit))dice=String(h.dice).replace(/(\d+)d(\d+)/,(m,n,f)=>`${2*n}d${f}`);
+ const extras=on.filter(a=>a.expr).map(a=>a.crit===undefined&&!h.d20&&on.some(x=>x.crit)?a.expr.replace(/(\d+)d(\d+)/,(m,n,f)=>`${2*n}d${f}`):a.expr);
+ const flat=totalOf(h.parts)+on.filter(a=>a.flat).reduce((s,a)=>s+a.flat,0);
+ return {dice,extras,flat,text:`Roll ${dice}${extras.length?' + '+extras.join(' + '):''}${flat?` ${flat>0?'+':'−'} ${Math.abs(flat)}`:''}`};
+}
+function drawHow(){
+ let el=document.getElementById('how');if(!el){el=document.createElement('div');el.id='how';document.body.appendChild(el);}
+ const h=S.how;if(!h){el.innerHTML='';el.hidden=true;return;}el.hidden=false;const f=howFormula(h);
+ el.innerHTML=`<div class="how-scrim" data-act="howclose"></div><div class="how-card" role="dialog" aria-label="${esc(h.title)}">
+  <div class="how-h"><div><div class="eyebrow">How to roll</div><h3>${esc(h.title)}</h3>${h.sub?`<div class="muted" style="font-size:13px">${esc(h.sub)}</div>`:''}</div><button class="step" data-act="howclose" aria-label="Close">×</button></div>
+  <div class="how-f mono">${esc(f.text)}</div>
+  ${h.parts.length?`<div class="how-parts">${h.parts.map(p=>`<span>${esc(p[0])} <b class="mono">${sgn(p[1])}</b></span>`).join('')}</div>`:''}
+  ${h.addons.length?`<div class="how-add">${h.addons.map((a,i)=>`<label><input type="checkbox" data-how="${i}"${a.on?' checked':''}> ${esc(a.label)}</label>`).join('')}</div>`:''}
+  ${h.notes.length||h.reliable?`<ul class="how-notes">${h.notes.map(n=>`<li>${esc(n)}</li>`).join('')}${h.reliable&&!h.notes.some(n=>/Reliable/.test(n))?'<li>Reliable Talent: treat a d20 of 9 or lower as 10.</li>':''}</ul>`:''}
+  <div class="row" style="justify-content:space-between;margin-top:12px"><span class="muted" style="font-size:13px">Rolling your own dice? Use the line above.</span><button class="btn primary" data-act="howroll">Roll for me</button></div></div>`;
+}
+function howRoll(){
+ const h=S.how;if(!h)return;const ch=S.party.find(c=>c.id===h.id)||exampleChar();const f=howFormula(h);const on=h.addons.filter(a=>a.on);
+ let total=0,detail=[],crit=false,fail=false;
+ if(h.d20){const a=1+Math.floor(Math.random()*20),b=1+Math.floor(Math.random()*20);const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;
+  detail.push(adv!==dis?`d20[${a},${b}]`:`d20[${a}]`);if(h.reliable&&r<10){detail.push('reliable→10');r=10;}crit=h.kind==='atk'?r>=h.crit:r===20;fail=r===1;total+=r;}
+ else{const r=rollExpr(f.dice);total+=r.total;detail.push(r.detail);}
+ for(const x of f.extras){const r=rollExpr(x);total+=r.total;detail.push(r.detail);}
+ total+=f.flat;if(f.flat)detail.push(sgn(f.flat));
+ const usesSup=on.some(a=>a.res==='sup');if(usesSup&&ch&&ch.state){ch.state.res=ch.state.res||{};ch.state.res.sup=(ch.state.res.sup||0)+1;persist(ch);}
+ pushRoll({label:h.title+(crit?' · CRITICAL':''),total,detail:detail.join(' '),crit,fail});
+ S.how=null;drawHow();if(usesSup)render();
+}
+
+/* ===== Gear: icons, quantities, spare clips ===== */
+const GI={
+ las:'<path d="M3 13h13l2-2h3v3h-3l-1 1H9l-2 4H5l1-4H3z"/><path d="M18 11V9" /><path d="M8 13v-2h6"/>',
+ bolt:'<path d="M2 12h12v-2h4l3 2v2h-6l-1 2H9l-1 3H5l1-3H2z"/><circle cx="17" cy="12.5" r=".6"/>',
+ stub:'<path d="M4 10h11v4H9l-1 4H5l1-4H4z"/><path d="M15 11h4"/>',
+ shotgun:'<path d="M2 11h15v3H8l-2 4H4l1-4H2z"/><path d="M17 12h5"/><path d="M10 14v2"/>',
+ plasma:'<path d="M3 12h10v-2h3l3 2-3 2h-3v-2"/><path d="M5 12v4H3"/><circle cx="18.5" cy="12" r="2.2"/>',
+ melta:'<path d="M3 11h11l2-2h4v6h-4l-2-2H8l-2 5H4l1-5H3z"/><path d="M20 10v4"/>',
+ flamer:'<path d="M3 12h12v3H8l-2 4H4l1-4H3z"/><path d="M15 12c3-3 3 1 6-2-1 3 1 4-2 5"/>',
+ needle:'<path d="M3 13h10v-2h8l-8 2"/><path d="M6 13v4H4"/>',
+ chain:'<path d="M3 20l3-3"/><path d="M5 18l11-11 3 3-11 11z"/><path d="M8 15l1 1M10 13l1 1M12 11l1 1M14 9l1 1"/>',
+ power:'<path d="M3 21l3-3"/><path d="M5 19L18 6l1-3-3 1L3 17z"/><path d="M14 8l2 2" /><path d="M20 2l1 1" />',
+ blade:'<path d="M4 20l3-3"/><path d="M6 18l9-9 3-5-5 3-9 9z"/>',
+ hammer:'<path d="M5 21l8-8"/><path d="M10 6l6-3 5 5-3 6z"/>',
+ axe:'<path d="M5 21L17 9"/><path d="M14 4c4 0 6 2 6 6-2 0-4-1-6-3z"/>',
+ polearm:'<path d="M4 20L19 5"/><path d="M17 3l4 4-2 1-3-3z"/>',
+ grenade:'<circle cx="11" cy="14" r="6"/><path d="M11 8V5h4"/><path d="M8 14h6M11 11v6"/>',
+ ammo:'<rect x="5" y="6" width="5" height="13" rx="1"/><rect x="13" y="6" width="5" height="13" rx="1"/><path d="M7.5 6V4M15.5 6V4"/>',
+ medkit:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M12 10v7M8.5 13.5h7"/>',
+ stimm:'<path d="M4 20l3-3"/><path d="M6 18l9-9 3 3-9 9z"/><path d="M16 6l3 3M18 4l2 2"/>',
+ armour:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/><path d="M12 7v10"/>',
+ shield:'<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>',
+ tool:'<path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 1-2-2z"/>',
+ food:'<rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+ coin:'<circle cx="12" cy="12" r="8"/><path d="M12 7v10M9 9.5h4.5a1.8 1.8 0 0 1 0 3.5H10a1.8 1.8 0 0 0 0 3.5H15"/>',
+ relic:'<path d="M12 2l3 6 6 1-4.5 4 1 6.5L12 16l-5.5 3.5 1-6.5L3 9l6-1z"/>',
+ vox:'<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 7h4M12 17h0"/>',
+ book:'<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11"/>',
+ box:'<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+ light:'<circle cx="12" cy="10" r="5"/><path d="M10 15v4h4v-4"/>',
+ rope:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/>'
+};
+function gIcon(k,cls){return `<svg class="gi${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${GI[k]||GI.box}</g></svg>`;}
+function iconFor(name){const n=N(name);const t=[[/lasgun|laspistol|hellgun|lascarbine|las/, 'las'],[/bolt(gun|pistol|er)/,'bolt'],[/shotgun|scattergun/,'shotgun'],[/plasma/,'plasma'],[/melta/,'melta'],[/flamer|flame/,'flamer'],[/needle/,'needle'],
+ [/autogun|stub|pistol|revolver|autopistol/,'stub'],[/chain|eviscerator/,'chain'],[/power(sword|blade|glaive|halberd|pike|lance)|sword|sabre|rapier|gladius|scimitar/,'power'],
+ [/knife|dagger|blade|sickle/,'blade'],[/hammer|maul|mace|cudgel|club|flail|morningstar/,'hammer'],[/axe|hatchet/,'axe'],[/spear|pike|glaive|halberd|trident|javelin|lance|stave|staff/,'polearm'],
+ [/grenade|frag|krak|melta(bomb|charge)|charge/,'grenade'],[/magazine|clip|cell|ammo|bolts|shells|rounds|arrows|quiver|pouch/,'ammo'],[/medikit|medkit|healerskit|medicae/,'medkit'],[/stimm|potion|serum|elixir/,'stimm'],
+ [/armour|armor|carapace|flak|mesh|plate|mail/,'armour'],[/shield|refractor/,'shield'],[/tool|multikey|auspex|kit|instrument|servo/,'tool'],[/ration|starch|recaf|flask|food|water/,'food'],
+ [/throne|gelt|gp|gold|coin/,'coin'],[/relic|archeotech|aquila|symbol|focus/,'relic'],[/vox/,'vox'],[/book|slate|grimoire|spellbook|scroll|tome/,'book'],[/lumen|glowglobe|torch|lantern/,'light'],[/rope|cable|grapnel/,'rope']];
+ for(const [rx,k] of t)if(rx.test(n))return k;return 'box';}
+function catFor(name){const k=iconFor(name);return ['las','bolt','stub','shotgun','plasma','melta','flamer','needle','chain','power','blade','hammer','axe','polearm'].includes(k)?'weapon':k==='grenade'?'grenade':k==='ammo'?'ammo':['medkit','stimm','food'].includes(k)?'consumable':k==='coin'?'money':['armour','shield'].includes(k)?'armour':'gear';}
+const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,twenty:20};
+function parseEquipment(text,src){
+ const out=[];const parts=String(text||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);
+ for(let p of parts){let qty=1;let m=p.match(/^(\d+)\s+(.*)$/)||p.match(/^(a|an|one|two|three|four|five|six|seven|eight|nine|ten|twenty)\s+(.*)$/i);
+  if(m){qty=/^\d/.test(m[1])?+m[1]:NUMW[m[1].toLowerCase()];p=m[2];}
+  const mx=p.match(/^(.*?)\s*[x×]\s*(\d+)$/i);if(mx){p=mx[1];qty=+mx[2];}
+  const mo=p.match(/^.+?\bof\s+(\d+)\s+(.+)$/i);if(mo){qty=+mo[1];p=mo[2];}
+  const gp=p.match(/^(gp|gold( pieces)?|thrones?)$/i);if(gp){out.push({name:'Thrones',qty,cat:'money'});continue;}
+  let name=reskinText(p).replace(/^(of|the)\s+/i,'');name=name.charAt(0).toUpperCase()+name.slice(1);
+  if(/^(?:shield)$/i.test(p)&&src&&src.shield)continue;
+  if(src&&src.armor&&N(p).includes(N(src.armor)))continue;
+  if(src&&(src.weapons||[]).some(w=>N(w.name).includes(N(p))||N(p).includes(N(w.name)))&&qty===1)continue;
+  if(/pack$/i.test(p)){out.push({name,qty,cat:'gear'});continue;}
+  out.push({name,qty,cat:catFor(name)});}
+ return out.map(x=>({id:'i'+Math.random().toString(36).slice(2,8),...x}));
+}
+const sing=n=>N(n).replace(/s$/,'');
+function invOf(ch){const st=ch.state=ch.state||{};if(!st.inv){st.inv=parseEquipment(ch.src.equipment,ch.src);if(!st.inv.some(i=>/frag/i.test(i.name)))st.inv.push({id:'ifrag',name:'Frag grenade',qty:2,cat:'grenade'});st.invInit=true;}return st.inv;}
+function spareOf(ch,i,w){const st=ch.state||{};const s=st.spare||{};return s[i]==null?(w.clip?3:0):s[i];}
+
+/* ===== Loadout: rarity, enhancement, attachments, large weapon cards ===== */
+const RARITY={common:['Standard issue','#b4ae9f'],uncommon:['Mastercrafted','#6fcf8e'],rare:['Archeotech','#5aa9e6'],veryrare:['Relic','#b07cf0'],legendary:['Artefact','#f0a33a']};
+const RAR_BY_BONUS=['common','uncommon','rare','veryrare'];
+const TIER_NAME=['','Mastercrafted ','Archeotech ','Relic '];
+const ATTACH={
+ reddot:{n:'Red-dot sight',for:'ranged',atk:1,t:'+1 to attack rolls.',ov:'dot'},
+ scope:{n:'Telescopic sight',for:'rifle',t:'No disadvantage at long range.',ov:'scope'},
+ supp:{n:'Suppressor',for:'pistol',t:'Shots are silent; firing from hiding doesn\'t give away your position.',ov:'supp'},
+ extmag:{n:'Extended magazine',for:'clip',clip:1.5,t:'Clip size +50%.',ov:'mag'},
+ hotshot:{n:'Hot-shot cells',for:'las',dmg:2,clip:0.5,t:'+2 damage; clip size halved.',ov:'hot'},
+ bayonet:{n:'Bayonet',for:'rifle',t:'Can make melee attacks: 1d4 + Str piercing.',ov:'bayo'},
+ launcher:{n:'Underslung grenade launcher',for:'rifle',t:'Fire a grenade from your gear at 60/180 ft instead of throwing it.',ov:'gl'},
+ mono:{n:'Monomolecular edge',for:'blade',dmg:1,t:'+1 damage.',ov:'mono'},
+ shock:{n:'Shock coil',for:'melee',t:'On a hit, the target can\'t take reactions until its next turn.',ov:'shock'},
+ grip:{n:'Duelling grip',for:'melee',atk:1,t:'+1 to attack rolls.',ov:'grip'}
+};
+function weaponKind(w){const k=iconFor(w.to+' '+w.from);const ranged=w.kind==='ranged';const two=(w.props||[]).includes('Two-handed');
+ return {ranged,melee:w.kind==='melee',rifle:ranged&&two,pistol:ranged&&!two,las:k==='las',clip:!!w.baseClip,blade:['blade','power','chain'].includes(k)};}
+function attachOK(key,w,def){const D=def||attDef(key,w.wx);if(!D)return false;return D.for==='any'||!!weaponKind(w)[D.for];}
+function wxOf(ch,i){return ((ch.state||{}).wx||{})[i]||{};}
+/* applied inside derive(): mutates the converted weapon with rarity, bonus and attachments */
+function applyWeaponMods(w,wx){
+ const basePlus=+((String(w.from).match(/\+\s*(\d)/)||[])[1]||0);
+ const bonus=wx.bonus==null?basePlus:+wx.bonus;
+ const att=(wx.att||[]).filter(k=>attDef(k,wx));w.wx=wx;w.desc=wx.desc||'';
+ w.baseClip=w.clip||null;w.basePlus=basePlus;w.bonus=bonus;w.att=att;
+ let clip=w.clip;att.forEach(k=>{const D=attDef(k,wx);if(D.clip&&clip)clip=Math.max(1,Math.round(clip*D.clip));});w.clip=clip;
+ w.rarity=wx.rarity||RAR_BY_BONUS[Math.min(3,bonus)]||'common';
+ w.to=wx.name||(TIER_NAME[Math.min(3,bonus)]+String(w.to).replace(/^(Mastercrafted|Archeotech|Relic) /,''));
+ return w;
+}
+function attachParts(w,kind){const out=[];(w.att||[]).forEach(k=>{const A=attDef(k,w.wx);if(!A)return;const v=kind==='atk'?A.atk:A.dmg;if(v)out.push([A.n,v]);});return out;}
+
+/* big composited icon: base weapon glyph + attachment overlays */
+const OVL={
+ dot:'<rect x="9" y="6.5" width="3" height="2.5" rx=".5"/><circle cx="10.5" cy="7.7" r=".5" fill="currentColor"/>',
+ scope:'<rect x="6.5" y="6" width="7" height="2.6" rx="1.2"/><path d="M8 8.6v1.4M12 8.6v1.4"/>',
+ supp:'<rect x="19.5" y="10.6" width="4" height="2.6" rx=".8"/>',
+ mag:'<path d="M9.5 14v6.5h3V14"/><path d="M9.5 17.5h3"/>',
+ hot:'<path d="M5 15l-2 4h3l-1 3 4-5H6l1-2z"/>',
+ bayo:'<path d="M18 13.2l5.5 1.3-5.5 1.1z"/>',
+ gl:'<rect x="11" y="14.2" width="8" height="2.4" rx="1.2"/>',
+ mono:'<path d="M8 15.5l9.5-9.5" stroke-dasharray="1 1.5"/>',
+ shock:'<path d="M18 3l-2 4h3l-3 5"/>',
+ grip:'<path d="M3 19l2 2M4.5 17.5l2 2"/>'
+};
+function bigIcon(w){const key=iconFor(w.to+' '+w.from);const col=RARITY[w.rarity][1];
+ return `<svg class="lo-ic" viewBox="0 0 24 24" aria-hidden="true" style="color:${col}"><g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">${GI[key]||GI.box}</g>
+ <g fill="none" stroke="#efe6d2" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".92">${(w.att||[]).map(k=>{const D=attDef(k,w.wx);return D?OVL[D.ov]||'':'';}).join('')}</g></svg>`;}
+
+function vLoadout(ch,d){
+ const s=ch.src;const st=ch.state||{};const ex=!!ch.example;const ammo=st.ammo||{};const wcs=weaponCalc(ch,d);const c=rollCtx(ch,d);
+ if(!d.weapons.length)return '';
+ const cards=wcs.map((wc,i)=>{const w=wc.w;const r=RARITY[w.rarity];const left=ammo[i]==null?w.clip:ammo[i];const sp=spareOf(ch,i,w);const pct=w.clip?Math.round(100*left/w.clip):0;
+  const mk=wc.k&&((s.opts||{}).masteries||[]).includes(wc.k)&&MASTERY_KINDS.find(x=>x.key===wc.k);
+  const editing=S.loEdit===i&&!ex;
+  return `<article class="lo" style="--rc:${r[1]}">
+   <div class="lo-art">${bigIcon(w)}<span class="lo-rar">${esc(r[0])}</span></div>
+   <div class="lo-body">
+    <div class="lo-head"><div><b>${esc(w.to)}</b>${w.desc?`<small class="lo-desc">${esc(w.desc)}</small>`:''}<small>${esc(w.from)}${(w.props||[]).length?' · '+esc(w.props.join(', ')):''}</small></div>${ex?'':`<button class="btn sm ghost" data-act="loedit" data-i="${i}" aria-expanded="${editing}">${editing?'Done':'Customise'}</button>`}</div>
+    <div class="lo-stats">
+     ${wc.atkParts?`<button class="lo-stat" data-act="how" data-kind="atk" data-k="${i}"><span class="k">Hit</span><span class="v">${esc(wc.atkText)}</span></button>`:`<div class="lo-stat st"><span class="k">Hit</span><span class="v">${esc(w.atk||'—')}</span></div>`}
+     ${wc.dmgDice?`<button class="lo-stat" data-act="how" data-kind="dmg" data-k="${i}"><span class="k">Damage</span><span class="v">${esc(wc.dmgText.replace(/\s+\S+$/,''))}</span><small>${esc(wc.dmgType)}</small></button>`:''}
+     <div class="lo-stat st"><span class="k">Range</span><span class="v">${esc(w.range||'Melee')}</span>${w.range?'<small>ft</small>':''}</div>
+    </div>
+    ${w.clip?`<div class="lo-ammo"><div class="gw-bar"><span style="width:${pct}%"${pct<=25?' class="low"':''}></span></div><span class="mono">${left}/${w.clip}</span>
+     <button class="btn sm" data-act="shot" data-i="${i}"${ex||!left?' disabled':''}>Fire</button>${(w.props||[]).includes('Burst')?`<button class="btn sm" data-act="shot3" data-i="${i}"${ex||left<3?' disabled':''}>Burst</button>`:''}<button class="btn sm" data-act="reload" data-i="${i}"${ex?' disabled':''}>Reload</button>
+     <span class="gw-spare" title="Spare clips">${gIcon('ammo','sm')}<button class="step" data-act="spare" data-i="${i}" data-d="-1" aria-label="Remove a spare clip"${ex?' disabled':''}>−</button><span class="mono">${sp}</span><button class="step" data-act="spare" data-i="${i}" data-d="1" aria-label="Add a spare clip"${ex?' disabled':''}>+</button></span></div>`:''}
+    <div class="lo-tags">${mk?`<span class="lo-tag m" title="${esc(reskinText(MASTERY_PROPS[mk.prop]||''))}">Mastery: ${esc(mk.prop)}</span>`:''}${(w.att||[]).map(k=>{const D=attDef(k,w.wx);return D?`<span class="lo-tag" title="${esc(D.t)}">🔒 ${esc(D.n)}</span>`:'';}).join('')}<span class="lo-tag cap">${(w.att||[]).length}/${RAR_CAP[w.rarity]||1} slots</span></div>
+    ${editing?loEditor(ch,w,i):''}
+   </div></article>`;}).join('');
+ const props=[...new Set(d.weapons.flatMap(w=>w.props))].filter(p=>PROP_TEXT[p]);
+ return `<section class="sec loadout"><h2 class="sec-h">Loadout<small>tap Hit or Damage for how to roll</small></h2><div class="lo-grid">${cards}</div>
+  <div class="lo-foot">${d.armor||s.shield?`<span>${gIcon('armour','sm')} ${d.armor?`<b>${esc(d.armor.to)}</b> <span class="muted">(${esc(s.armor)})</span>`:''}${s.shield?`${d.armor?' · ':''}<b>Combat shield</b> <span class="muted">+2 AC</span>`:''}</span>`:''}
+  ${c.extraAtk>1?`<span>${c.extraAtk} attacks per Attack action</span>`:''}</div>
+  ${props.length?`<details class="lo-legend"><summary>Weapon properties</summary><div class="legend">${props.map(p=>`<div><b>${esc(p)}.</b> ${esc(PROP_TEXT[p])}</div>`).join('')}</div></details>`:''}</section>`;
+}
+function loEditor(ch,w,i){
+ const gm=gmNow();const inv=invOf(ch);const cap=RAR_CAP[w.rarity]||1;const used=(w.att||[]).length;const full=used>=cap;
+ const have=inv.filter(it=>it.cat==='attachment'&&it.qty>0&&!(w.att||[]).includes(it.att)&&attachOK(it.att,w,ATTACH[it.att]||it.hbDef));
+ const pend=S.loPend&&S.loPend.i===i?S.loPend.id:null;
+ return `<div class="lo-edit">
+  <div class="tk-h">Installed (${used}/${cap} slots for ${esc(RARITY[w.rarity][0])})</div>
+  ${used?`<div class="lo-atts">${w.att.map(k=>{const D=attDef(k,w.wx);return `<div class="lo-att on"><svg viewBox="0 0 24 24" class="gi"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${OVL[D.ov]||''}</g></svg><span><b>🔒 ${esc(D.n)}</b><small>${esc(D.t)}</small></span>${gm?`<button class="gi-x" data-act="lorem" data-i="${i}" data-v="${esc(k)}" aria-label="GM: remove ${esc(D.n)}">×</button>`:''}</div>`;}).join('')}</div>`:'<p class="muted" style="margin:4px 0">Nothing installed.</p>'}
+  <div class="tk-h" style="margin-top:10px">Install from your gear</div>
+  ${full?`<p class="note" style="margin-top:0">All slots used. Higher-rarity weapons hold more attachments.</p>`:have.length?`<div class="lo-atts">${have.map(it=>{const D=ATTACH[it.att]||it.hbDef;return pend===it.id?`<div class="lo-att on confirm-att"><span><b>Install ${esc(D.n)} permanently?</b><small>It can't be removed afterwards.</small></span><div class="row"><button class="btn sm primary" data-act="loinst" data-i="${i}" data-v="${it.id}">Install</button><button class="btn sm" data-act="lopendx">Cancel</button></div></div>`
+   :`<button class="lo-att" data-act="lopend" data-i="${i}" data-v="${it.id}"><svg viewBox="0 0 24 24" class="gi"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${OVL[D.ov]||''}</g></svg><span><b>${esc(D.n)}</b>${it.hb?' <span class="hb">Homebrew</span>':''}<small>${esc(D.t)} You have ${it.qty}.</small></span></button>`;}).join('')}</div>`:'<p class="note" style="margin-top:0">No attachments in your gear that fit this weapon. Add them from the armoury below.</p>'}
+  ${gm?`<div class="tk-h" style="margin-top:12px">GM controls</div><div class="fields">
+   <label class="f"><span>Rarity</span><select data-lo="rarity" data-i="${i}">${opt('','Match enhancement',w.wx&&w.wx.rarity||'')}${Object.entries(RARITY).map(([k,v])=>opt(k,`${v[0]} (${RAR_CAP[k]} slot${RAR_CAP[k]>1?'s':''})`,w.wx&&w.wx.rarity||'')).join('')}</select></label>
+   <label class="f"><span>Enhancement</span><select data-lo="bonus" data-i="${i}">${[0,1,2,3].map(b=>opt(b,b?`+${b} (${TIER_NAME[b].trim()})`:'None',w.bonus)).join('')}</select></label></div>`:''}
+  <p class="note">Attachments are house rules: hit, damage and clip changes apply automatically, the rest are reminders.${gm?'':' Only the GM can change rarity or enhancement.'}</p></div>`;
+}
+function loClick(a,b,ch){
+ const st=ch.state=ch.state||{};const gm=gmNow();const i=+b.dataset.i;
+ if(a==='loedit'){S.loEdit=S.loEdit===i?null:i;S.loPend=null;render();return true;}
+ if(a==='lopend'){S.loPend={i,id:b.dataset.v};render();return true;}
+ if(a==='lopendx'){S.loPend=null;render();return true;}
+ if(a==='loinst'){const inv=invOf(ch);const it=inv.find(x=>x.id===b.dataset.v);const w=derive(ch).weapons[i];if(!it||!w)return true;
+  if((w.att||[]).length>=(RAR_CAP[w.rarity]||1)){toastMsg('No free attachment slots.');return true;}
+  st.wx=st.wx||{};const wx=st.wx[i]=st.wx[i]||{};wx.att=wx.att||[];wx.att.push(it.att);if(it.hbDef){wx.hb=wx.hb||{};wx.hb[it.att]=it.hbDef;}
+  it.qty=(+it.qty||1)-1;if(it.qty<=0)st.inv=inv.filter(x=>x!==it);S.loPend=null;
+  const nw=derive(ch).weapons[i];if(st.ammo&&st.ammo[i]!=null)st.ammo[i]=Math.min(st.ammo[i],nw.clip||0);
+  persist(ch,true);render();toastMsg(`${(ATTACH[it.att]||it.hbDef).n} installed on ${nw.to}.`);return true;}
+ if(a==='lorem'){if(!gm)return true;const wx=(st.wx||{})[i];if(!wx||!wx.att)return true;wx.att=wx.att.filter(k=>k!==b.dataset.v);persist(ch,true);render();return true;}
+ return false;
+}
+function loInput(t){if(!t.dataset.lo)return false;if(!gmNow())return true;const ch=cur();if(!ch)return true;const st=ch.state=ch.state||{};const i=+t.dataset.i;st.wx=st.wx||{};const wx=st.wx[i]=st.wx[i]||{};
+ if(t.dataset.lo==='rarity')wx.rarity=t.value||undefined;if(t.dataset.lo==='bonus')wx.bonus=+t.value;persist(ch);render();return true;}
+
+/* ===== Armoury: item catalogue, GM homebrew, inventory UI ===== */
+const CAT_ORDER=[['weapon','Weapons'],['attachment','Weapon attachments'],['grenade','Grenades & explosives'],['ammo','Ammunition'],['consumable','Consumables'],['armour','Armour & shields'],['relic','Relics'],['gear','Equipment'],['money','Wealth']];
+const CAT_LABEL=Object.fromEntries(CAT_ORDER);
+const I=(name,cat,rarity,desc,extra)=>Object.assign({id:'std:'+N(name),name,cat,rarity,desc},extra||{});
+const STD_ITEMS=[
+ I('Frag grenade','grenade','common','Thrown 60 ft. Creatures in a 20-ft radius make a DC 13 Dex save: 2d6 piercing, half on a success. (House rule)'),
+ I('Krak grenade','grenade','uncommon','Thrown 60 ft at one target or object: ranged attack, 4d6 force on a hit. (House rule)'),
+ I('Smoke grenade','grenade','common','Thrown 60 ft. Heavy obscurement in a 20-ft radius for 1 minute.'),
+ I('Photon flash grenade','grenade','uncommon','Thrown 60 ft. Creatures in 15 ft make a DC 13 Con save or are Blinded until the end of their next turn. (House rule)'),
+ I('Melta bomb','grenade','rare','Placed as an action on a structure or vehicle; detonates next turn for 8d6 fire. (House rule)'),
+ I('Medi-stimm','consumable','common','Bonus action: regain 2d4 + 2 HP.'),
+ I('Greater medi-stimm','consumable','uncommon','Bonus action: regain 4d4 + 4 HP.'),
+ I('Combat stimm','consumable','uncommon','For 1 minute: +10 ft speed and advantage on Strength checks. Afterwards, gain 1 exhaustion. (House rule)'),
+ I('De-tox injector','consumable','common','Ends the Poisoned condition.'),
+ I('Medi-kit','consumable','common','Ten uses. Stabilise a dying creature without a check.'),
+ I('Corpse-starch bars','consumable','common','One day of rations. Don\'t ask what\'s in it.'),
+ I('Recaf flask','consumable','common','Stays hot for a day.'),
+ I('Spare power cell','ammo','common','Ammunition for las weapons.'),
+ I('Bolt shells','ammo','uncommon','Box of mass-reactive rounds for bolt weapons.'),
+ I('Shotgun shells','ammo','common','Box of shells.'),
+ I('Stub rounds','ammo','common','Box of solid rounds for autoguns and stub weapons.'),
+ I('Promethium canister','ammo','common','Fuel for flamers.'),
+ I('Plasma flask','ammo','rare','Fuel for plasma weapons.'),
+ I('Glow-globe','gear','common','Bright light in a 20-ft radius.'),
+ I('Grapnel and cable','gear','common','50 ft of cable with a launcher hook.'),
+ I('Magnoculars','gear','common','See up to a mile away in detail.'),
+ I('Auspex','gear','uncommon','Detects life signs and energy within 60 ft through thin walls.'),
+ I('Multikey','gear','uncommon','Advantage on checks to open mechanical and simple electronic locks.'),
+ I('Rebreather','gear','common','Breathe in toxic air or underwater for 1 hour.'),
+ I('Void suit','gear','common','Survive vacuum for 1 hour.'),
+ I('Vox-bead','gear','common','Short-range comms with the rest of the crew.'),
+ I('Data-slate','gear','common','Stores and displays records.'),
+ I('Combi-tool','gear','common','Counts as tinker\'s tools.'),
+ I('Filtration plugs','gear','common','Advantage on saves against inhaled toxins.'),
+ I('Manacles','gear','common','Restrain a Medium or smaller creature.'),
+ I('Aquila pendant','relic','common','Holy symbol of the Imperium; a Faith focus.'),
+ I('Combat shield','armour','common','+2 AC while carried.'),
+ I('Thrones','money','common','Imperial currency.')
+];
+const FIT_LABEL={ranged:'any ranged weapon',rifle:'two-handed ranged weapons',pistol:'one-handed ranged weapons',clip:'any weapon with a clip',las:'las weapons',blade:'blades',melee:'melee weapons',any:'any weapon'};
+Object.entries(ATTACH).forEach(([k,A])=>STD_ITEMS.push(I(A.n,'attachment',['reddot','supp','extmag','bayonet','grip'].includes(k)?'common':'uncommon',A.t+' Fits '+FIT_LABEL[A.for]+'.',{att:k})));
+function niceKey(k){return k.replace(/(hand|light|heavy|short|long|great|battle|war|quarter|morning)(?=[a-z])/,'$1 ').replace(/^./,c=>c.toUpperCase());}
+const STD_WEAPONS=Object.keys(W5E).filter(k=>WEAPONS[k]).map(k=>I(WEAPONS[k].to,'weapon','common',`${WEAPONS[k].dice?WEAPONS[k].dice+' '+WEAPONS[k].type:W5E[k][0]+' '+W5E[k][1]}${WEAPONS[k].range?', '+WEAPONS[k].range+' ft':''}. 5e: ${niceKey(k)}.`,{base:k,gmOnly:true}));
+function hbItems(){return (S.chart&&S.chart.catalog)||[];}
+function catalog(gm){return [...STD_ITEMS,...(gm?STD_WEAPONS:[]),...(gm?hbItems():[])];}
+function gmNow(){return typeof isGM==='function'&&isGM();}
+function attDef(k,wx){return ATTACH[k]||(wx&&wx.hb&&wx.hb[k])||null;}
+const RAR_CAP={common:1,uncommon:1,rare:2,veryrare:3,legendary:4};
+function rarColor(r){return (RARITY[r]||RARITY.common)[1];}
+function itemIcon(it){if(it.cat==='attachment'){const d=ATTACH[it.att]||it.hbDef;return `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${OVL[(d&&d.ov)||'dot']||''}<rect x="2.5" y="2.5" width="19" height="19" rx="3" stroke-opacity=".35"/></g></svg>`;}
+ return gIcon(it.icon||iconFor(it.name+(it.base?' '+it.base:'')));}
+
+/* ---- giving an item to a character ---- */
+function giveItem(ch,c,qty){
+ qty=Math.max(1,qty||1);const st=ch.state=ch.state||{};const inv=invOf(ch);
+ if(c.cat==='weapon'){
+  for(let n=0;n<qty;n++){const i=ch.src.weapons.length;ch.src.weapons.push({name:niceKey(c.base),atk:'',dmg:'',calc:true});
+   st.wx=st.wx||{};const wx=st.wx[i]={};if(c.hb){wx.name=c.name;wx.rarity=c.rarity;wx.bonus=+c.bonus||0;wx.desc=c.desc;}}
+  return `${c.name} added to the loadout.`;}
+ const ex=inv.find(x=>(c.att&&x.att===c.att)||(x.cid&&x.cid===c.id)||(!x.cid&&!c.hb&&sing(x.name)===sing(c.name)));
+ const add=c.cat==='money'?100*qty:qty;
+ if(ex){ex.qty=(+ex.qty||0)+add;if(!ex.cid)ex.cid=c.id;}
+ else inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty:add,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon});
+ return `${c.name} added.`;
+}
+
+/* ---- inventory UI ---- */
+function vGear(ch,d){
+ const inv=invOf(ch);const ex=!!ch.example;const gm=gmNow();
+ const groups=CAT_ORDER.filter(([c])=>c!=='weapon').map(([c,label])=>{const items=inv.filter(i=>(i.cat||catFor(i.name))===c);if(!items.length)return '';
+  return `<div class="gcat"><div class="tk-h">${label}</div>${items.map(it=>{const open=S.invOpen===it.id;return `<div class="gi-row" style="--rc:${rarColor(it.rarity)}"><span class="gw-ic">${itemIcon(it)}</span>
+   <button class="gi-n" data-act="ginfo" data-id="${it.id}" aria-expanded="${open}">${esc(it.name)}${it.hb?' <span class="hb">Homebrew</span>':''}${open&&it.desc?`<small>${esc(it.desc)}</small>`:''}</button>
+   <span class="gi-q"><button class="step" data-act="gq" data-id="${it.id}" data-d="-1" aria-label="Use or drop one"${ex?' disabled':''}>−</button><span class="mono">${it.cat==='money'?Number(it.qty).toLocaleString():it.qty}</span>${gm||it.cat==='money'?`<button class="step" data-act="gq" data-id="${it.id}" data-d="1" aria-label="Add one"${ex?' disabled':''}>+</button>`:''}</span>
+   ${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Discard ${esc(it.name)}">×</button>`}</div>`;}).join('')}</div>`;}).join('');
+ return `<section class="sec"><h2 class="sec-h">Gear<small>${gm?'GM mode':'ammo, grenades, kit'}</small></h2>
+  <div class="gcats">${groups||'<p class="muted">No gear yet.</p>'}</div>
+  ${ex?'':addPanel(gm)}
+  ${gm&&!ex?hbPanel():''}
+  ${ch.src.equipment?`<details class="gorig"><summary>Original equipment list</summary><p class="prose">${esc(reskinText(ch.src.equipment))}</p></details>`:''}
+ </section>`;
+}
+function addPanel(gm){
+ return `<div class="gadd"><div class="tk-h">Add from the armoury</div>
+  <div class="ac"><input id="gq" class="inp" placeholder="Start typing: krak, stimm, scope…" autocomplete="off" value="${esc(S.gq||'')}" data-live role="combobox" aria-expanded="true" aria-controls="gres"><span class="ac-qty">Qty <input id="gqty" class="inp" type="number" min="1" value="${S.gqty||1}"></span></div>
+  <div class="togs ac-cats">${CAT_ORDER.filter(([c])=>gm||c!=='weapon').map(([c,l])=>`<button class="tog${S.gcat===c?' on':''}" data-act="gcat" data-v="${c}">${esc(l)}</button>`).join('')}</div>
+  <div id="gres" class="ac-res" role="listbox">${acResults(gm)}</div>
+  <p class="note">${gm?'GM: you also see weapons and your homebrew items. Anything you add here goes to this character.':'Only armoury items can be added. Ask your GM for anything else.'}</p></div>`;
+}
+function acResults(gm){
+ const q=N(S.gq||'');const cat=S.gcat;if(!q&&!cat)return '';
+ const list=catalog(gm).filter(c=>(!cat||c.cat===cat)&&(!q||N(c.name).includes(q)||N(c.desc||'').includes(q)||(c.att&&N(c.att).includes(q))||(c.base&&N(c.base).includes(q)))).slice(0,cat&&!q?40:10);
+ if(!list.length)return `<p class="muted" style="margin:6px 0">No armoury items match.${gm?' Create it as homebrew below.':''}</p>`;
+ return list.map(c=>`<button class="ac-i" data-act="gpick" data-v="${esc(c.id)}" role="option" style="--rc:${rarColor(c.rarity)}"><span class="gw-ic">${itemIcon(c)}</span><span><b>${esc(c.name)}</b>${c.hb?' <span class="hb">Homebrew</span>':''}<small>${esc(CAT_LABEL[c.cat]||c.cat)} · ${esc((RARITY[c.rarity]||RARITY.common)[0])}${c.desc?' · '+esc(c.desc):''}</small></span></button>`).join('');
+}
+function hbPanel(){
+ const f=S.hbForm||{kind:'gear',cat:'gear',rarity:'veryrare',bonus:1,base:'longsword',for:'any',ov:'dot',icon:''};S.hbForm=f;
+ const list=hbItems();
+ return `<details class="hbp"${S.hbOpen?' open':''}><summary data-act="hbtoggle">Homebrew armoury (GM only) · ${list.length} item${list.length===1?'':'s'}</summary>
+  ${list.length?`<div class="hb-list">${list.map(c=>`<div class="gi-row" style="--rc:${rarColor(c.rarity)}"><span class="gw-ic">${itemIcon(c)}</span><span class="gi-n"><b>${esc(c.name)}</b><small>${esc(CAT_LABEL[c.cat])} · ${esc(RARITY[c.rarity][0])}${c.desc?' · '+esc(c.desc):''}</small></span><button class="btn sm" data-act="gpick" data-v="${esc(c.id)}">Give</button><button class="gi-x" data-act="hbdel" data-v="${esc(c.id)}" aria-label="Delete ${esc(c.name)} from the armoury">×</button></div>`).join('')}</div>`:'<p class="muted">No homebrew items yet.</p>'}
+  <div class="tk-h" style="margin-top:12px">Create an item</div>
+  <div class="fields">
+   <label class="f"><span>Name</span><input data-hb="name" value="${esc(f.name||'')}" placeholder="e.g. Saint Vexa's Lament" data-live></label>
+   <label class="f"><span>Kind</span><select data-hb="kind">${opt('gear','Gear item',f.kind)}${opt('weapon','Weapon',f.kind)}${opt('attachment','Weapon attachment',f.kind)}</select></label>
+   <label class="f"><span>Rarity</span><select data-hb="rarity">${Object.entries(RARITY).map(([k,v])=>opt(k,v[0],f.rarity)).join('')}</select></label>
+   ${f.kind==='gear'?`<label class="f"><span>Category</span><select data-hb="cat">${CAT_ORDER.filter(([c])=>!['weapon','attachment','money'].includes(c)).map(([c,l])=>opt(c,l,f.cat)).join('')}</select></label>
+    <label class="f"><span>Icon</span><select data-hb="icon">${opt('','Automatic',f.icon)}${Object.keys(GI).map(k=>opt(k,k,f.icon)).join('')}</select></label>`:''}
+   ${f.kind==='weapon'?`<label class="f"><span>Based on</span><select data-hb="base">${STD_WEAPONS.map(w=>opt(w.base,`${w.name} (${niceKey(w.base)})`,f.base)).join('')}</select></label>
+    <label class="f"><span>Enhancement</span><select data-hb="bonus">${[0,1,2,3].map(b=>opt(b,b?'+'+b:'None',f.bonus)).join('')}</select></label>`:''}
+   ${f.kind==='attachment'?`<label class="f"><span>Fits</span><select data-hb="for">${[['any','Any weapon'],['ranged','Ranged'],['rifle','Two-handed ranged'],['pistol','One-handed ranged'],['melee','Melee'],['blade','Blades'],['las','Las weapons']].map(([k,l])=>opt(k,l,f.for)).join('')}</select></label>
+    <label class="f"><span>Hit bonus</span><select data-hb="atk">${[0,1,2,3].map(b=>opt(b,b?'+'+b:'None',f.atk||0)).join('')}</select></label>
+    <label class="f"><span>Damage bonus</span><select data-hb="dmg">${[0,1,2,3,4].map(b=>opt(b,b?'+'+b:'None',f.dmg||0)).join('')}</select></label>
+    <label class="f"><span>Icon mark</span><select data-hb="ov">${Object.keys(OVL).map(k=>opt(k,k,f.ov)).join('')}</select></label>`:''}
+  </div>
+  <label class="f" style="margin-top:8px"><span>${f.kind==='attachment'?'Effect (shown to players)':'Description (shown to players)'}</span><textarea data-hb="desc" rows="2" data-live>${esc(f.desc||'')}</textarea></label>
+  <div class="row" style="margin-top:8px"><button class="btn primary sm" data-act="hbsave">Add to the armoury</button></div>
+ </details>`;
+}
+function armouryClick(a,b,ch){
+ const gm=gmNow();const st=ch.state=ch.state||{};const inv=invOf(ch);
+ switch(a){
+  case 'gcat':S.gcat=S.gcat===b.dataset.v?null:b.dataset.v;render();return true;
+  case 'ginfo':S.invOpen=S.invOpen===b.dataset.id?null:b.dataset.id;render();return true;
+  case 'gpick':{const c=catalog(gm).find(x=>x.id===b.dataset.v);if(!c)return true;if((c.gmOnly||c.hb)&&!gm){toastMsg('Only the GM can add that.');return true;}
+   const q=Math.max(1,+(document.getElementById('gqty')||{}).value||1);const msg=giveItem(ch,c,q);S.gq='';S.gqty=1;persist(ch,true);render();toastMsg(msg);return true;}
+  case 'gq':{const it=inv.find(x=>x.id===b.dataset.id);if(!it)return true;const d=+b.dataset.d;if(d>0&&!gm&&it.cat!=='money')return true;
+   const step=it.cat==='money'?d*10:d;it.qty=Math.max(0,(+it.qty||0)+step);if(it.qty===0&&it.cat!=='money'){st.inv=inv.filter(x=>x!==it);toastMsg(`${it.name}: used up.`);}break;}
+  case 'gdel':st.inv=inv.filter(x=>x.id!==b.dataset.id);break;
+  case 'hbtoggle':S.hbOpen=!S.hbOpen;return true;
+  case 'spare':{const i=+b.dataset.i;const d=derive(ch);st.spare=st.spare||{};st.spare[i]=Math.max(0,spareOf(ch,i,d.weapons[i])+(+b.dataset.d));break;}
+  case 'shot3':{const i=+b.dataset.i;const w=derive(ch).weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-3);if(left-3<=0)toastMsg(w.to+': clip empty, reload.');break;}
+  case 'hbdel':if(!gm)return true;S.chart.catalog=hbItems().filter(c=>c.id!==b.dataset.v);chartSave(true);render();return true;
+  case 'hbsave':{if(!gm)return true;const f=S.hbForm;if(!(f.name||'').trim()){toastMsg('Give the item a name.');return true;}
+   const id='hb:'+uid();const base={id,hb:true,name:f.name.trim(),rarity:f.rarity,desc:(f.desc||'').trim()};let c;
+   if(f.kind==='weapon')c={...base,cat:'weapon',base:f.base,bonus:+f.bonus||0};
+   else if(f.kind==='attachment'){const key='hb_'+uid();c={...base,cat:'attachment',att:key,hbDef:{n:f.name.trim(),for:f.for,atk:+f.atk||0,dmg:+f.dmg||0,t:(f.desc||'').trim()||'Homebrew attachment.',ov:f.ov}};}
+   else c={...base,cat:f.cat,icon:f.icon||''};
+   S.chart.catalog=[...hbItems(),c];S.hbForm={kind:f.kind,cat:f.cat,rarity:f.rarity,bonus:f.bonus,base:f.base,for:f.for,ov:f.ov,icon:''};S.hbOpen=true;chartSave(true);render();toastMsg(`${c.name} added to the armoury. Use Give to hand it to this character.`);return true;}
+  default:return false;
+ }
+ persist(ch);render();return true;
+}
+function armouryInput(t,isChange){
+ if(t.id==='gq'){if(isChange)return true;S.gq=t.value;const r=document.getElementById('gres');if(r)r.innerHTML=acResults(gmNow());return true;}
+ if(t.id==='gqty'){S.gqty=Math.max(1,+t.value||1);return true;}
+ if(t.dataset.hb){const f=S.hbForm=S.hbForm||{};f[t.dataset.hb]=t.value;if(isChange&&t.tagName==='SELECT')render();return true;}
+ return false;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='gq'){const first=document.querySelector('#gres .ac-i');if(first){e.preventDefault();first.click();}}});
+
+/* ---- GM unlock from anywhere ---- */
+function openGmPrompt(){S.gmPrompt=true;S.gmErr='';drawGmPrompt();setTimeout(()=>{const p=document.getElementById('gmpin');if(p)p.focus();},0);}
+function drawGmPrompt(){let el=document.getElementById('how');if(!el){el=document.createElement('div');el.id='how';document.body.appendChild(el);}
+ if(!S.gmPrompt){el.innerHTML='';el.hidden=true;return;}el.hidden=false;const set=!(S.chart&&S.chart.gmHash);
+ el.innerHTML=`<div class="how-scrim" data-act="gmx"></div><div class="how-card" role="dialog" aria-label="GM mode"><div class="how-h"><div><div class="eyebrow">GM mode</div><h3>${set?'Set a GM PIN':'Enter the GM PIN'}</h3></div><button class="step" data-act="gmx" aria-label="Close">×</button></div>
+  <p class="note" style="margin-top:6px">${set?'Only the GM should do this. The PIN unlocks homebrew items, weapons in the armoury, and hidden star chart locations on a device.':'Unlocks GM tools on this device.'}</p>
+  <div class="row" style="margin-top:10px"><input id="gmpin" class="inp" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" style="max-width:160px"><button class="btn primary" data-act="gmok">${set?'Set PIN':'Unlock'}</button></div>
+  ${S.gmErr?`<p class="msg err">${esc(S.gmErr)}</p>`:''}<p class="note">Keeps spoilers and homebrew off players' screens; it isn't strong security.</p></div>`;}
+function gmClick(a){
+ if(a==='gmopen'){if(!S.chart){toastMsg('Still loading the party. Try again in a moment.');return true;}openGmPrompt();return true;}
+ if(a==='gmx'){S.gmPrompt=false;drawGmPrompt();return true;}
+ if(a==='gmoff'){try{localStorage.removeItem('rtm.gm.'+chartKey());}catch(e){}render();toastMsg('Left GM mode on this device.');return true;}
+ if(a==='gmok'){const p=(document.getElementById('gmpin')||{}).value||'';if(p.length<4){S.gmErr='Use at least 4 characters.';drawGmPrompt();return true;}
+  sha(p).then(h=>{if(!S.chart.gmHash){S.chart.gmHash=h;chartSave(true);}if(h!==S.chart.gmHash){S.gmErr='That PIN doesn\'t match.';drawGmPrompt();return;}
+   try{localStorage.setItem('rtm.gm.'+chartKey(),h);}catch(e){}S.gmPrompt=false;drawGmPrompt();render();toastMsg('GM mode unlocked on this device.');});return true;}
+ return false;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='gmpin')gmClick('gmok');if(e.key==='Escape'&&S.gmPrompt){S.gmPrompt=false;drawGmPrompt();}});
+function gmButton(){if(S.store==='local')return '';return gmNow()?`<button class="btn sm ghost" data-act="gmoff">Leave GM mode</button>`:`<button class="btn sm ghost" data-act="gmopen">GM mode</button>`;}
+
 /* ===== Player guide — rendered from the same data the app converts with ===== */
 (function(){
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1496,12 +2073,18 @@ parts.push(sec('corruption','Corruption &amp; Insanity','Two tracks from 0 to 10
 T(['Threshold','Corruption','Insanity'],CORRUPTION.map((c,i)=>[`<span class="mono">${c[0]}</span>`,esc(c[1]),esc(INSANITY[i][1])]))+
 `<p class="note">A long rest at a shrine with a Missionary removes 1d4 Corruption, once per adventure. A week of downtime at a safe port removes 1d6 Insanity.</p>`));
 
+parts.push(sec('armoury','Armoury','Everything you can add from the armoury on your sheet. Anything not listed comes from the GM. Effects marked "house rule" are ours, not official 5e.',
+`<h3 class="sub-h">Rarity and attachment slots</h3>`+T(['Rarity','Colour','Attachment slots','5e equivalent'],Object.entries(RARITY).map(([k,v])=>[`<b style="color:${v[1]}">${esc(v[0])}</b>`,`<span style="display:inline-block;width:28px;height:10px;background:${v[1]}"></span>`,`<span class="mono">${RAR_CAP[k]}</span>`,esc({common:'Common (mundane)',uncommon:'Uncommon (+1)',rare:'Rare (+2)',veryrare:'Very rare (+3)',legendary:'Legendary'}[k])]))+
+`<p class="note">Attachments are gear: buy or find one, then install it on a weapon from the Loadout card. Installing is permanent; only the GM can remove one. A weapon can't hold more attachments than its rarity allows.</p>`+
+CAT_ORDER.filter(([c])=>c!=='weapon').map(([c,label])=>{const items=STD_ITEMS.filter(i=>i.cat===c);if(!items.length)return '';
+ return `<h3 class="sub-h">${esc(label)}</h3>`+T(['','Item','Rarity','Effect'],items.map(i=>[`<span class="gw-ic" style="color:${RARITY[i.rarity][1]}">${itemIcon(i)}</span>`,`<b>${esc(i.name)}</b>`,`<span style="color:${RARITY[i.rarity][1]}">${esc(RARITY[i.rarity][0])}</span>`,esc(i.desc)]));}).join('')));
+
 parts.push(sec('wealth','Relics &amp; the Warrant','Magic items keep their rules as relics of the same rarity. Attunement becomes machine-spirit bonding (Tech), sanctification (Faith) or warp-binding (Psyker; +1 Corruption when used near a Perils trigger).',
 T(['5e rarity','40k term'],[['Common','Well-made'],['Uncommon','Mastercrafted'],['Rare','Archeotech'],['Very rare','Relic'],['Legendary','Artefact of the Dark Age']].map(r=>[esc(r[0]),`<b>${esc(r[1])}</b>`]))+
 `<p class="note"><b>Currency:</b> 1 gp = 1 Throne Gelt. <b>Influence:</b> the dynasty starts at 3. Big purchases are a d20 + Influence check against DC 10 (common) to 25 (unique). Fail by 5 or more and Influence drops by 1; profitable ventures raise it by 1–3.</p>`));
 
 document.getElementById('guide').innerHTML=parts.join('');
-const toc=[['start','How it works'],['careers','Careers'],['features','Features'],['subclasses','Subclasses'],['choices','Choices'],['origins','Origins'],['backgrounds','Backgrounds'],['crew','Crew roles'],['skills','Skills'],['weapons','Weapons'],['armour','Armour'],['powers','Powers'],['corruption','Corruption'],['wealth','Relics']];
+const toc=[['start','How it works'],['careers','Careers'],['features','Features'],['subclasses','Subclasses'],['choices','Choices'],['origins','Origins'],['backgrounds','Backgrounds'],['crew','Crew roles'],['skills','Skills'],['weapons','Weapons'],['armour','Armour'],['powers','Powers'],['corruption','Corruption'],['armoury','Armoury'],['wealth','Relics']];
 document.getElementById('toc').innerHTML=toc.map(([id,l])=>`<a href="#${id}">${l}</a>`).join('');
 
 const all=Object.values(SPELLS).filter((s,i,a)=>a.indexOf(s)===i).sort((a,b)=>a.lvl-b.lvl||a.name.localeCompare(b.name));
