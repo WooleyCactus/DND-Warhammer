@@ -1,8 +1,8 @@
-"""Insert tools/tce_block.js into index.html and guide.html and wire up infusions + career-limited styles.
+"""Insert tools/tce_block.js and tools/phb_xge_block.js into index.html and guide.html and wire up infusions + career-limited styles.
 Safe to re-run: replaces an existing TCE block, skips edits already applied."""
 import re, sys, pathlib
 root = pathlib.Path(__file__).resolve().parent.parent
-block = (root / 'tools' / 'tce_block.js').read_text(encoding='utf8').strip() + '\n'
+BLOCKS = [('TCE', root / 'tools' / 'tce_block.js'), ('PHBX', root / 'tools' / 'phb_xge_block.js')]
 
 EDITS = [
  # infusion group for artificers
@@ -12,6 +12,9 @@ EDITS = [
   "rows=`<p class=\"note\" style=\"margin-top:0\">${s.dice} superiority dice (d${s.size}), regained on a short or long rest.</p>`+Object.entries(MANEUVERS).map(([k,v])=>row(k,v[1],v[0],v[2],false)).join('');}\n  if(gp.id==='infusions')rows=`<p class=\"note\" style=\"margin-top:0\">Blessings known. You can keep ${infusedItems(level)} items blessed at once; re-bless them after a long rest.</p>`+Object.entries(INFUSIONS).map(([k,v])=>row(k,v[1],v[0],v[3],level<v[2],level<v[2]?`artificer level ${v[2]}`:'')).join('');"),
  (" (o.maneuvers||[]).forEach(k=>{const v=MANEUVERS[k];if(v)out.push([v[1],v[0],v[2]]);});\n return out;",
   " (o.maneuvers||[]).forEach(k=>{const v=MANEUVERS[k];if(v)out.push([v[1],v[0],v[2]]);});\n (o.infusions||[]).forEach(k=>{const v=typeof INFUSIONS!=='undefined'&&INFUSIONS[k];if(v)out.push([v[1],`Machine Blessing (${v[0]})`,v[3]]);});\n return out;"),
+ # epic boons only at level 19+
+ ("${Object.entries(FEATS).filter(([k])=>k!=='asi').sort(",
+  "${Object.entries(FEATS).filter(([k,f])=>k!=='asi'&&(!f.epic||L>=19)).sort("),
  # styles limited to their careers
  ("${Object.entries(STYLES).map(([k,s])=>bCard(b.style===k,'bstyle'",
   "${Object.entries(STYLES).filter(([k,s])=>!s[3]||s[3].includes(b.cls)).map(([k,s])=>bCard(b.style===k,'bstyle'"),
@@ -22,13 +25,15 @@ EDITS = [
 for f in ['index.html', 'guide.html']:
     p = root / f
     s = p.read_text(encoding='utf8')
-    if '/* TCE-START' in s:
-        s = re.sub(r'/\* TCE-START.*?/\* TCE-END \*/\n', lambda m: block, s, flags=re.S)
-    else:
-        anchor = 'function manCount('
-        if s.count(anchor) != 1:
-            sys.exit(f'{f}: anchor found {s.count(anchor)} times')
-        s = s.replace(anchor, block + anchor)
+    for tag, path in BLOCKS:
+        block = path.read_text(encoding='utf8').strip() + '\n'
+        if f'/* {tag}-START' in s:
+            s = re.sub(r'/\* ' + tag + r'-START.*?/\* ' + tag + r'-END \*/\n', lambda m: block, s, flags=re.S)
+        else:
+            anchor = 'function manCount('
+            if s.count(anchor) != 1:
+                sys.exit(f'{f}: anchor found {s.count(anchor)} times')
+            s = s.replace(anchor, block + anchor)
     for old, new in EDITS:
         if new in s:
             continue
