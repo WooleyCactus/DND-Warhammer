@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>GM Screen · Rogue Trader Manifest</title>
+<title>GM Command Center · Rogue Trader Manifest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Cinzel:wght@500;700&family=Share+Tech+Mono&display=swap">
@@ -18,7 +18,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body)}
-header{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;padding:8px 14px;padding-top:max(8px,env(safe-area-inset-top));background:linear-gradient(180deg,#221d18,var(--plate));border-bottom:1px solid var(--gold-dk);flex-wrap:wrap}
+header{position:sticky;top:0;z-index:6;display:flex;gap:10px;align-items:center;padding:8px 14px;padding-top:max(8px,env(safe-area-inset-top));background:linear-gradient(180deg,#221d18,var(--plate));border-bottom:1px solid var(--gold-dk);flex-wrap:wrap}
 h1{font:700 15px var(--f-display);letter-spacing:.08em;color:var(--gold-hi);margin:0;white-space:nowrap}
 header .sp{flex:1}
 header a{color:var(--gold-hi);font-size:14px}
@@ -26,84 +26,110 @@ header a{color:var(--gold-hi);font-size:14px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);display:inline-block}
 .dot.live{background:var(--ok);box-shadow:0 0 6px var(--ok)}.dot.off{background:var(--blood)}
 #save{font:12px var(--f-mono);color:var(--muted)}
-nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;background:var(--plate);border-bottom:1px solid var(--line);position:sticky;top:var(--hh,49px);z-index:4}
-nav.tabs button{flex:1 0 auto;border:0;border-radius:0;background:transparent;padding:11px 14px;font:700 12px var(--f-display);letter-spacing:.1em;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
-nav.tabs button.on{color:var(--gold-hi);border-bottom-color:var(--gold)}
-nav.tabs .n{font:11px var(--f-mono);background:var(--blood);color:#fff;border-radius:8px;padding:0 5px;margin-left:4px}
-main{max-width:980px;margin:0 auto;padding:14px;padding-bottom:max(40px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
-section.box{background:var(--plate);border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
-h2{font:700 13px var(--f-display);letter-spacing:.12em;color:var(--gold);margin:0;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.cmd{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;background:#15120f;border-bottom:1px solid var(--line)}
+.cmd .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cmd .lbl{font:700 11px var(--f-display);letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.cc{display:grid;gap:12px;padding:12px;align-items:start;grid-template-columns:300px minmax(0,1fr) 350px;grid-template-areas:"L C R"}
+.colL{grid-area:L}.colC{grid-area:C}.colR{grid-area:R}
+.colL,.colC,.colR{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cc.bigmap{grid-template-columns:minmax(0,1fr) 350px;grid-template-areas:"C C" "L R"}
+@media (max-width:1180px){.cc{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"L R" "C R"}.cc.bigmap{grid-template-areas:"C C" "L R"}
+ #pParty .pcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}}
+@media (max-width:760px){.cc,.cc.bigmap{grid-template-columns:minmax(0,1fr);grid-template-areas:"L" "C" "R";padding:10px}}
+section.box{background:var(--plate);border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+h2{font:700 12px var(--f-display);letter-spacing:.12em;color:var(--gold);margin:0;text-transform:uppercase;display:flex;align-items:center;gap:8px}
 h2 .sp{flex:1}
+h2 .n{font:12px var(--f-mono);color:var(--muted);letter-spacing:0;text-transform:none}
+.mapbox iframe{width:100%;height:clamp(420px,64vh,820px);border:1px solid var(--line);background:#08070a;display:block}
+.cc.bigmap .mapbox iframe{height:clamp(480px,78vh,1000px)}
+@media (max-width:760px){.mapbox iframe{height:72vh}}
 select,input,textarea,button{font:inherit;color:var(--ink)}
 select,input,textarea{background:var(--sunk);border:1px solid var(--line);border-radius:2px;padding:6px 8px;min-width:0}
-textarea{width:100%;min-height:64px;resize:vertical}
+textarea{width:100%;min-height:60px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:1px solid var(--gold);border-color:var(--gold)}
-button{background:var(--plate-hi);border:1px solid var(--line);border-radius:2px;padding:7px 11px;cursor:pointer;touch-action:manipulation}
+button{background:var(--plate-hi);border:1px solid var(--line);border-radius:2px;padding:6px 10px;cursor:pointer;touch-action:manipulation}
 button:hover{border-color:var(--gold-dk)}
+button:disabled{opacity:.45;cursor:default}
 button.pri{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#140F06;border-color:var(--gold-dk);font-weight:700}
 button.bad{border-color:var(--blood-dk);color:#f0b8b8}
 button.sm{padding:3px 8px;font-size:13px}
 button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
 button.on{border-color:var(--gold);background:#3a2f1c;color:var(--gold-hi)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.row>.grow{flex:1;min-width:140px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row>.grow{flex:1;min-width:110px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 label.ck{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px}
 label>input,label>select,label>textarea{width:100%}
 .muted{color:var(--muted);font-size:13px}
-.card{background:var(--sunk);border:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-.card.open{border-color:var(--gold-dk)}
-.card .hd{display:flex;align-items:center;gap:10px;cursor:pointer}
-.card .hd .t{flex:1;min-width:0;font-weight:700}
+.empty{color:var(--muted);font-style:italic;font-size:14px;margin:0}
 .tag{font:11px var(--f-mono);border:1px solid var(--line);padding:1px 6px;color:var(--muted);white-space:nowrap}
-.tag.main{color:var(--gold-hi);border-color:var(--gold-dk)}.tag.done{color:var(--ok)}.tag.bad{color:#f08080;border-color:var(--blood-dk)}
-.bar{height:6px;background:#2a241e;position:relative;min-width:80px;flex:0 0 110px}
+.tag.main{color:var(--gold-hi);border-color:var(--gold-dk)}.tag.ok{color:var(--ok);border-color:#3c5a2c}.tag.bad{color:#f08080;border-color:var(--blood-dk)}
+.bar{height:6px;background:#2a241e;position:relative;flex:0 0 70px}
 .bar i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
-@media (max-width:600px){.card .hd{flex-wrap:wrap}.card .hd .t{flex:1 1 100%;order:-1}.bar{flex:1 1 60px}.row>.grow{min-width:100px}}
-.ms{display:flex;gap:6px;align-items:center}
-.ms input[type=text]{flex:1}
-.ms.done input[type=text]{color:var(--muted);text-decoration:line-through}
-.pips{display:flex;gap:3px}
-.pips button{width:20px;height:20px;padding:0;border-radius:50%}
-.pips button.f{background:var(--blood);border-color:var(--blood)}
-.pc{display:grid;grid-template-columns:1fr auto;gap:6px 12px}
-.stats{display:flex;gap:12px;flex-wrap:wrap;font:13px var(--f-mono);color:var(--muted)}
-.stats b{color:var(--ink);font-weight:400}
-.hpbar{height:8px;background:#2a241e;position:relative}
+.hpbar{height:7px;background:#2a241e;position:relative}
 .hpbar i{position:absolute;inset:0 auto 0 0}
+.pc{background:var(--sunk);border:1px solid var(--line);padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer}
+.pc:hover{border-color:var(--gold-dk)}
+.pc .top{display:flex;gap:8px;align-items:baseline}
+.pc .top b{font:700 15px var(--f-display);color:var(--gold-hi);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats{display:flex;gap:10px;flex-wrap:wrap;font:12px var(--f-mono);color:var(--muted)}
+.stats b{color:var(--ink);font-weight:400}
+.li{display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--sunk);border:1px solid var(--line);cursor:pointer;min-width:0}
+.li:hover{border-color:var(--gold-dk)}
+.li .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .sub{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lst{display:flex;flex-direction:column;gap:5px}
+.ck-row{display:flex;gap:6px;align-items:center}
+.ck-row input[type=text]{flex:1;min-width:0}
+.ck-row input[type=checkbox]{width:18px;height:18px;flex:none}
+.ck-row.done input[type=text]{color:var(--muted);text-decoration:line-through}
+.pips{display:flex;gap:3px;flex-wrap:wrap}
+.pips button{width:18px;height:18px;padding:0;border-radius:50%}
+.pips button.f{background:var(--blood);border-color:var(--blood)}
 .ab{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 @media (max-width:560px){.ab{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.lst{display:flex;flex-direction:column;gap:6px}
-.lst .r{display:flex;gap:6px;align-items:center}
-.lst .r input{flex:1;min-width:0}
-.lst .r input[type=checkbox]{flex:0 0 auto;width:18px;height:18px}
-.ans{display:flex;gap:8px;align-items:baseline;padding:4px 0;border-top:1px dashed var(--line)}
-.ans .who{min-width:110px;color:var(--muted)}
-#lock{position:fixed;inset:0;background:rgba(8,7,10,.96);display:grid;place-items:center;padding:20px;z-index:20}
+.ans{display:flex;gap:8px;align-items:baseline;font-size:14px}
+.ans .who{min-width:90px;color:var(--muted)}
+details>summary{cursor:pointer;color:var(--muted);font-size:13px}
+#drawer{position:fixed;inset:0;z-index:20;background:rgba(5,4,3,.55);display:flex;justify-content:flex-end}
+#drawer .dp{width:min(560px,100%);height:100%;background:var(--plate);border-left:1px solid var(--gold-dk);display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.6)}
+#drawer .dh{display:flex;align-items:center;gap:8px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+#drawer .dh b{font:700 15px var(--f-display);color:var(--gold-hi);flex:1}
+#drawer .db{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:max(30px,env(safe-area-inset-bottom))}
+#lock{position:fixed;inset:0;background:rgba(8,7,10,.96);display:grid;place-items:center;padding:20px;z-index:30}
 #lock .box{background:var(--plate);border:1px solid var(--gold-dk);padding:20px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px}
 #lock h3{font:700 18px var(--f-display);color:var(--gold-hi);margin:0}
-#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2b1214;border:1px solid var(--blood);padding:8px 14px;max-width:90%;z-index:30}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2b1214;border:1px solid var(--blood);padding:8px 14px;max-width:90%;z-index:40}
 #toast.ok{background:#16200f;border-color:var(--ok)}
-.empty{color:var(--muted);font-style:italic}
 </style>
 </head>
 <body>
 <header id="hdr">
- <h1>☩ GM Screen</h1><span class="dot" id="dot"></span><span class="code" id="codeLbl"></span><span id="save"></span>
- <span class="sp"></span><a href="map.html">Battle map</a><a href="./">Sheets</a><button class="sm ghost" id="lockBtn" title="Lock this device">Lock</button>
+ <h1>☩ GM Command Center</h1><span class="dot" id="dot"></span><span class="code" id="codeLbl"></span><span id="save"></span>
+ <span class="sp"></span><a href="./">Sheets</a><button class="sm ghost" id="lockBtn" title="Lock this device">Lock</button>
 </header>
-<nav class="tabs" id="tabs"></nav>
-<main id="main"></main>
+<div class="cmd" id="cmd"></div>
+<div class="cc" id="cc">
+ <div class="colL"><section class="box" id="pParty"></section></div>
+ <div class="colC">
+  <section class="box mapbox"><h2>Battle map<span class="sp"></span><button class="sm" data-act="bigmap" id="bigBtn">⤢ Bigger</button><a href="map.html" target="_blank" rel="noopener" style="text-transform:none;letter-spacing:0;font-family:var(--f-body);color:var(--gold-hi)">Full screen ↗</a></h2>
+   <iframe id="mapf" title="Battle map" loading="eager"></iframe></section>
+  <section class="box" id="pSession"></section>
+ </div>
+ <div class="colR"><section class="box" id="pGoals"></section><section class="box" id="pStory"></section><section class="box" id="pPolls"></section><section class="box" id="pNpcs"></section><section class="box" id="pClocks"></section></div>
+</div>
+<div id="drawer" hidden><div class="dp"><div class="dh"><b id="dTitle"></b><button class="ghost" data-act="dclose" aria-label="Close">✕</button></div><div class="db" id="dBody"></div></div></div>
 <div id="lock" hidden><div class="box">
- <h3>GM Screen</h3>
- <p class="muted" style="margin:0">Story notes, NPCs and polls here are only visible with the GM PIN. It's the same PIN as the battle map. If this party has no PIN yet, the one you enter becomes it.</p>
+ <h3>GM Command Center</h3>
+ <p class="muted" style="margin:0">Story notes, NPCs, overrides and polls need the GM PIN. It's the same PIN as the battle map. If this party has no PIN yet, the one you enter becomes it.</p>
  <label>Party code<input id="lCode" placeholder="VOID-7K3Q" autocomplete="off" autocapitalize="characters"></label>
  <label>GM PIN<input id="lPin" type="password" autocomplete="off"></label>
  <button class="pri" id="lGo">Unlock</button>
  <p class="muted" id="lErr" style="margin:0;color:#f08080"></p>
 </div></div>
 <div id="toast" hidden></div>
+<script src="mapgen.js"></script>
 <script>
 const SUPA_URL='https://xpljuyatduvrbhiwfbwn.supabase.co',SUPA_KEY='sb_publishable_zU8au39xaYFxmL3cZH09gQ_w95iJkD5',
  SUPA_LIB='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
@@ -119,15 +145,14 @@ const KINDS={main:'Main arc',thread:'Side thread',quest:'Quest',player:'Player-s
 const STATUS={active:'Active',paused:'On hold',done:'Resolved',failed:'Failed'};
 const ATT=[['-2','Hostile'],['-1','Wary'],['0','Neutral'],['1','Friendly'],['2','Allied']];
 const NPCSTAT={alive:'Alive',dead:'Dead',missing:'Missing',unknown:'Unknown'};
-const CONDS=['Prone','Grappled','Restrained','Stunned','Frightened','Poisoned','Blinded','Unconscious','Concentrating'];
 
-const G={code:'',pin:'',client:null,data:null,chars:[],map:null,polls:[],tab:lsGet('rtm.gm.tab')||'story',open:{},edit:null,pollDraft:{to:[]},status:'connecting'};
+const G={code:'',pin:'',client:null,data:null,chars:[],claims:[],map:null,polls:[],drawer:null,edit:null,pollDraft:{to:[]},npcq:'',status:'connecting',gen:null};
 
 /* ---------- connection ---------- */
 function loadScript(src){return new Promise((ok,no)=>{if(window.supabase)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s);});}
 async function rpc(fn,args){const{data,error}=await G.client.rpc(fn,args);if(error)throw error;return data;}
-function blank(){return{v:1,story:{arcs:[],goals:[],clocks:[]},npcs:[],factions:[],sessions:[],notes:'',pcNotes:{}};}
-function norm(d){const b=blank();d=Object.assign(b,d||{});d.story=Object.assign(blank().story,d.story||{});d.pcNotes=d.pcNotes||{};return d;}
+function blank(){return{v:1,story:{arcs:[],goals:[],clocks:[]},npcs:[],factions:[],sessions:[],notes:'',pcNotes:{},seen:{}};}
+function norm(d){const b=blank();d=Object.assign(b,d||{});d.story=Object.assign(blank().story,d.story||{});d.pcNotes=d.pcNotes||{};d.seen=d.seen||{};return d;}
 async function unlock(code,pin){
  $('#lErr').textContent='';
  try{await loadScript(SUPA_LIB);}catch(e){$('#lErr').textContent='Couldn’t reach the server. Check your connection.';return;}
@@ -136,23 +161,24 @@ async function unlock(code,pin){
  catch(e){$('#lErr').textContent=e.message||'Couldn’t check the PIN.';return;}
  G.code=code;G.pin=pin;lsSet('rtm.party.code',code);lsSet('rtm.map.pin.'+code,pin);lsSet('rtm.map.role.'+code,'gm');
  $('#lock').hidden=true;$('#codeLbl').textContent=code;
+ if(!$('#mapf').src)$('#mapf').src='map.html?embed=1';
  subscribe();await loadAll();
 }
 function subscribe(){
  const room=G.code.replace('-','');
  G.pchan=G.client.channel('party-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'changed'},()=>loadChars()).subscribe(st=>setStatus(st));
- G.mchan=G.client.channel('map-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'meta'},()=>loadMap()).on('broadcast',{event:'reload'},()=>loadMap())
-  .on('broadcast',{event:'tok'},()=>loadMapSoon()).on('broadcast',{event:'del'},()=>loadMapSoon()).subscribe();
+ G.mchan=G.client.channel('map-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'meta'},()=>loadMapSoon()).on('broadcast',{event:'reload'},()=>loadMapSoon())
+  .on('broadcast',{event:'tok'},()=>loadMapSoon()).on('broadcast',{event:'del'},()=>loadMapSoon()).on('broadcast',{event:'hid'},()=>loadMapSoon()).subscribe();
  G.qchan=G.client.channel('polls-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'answered'},()=>loadPolls()).subscribe();
  setInterval(()=>{if(document.visibilityState==='visible'){loadChars();loadMap();loadPolls();}},25000);
 }
 function setStatus(st){G.status=st==='SUBSCRIBED'?'live':st==='CHANNEL_ERROR'||st==='TIMED_OUT'?'off':'connecting';$('#dot').className='dot '+(G.status==='live'?'live':G.status==='off'?'off':'');}
 async function loadAll(){await Promise.all([loadData(),loadChars(),loadMap(),loadPolls()]);render();}
 async function loadData(){try{const r=await rpc('gm_get',{p_party:G.code,p_pin:G.pin});G.data=norm(r.data);}catch(e){toast(e.message);if(/PIN/.test(e.message||''))relock();}}
-async function loadChars(){try{G.chars=(await rpc('party_list',{p_party:G.code}))||[];try{G.claims=(await rpc('char_claims',{p_party:G.code}))||[];}catch(e){}if(G.tab==='party'||G.tab==='polls')renderSoft();}catch(e){}}
-async function loadMap(){try{G.map=await rpc('map_get',{p_party:G.code,p_pin:G.pin});if(G.tab==='session'||G.tab==='party')renderSoft();}catch(e){}}
-let mapT=0;function loadMapSoon(){clearTimeout(mapT);mapT=setTimeout(loadMap,800);}
-async function loadPolls(){try{G.polls=(await rpc('poll_list',{p_party:G.code,p_pin:G.pin}))||[];renderTabs();if(G.tab==='polls')renderSoft();}catch(e){}}
+async function loadChars(){try{G.chars=(await rpc('party_list',{p_party:G.code}))||[];try{G.claims=(await rpc('char_claims',{p_party:G.code}))||[];}catch(e){}render();}catch(e){}}
+async function loadMap(){try{G.map=await rpc('map_get',{p_party:G.code,p_pin:G.pin});render();}catch(e){}}
+let mapT=0;function loadMapSoon(){clearTimeout(mapT);mapT=setTimeout(loadMap,700);}
+async function loadPolls(){try{G.polls=(await rpc('poll_list',{p_party:G.code,p_pin:G.pin}))||[];render();}catch(e){}}
 function relock(){$('#lock').hidden=false;$('#lCode').value=G.code||normCode(lsGet('rtm.party.code'));$('#lPin').value='';}
 
 /* ---------- saving the GM notes ---------- */
@@ -173,106 +199,88 @@ const mod=v=>Math.floor(((+v||10)-10)/2);
 const sgn=n=>(n>=0?'+':'')+n;
 function charInfo(r){const d=r.data||{},src=d.src||{},st=d.state||{};const lvl=(src.classes||[]).reduce((a,c)=>a+(+c.level||0),0)||1;const pb=2+Math.floor((lvl-1)/4);
  const per=(src.skills||{}).perception||0;const max=+src.maxHp||0;
- return{id:r.id,name:src.name||'Unnamed',player:src.player||'',cls:(src.classes||[]).map(c=>(c.cls||'?').replace(/^./,x=>x.toUpperCase())+' '+(c.level||1)+(c.sub?' ('+c.sub+')':'')).join(' / '),
-  lvl,hp:st.hp==null?max:+st.hp,max,temp:+st.temp||0,ac:src.ac,speed:+src.speed||30,pp:10+mod((src.abilities||{}).wis)+pb*per,
+ return{id:r.id,name:src.name||'Unnamed',player:src.player||'',cls:(src.classes||[]).map(c=>(c.cls||'?').replace(/^./,x=>x.toUpperCase())+' '+(c.level||1)).join(' / '),
+  hp:st.hp==null?max:+st.hp,max,temp:+st.temp||0,ac:src.ac,speed:+src.speed||30,pp:10+mod((src.abilities||{}).wis)+pb*per,
   corruption:+st.corruption||0,insanity:+st.insanity||0,abil:src.abilities||{}};}
-function tokenFor(id){const t=G.map&&G.map.tokens&&G.map.tokens['pc-'+id];return t||null;}
+const tokenFor=id=>(G.map&&G.map.tokens&&G.map.tokens['pc-'+id])||null;
+const charName=id=>{const r=G.chars.find(x=>x.id===id);return r?charInfo(r).name:'(removed character)';};
 let toastT=0;function toast(m,ok){const t=$('#toast');t.textContent=m;t.className=ok?'ok':'';t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200);}
 
-/* ---------- render ---------- */
-function renderTabs(){
- const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
- const answered=G.polls.filter(p=>p.answer!=null&&!(G.data&&G.data.seen&&G.data.seen[p.id])).length;
- const tabs=[['story','Story'],['party','Party'],['npcs','NPCs & factions'],['session','Session & map'],['polls','Polls'+(answered?`<span class="n">${answered}</span>`:'')]];
- $('#tabs').innerHTML=tabs.map(([k,n])=>`<button data-tab="${k}" class="${G.tab===k?'on':''}">${n}</button>`).join('');
- document.documentElement.style.setProperty('--hh',$('#hdr').offsetHeight+'px');
-}
-function render(){if(!G.data)return;renderTabs();
- const v={story:vStory,party:vParty,npcs:vNpcs,session:vSession,polls:vPolls}[G.tab]||vStory;$('#main').innerHTML=v();}
-// Re-render unless the GM is typing in this view.
-let pend=false;function renderSoft(){const a=document.activeElement;if(a&&$('#main').contains(a)&&a.matches('input,textarea,select')){pend=true;return;}render();}
-document.addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;if(pend&&!(a&&$('#main').contains(a)&&a.matches('input,textarea,select'))){pend=false;render();}},0));
+/* ---------- render: each panel separately so typing and the map iframe are never disturbed ---------- */
+const pend=new Set();
+function paint(sel,html){const el=$(sel);if(!el)return;const a=document.activeElement;if(a&&el.contains(a)&&a.matches('input,textarea,select')){pend.add(sel);return;}if(el._h!==html){el.innerHTML=html;el._h=html;}}
+document.addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;[...pend].forEach(sel=>{const el=$(sel);if(!(a&&el&&el.contains(a)&&a.matches('input,textarea,select'))){pend.delete(sel);render();}});},0));
+let rT=0;function render(){if(rT)return;rT=requestAnimationFrame(()=>{rT=0;if(!G.data)return;
+ paint('#cmd',vCmd());paint('#pParty',vParty());paint('#pSession',vSession());paint('#pGoals',vGoals());paint('#pStory',vStory());paint('#pPolls',vPolls());paint('#pNpcs',vNpcs());paint('#pClocks',vClocks());
+ if(G.drawer){$('#drawer').hidden=false;$('#dTitle').textContent=drawerTitle();paint('#dBody',vDrawer());}else $('#drawer').hidden=true;});}
 
-function vStory(){
- const s=G.data.story;const arcs=s.arcs;
- const allMs=arcs.reduce((a,x)=>a+x.milestones.length,0),doneMs=arcs.reduce((a,x)=>a+x.milestones.filter(m=>m.done).length,0);
- const goals=s.goals;
- return`<section class="box"><h2>This session's goals<span class="sp"></span><button class="sm ghost" data-act="cleargoals" ${goals.some(g=>g.done)?'':'disabled'}>Clear done</button></h2>
-  ${goals.length?`<div class="lst">${goals.map((g,i)=>`<div class="r ms ${g.done?'done':''}"><input type="checkbox" data-ck="story.goals.${i}.done" ${g.done?'checked':''}><input type="text" data-k="story.goals.${i}.text" value="${esc(g.text)}"><button class="sm ghost" data-act="rm" data-p="story.goals" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')}</div>`:'<p class="empty" style="margin:0">No goals set for this session.</p>'}
-  <div class="row"><input class="grow" id="newGoal" placeholder="Add a goal, e.g. Players learn Oriel visited the Stryxis"><button data-act="addgoal">Add</button></div></section>
- <section class="box"><h2>Arcs, threads &amp; quests<span class="sp"></span><span class="muted" style="text-transform:none;letter-spacing:0;font-family:var(--f-body)">${doneMs}/${allMs} milestones</span></h2>
-  ${arcs.length?arcs.map((a,i)=>arcCard(a,i)).join(''):'<p class="empty" style="margin:0">No arcs yet. Add your main storyline and any side threads, then break each into milestones.</p>'}
-  <div class="row"><input class="grow" id="newArc" placeholder="New arc or quest name"><select id="newKind">${Object.entries(KINDS).map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select><button class="pri" data-act="addarc">Add</button></div></section>
- <section class="box"><h2>Pressure clocks</h2>
-  ${s.clocks.length?s.clocks.map((c,i)=>`<div class="row"><input class="grow" data-k="story.clocks.${i}.name" value="${esc(c.name)}"><div class="pips">${Array.from({length:c.size},(_,k)=>`<button class="${k<c.filled?'f':''}" data-act="pip" data-i="${i}" data-k="${k}" aria-label="Segment ${k+1}"></button>`).join('')}</div><span class="tag ${c.filled>=c.size?'bad':''}">${c.filled}/${c.size}</span><button class="sm ghost" data-act="rm" data-p="story.clocks" data-i="${i}" aria-label="Remove">✕</button></div>`).join(''):'<p class="empty" style="margin:0">Clocks tick toward trouble when players ignore something.</p>'}
-  <div class="row"><input class="grow" id="newClock" placeholder="e.g. Ledgerer debt comes due"><select id="newClockSize"><option>4</option><option selected>6</option><option>8</option></select><button data-act="addclock">Add</button></div></section>
- <section class="box"><h2>Import / export</h2>
-  <p class="muted" style="margin:0">Paste story JSON from a Claude skill to add arcs, milestones, goals and clocks. Nothing is overwritten; arcs with the same name get the new milestones added.</p>
-  <textarea id="impTxt" placeholder='{"arcs":[{"title":"The Inheritance","kind":"main","milestones":["Clear the Footfall debt","Find Oriel"]}],"goals":["..."],"clocks":[{"name":"...","size":6}]}'></textarea>
-  <div class="row"><button data-act="import">Import</button><button data-act="export">Copy story as JSON</button></div></section>`;
-}
-function arcCard(a,i){
- const n=a.milestones.length,d=a.milestones.filter(m=>m.done).length,open=G.open['arc'+a.id];const pct=n?Math.round(d/n*100):0;
- const next=a.milestones.find(m=>!m.done);
- return`<div class="card ${open?'open':''}"><div class="hd" data-act="toggle" data-id="arc${a.id}">
-  <span class="tag ${a.kind==='main'?'main':''}">${esc(KINDS[a.kind]||a.kind)}</span><span class="t">${esc(a.title||'Untitled')}</span>
-  <span class="tag ${a.status==='done'?'done':a.status==='failed'?'bad':''}">${esc(STATUS[a.status]||a.status)}</span>
-  <span class="bar" title="${d} of ${n} milestones"><i style="width:${pct}%"></i></span><span class="muted">${d}/${n}</span><span>${open?'▴':'▾'}</span></div>
-  ${!open&&next?`<div class="muted">Next: ${esc(next.text)}</div>`:''}
-  ${open?`<div class="grid"><label>Name<input data-k="story.arcs.${i}.title" value="${esc(a.title)}"></label><label>Type<select data-ch="story.arcs.${i}.kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${a.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>
-   <label>Status<select data-ch="story.arcs.${i}.status">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${a.status===k?'selected':''}>${v}</option>`).join('')}</select></label></div>
-   <label>Summary / the truth behind it (GM only)<textarea data-k="story.arcs.${i}.summary">${esc(a.summary||'')}</textarea></label>
-   <div class="lst">${a.milestones.map((m,j)=>`<div class="r ms ${m.done?'done':''}"><input type="checkbox" data-ck="story.arcs.${i}.milestones.${j}.done" ${m.done?'checked':''}><span class="muted">${j+1}.</span><input type="text" data-k="story.arcs.${i}.milestones.${j}.text" value="${esc(m.text)}">
-    <button class="sm ghost" data-act="up" data-p="story.arcs.${i}.milestones" data-i="${j}" aria-label="Move up" ${j?'':'disabled'}>↑</button><button class="sm ghost" data-act="rm" data-p="story.arcs.${i}.milestones" data-i="${j}" aria-label="Remove">✕</button></div>`).join('')}</div>
-   <div class="row"><input class="grow" id="ms${a.id}" placeholder="Add a milestone"><button data-act="addms" data-i="${i}" data-id="${a.id}">Add milestone</button></div>
-   <div class="row"><button class="sm" data-act="up" data-p="story.arcs" data-i="${i}" ${i?'':'disabled'}>Move up</button><span class="sp" style="flex:1"></span><button class="sm bad" data-act="rmconfirm" data-p="story.arcs" data-i="${i}" data-name="${esc(a.title)}">Delete arc</button></div>`:''}
- </div>`;
+function vCmd(){
+ const m=G.map;const meta=(m&&m.meta)||{};const has=!!meta.cells;const I=meta.init||{};const toks=(m&&m.tokens)||{};
+ const curId=I.on?(I.order||[])[I.turn]:null;const cur=curId&&toks[curId];
+ const nm=t=>!t?'?':t.kind==='pc'&&t.charId?charName(t.charId):t.name;
+ const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
+ return`<div class="grp"><span class="lbl">Map</span>${has?`<span class="tag ${meta.live===false?'bad':'ok'}">${meta.live===false?'🔒 Hidden from players':'👁 Players can see it'}</span><button class="sm ${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal':'Hide'}</button>`:'<span class="tag">No map yet</span>'}<button class="sm ${has?'':'pri'}" data-act="dnewmap">${has?'New map':'Generate a map'}</button></div>
+ <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
+ <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
 function vParty(){
- if(!G.chars.length)return`<section class="box"><p class="empty" style="margin:0">No characters in party ${esc(G.code)} yet. Players join with the invite link from the Party page and create their characters.</p></section>`;
- return G.chars.map(r=>{const c=charInfo(r);const t=tokenFor(c.id);const f=c.max?Math.max(0,Math.min(1,c.hp/c.max)):1;const open=G.edit&&G.edit.id===c.id;
-  return`<section class="box"><div class="pc"><div><div style="font:700 17px var(--f-display);color:var(--gold-hi)">${esc(c.name)}</div><div class="muted">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div><div class="row" style="margin-top:4px">${(G.claims||[]).includes(c.id)?`<span class="tag done">🔒 Player PIN set</span><button class="sm ghost" data-act="pinreset" data-id="${esc(c.id)}" data-name="${esc(c.name)}">Reset PIN</button>`:'<span class="tag">No player PIN yet</span>'}</div></div>
-   <div class="row"><button class="${open?'on':''}" data-act="editpc" data-id="${esc(c.id)}">${open?'Close':'GM override'}</button></div></div>
+ const list=G.chars.map(r=>{const c=charInfo(r);const t=tokenFor(c.id);const f=c.max?Math.max(0,Math.min(1,c.hp/c.max)):1;
+  return`<div class="pc" data-act="dpc" data-id="${esc(c.id)}"><div class="top"><b>${esc(c.name)}</b>${G.claims.includes(c.id)?'<span title="Player PIN set">🔒</span>':'<span class="tag" title="No player PIN yet">unclaimed</span>'}</div>
+   <div class="muted" style="margin-top:-3px">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div>
    <div class="hpbar"><i style="width:${f*100}%;background:${f>.5?'var(--ok)':f>.25?'var(--warn)':'var(--blood)'}"></i></div>
-   <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>Speed <b>${c.speed}</b></span><span>Passive Perception <b>${c.pp}</b></span>
-    <span>Corruption <b style="${c.corruption>=25?'color:#ff8487':''}">${c.corruption}</b></span><span>Insanity <b>${c.insanity}</b></span>
-    <span>${ABIL.map(a=>a.toUpperCase()+' <b>'+(c.abil[a]||10)+'</b>').join(' ')}</span></div>
+   <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>PP <b>${c.pp}</b></span>${t&&t.init!=null&&t.init!==''?`<span>Init <b>${esc(t.init)}</b></span>`:''}${c.corruption?`<span>Corr <b style="${c.corruption>=25?'color:#ff8487':''}">${c.corruption}</b></span>`:''}${c.insanity?`<span>Ins <b>${c.insanity}</b></span>`:''}</div>
    ${t&&t.cond&&t.cond.length?`<div class="row">${t.cond.map(x=>`<span class="tag bad">${esc(x)}</span>`).join('')}</div>`:''}
-   ${t&&t.init!=null&&t.init!==''?`<div class="muted">Initiative ${esc(t.init)}</div>`:''}
-   <label>Private GM notes on ${esc(c.name)}<textarea data-k="pcNotes.${esc(c.id)}">${esc(G.data.pcNotes[c.id]||'')}</textarea></label>
-   ${open?editor(r):''}</section>`;}).join('');
+   ${G.data.pcNotes[c.id]?`<div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${esc(G.data.pcNotes[c.id])}</div>`:''}</div>`;}).join('');
+ return`<h2>Party<span class="sp"></span><span class="n">${G.chars.length}</span></h2>${G.chars.length?`<div class="pcs lst">${list}</div><p class="muted" style="margin:0">Tap a character for notes, GM overrides and their PIN.</p>`:`<p class="empty">No characters in ${esc(G.code)} yet. Send the invite link from the Party page.</p>`}`;
 }
-function editor(r){
- const e=G.edit.d;const src=e.src||{},st=e.state||{};
- const inv=Array.isArray(st.inv)?st.inv:null;
- return`<div class="card open"><h2>GM override<span class="sp"></span><span class="muted" style="text-transform:none;letter-spacing:0;font-family:var(--f-body)">Changes go straight to their sheet</span></h2>
-  <div class="ab">${ABIL.map(a=>`<label>${a.toUpperCase()}<input type="number" data-e="src.abilities.${a}" value="${esc((src.abilities||{})[a]??10)}"></label>`).join('')}</div>
-  <div class="grid"><label>Max HP<input type="number" data-e="src.maxHp" value="${esc(src.maxHp??'')}"></label><label>Current HP (blank = full)<input type="number" data-e="state.hp" value="${esc(st.hp??'')}"></label>
-   <label>Temp HP<input type="number" data-e="state.temp" value="${esc(st.temp??'')}"></label><label>AC<input type="number" data-e="src.ac" value="${esc(src.ac??'')}"></label>
-   <label>Speed (ft)<input type="number" step="5" data-e="src.speed" value="${esc(src.speed??30)}"></label><label>Corruption<input type="number" data-e="state.corruption" value="${esc(st.corruption??0)}"></label>
-   <label>Insanity<input type="number" data-e="state.insanity" value="${esc(st.insanity??0)}"></label></div>
-  <h2>Weapons</h2><div class="lst">${(src.weapons||[]).map((w,i)=>`<div class="r"><input data-e="src.weapons.${i}.name" value="${esc(w.name)}" placeholder="Name"><input data-e="src.weapons.${i}.atk" value="${esc(w.atk||'')}" placeholder="Attack" style="max-width:80px"><input data-e="src.weapons.${i}.dmg" value="${esc(w.dmg||'')}" placeholder="Damage" style="max-width:150px"><button class="sm ghost" data-act="erm" data-p="src.weapons" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty" style="margin:0">No weapons.</p>'}</div>
-  <div class="row"><button class="sm" data-act="eaddw">+ Weapon</button></div>
-  <h2>Gear</h2>${inv?`<div class="lst">${inv.map((it,i)=>`<div class="r"><input data-e="state.inv.${i}.name" value="${esc(it.name)}"><input type="number" data-e="state.inv.${i}.qty" value="${esc(it.qty??1)}" style="max-width:70px" aria-label="Quantity"><button class="sm ghost" data-act="erm" data-p="state.inv" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty" style="margin:0">No gear.</p>'}</div>
-   <div class="row"><input class="grow" id="newItem" placeholder="Add an item, e.g. Xenos data-crystal"><input type="number" id="newQty" value="1" style="max-width:70px" aria-label="Quantity"><button class="sm" data-act="eaddi">Add</button></div>`
-  :`<label>Equipment (their gear list hasn't been opened on the sheet yet, so edit the text)<textarea data-e="src.equipment">${esc(src.equipment||'')}</textarea></label>`}
-  <div class="row"><span style="flex:1" class="muted">${G.edit.changed.size?G.edit.changed.size+' change'+(G.edit.changed.size>1?'s':'')+' not applied yet':''}</span><button data-act="ecancel">Discard</button><button class="pri" data-act="eapply" ${G.edit.changed.size?'':'disabled'}>Apply to sheet</button></div></div>`;
-}
-function vNpcs(){
- const q=(G.npcq||'').toLowerCase();const npcs=G.data.npcs.map((n,i)=>[n,i]).filter(([n])=>!q||[n.name,n.faction,n.where,n.notes].join(' ').toLowerCase().includes(q));
- return`<section class="box"><h2>Factions</h2>
-  ${G.data.factions.length?G.data.factions.map((f,i)=>`<div class="card"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
-   <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join(''):'<p class="empty" style="margin:0">No factions yet.</p>'}
-  <div class="row"><input class="grow" id="newFac" placeholder="New faction"><button data-act="addfac">Add</button></div></section>
- <section class="box"><h2>NPCs<span class="sp"></span><input id="npcq" value="${esc(G.npcq||'')}" placeholder="Search" style="max-width:180px;text-transform:none;letter-spacing:0;font-family:var(--f-body)"></h2>
-  ${npcs.length?npcs.map(([n,i])=>npcCard(n,i)).join(''):`<p class="empty" style="margin:0">${q?'No matches.':'No NPCs yet.'}</p>`}
-  <div class="row"><input class="grow" id="newNpc" placeholder="New NPC name"><button class="pri" data-act="addnpc">Add</button></div></section>`;
-}
-function npcCard(n,i){const open=G.open['npc'+n.id];const att=ATT.find(a=>+a[0]===+n.attitude)||ATT[2];
- return`<div class="card ${open?'open':''}"><div class="hd" data-act="toggle" data-id="npc${n.id}"><span class="t">${esc(n.name||'Unnamed')}</span>${n.faction?`<span class="tag">${esc(n.faction)}</span>`:''}
-  <span class="tag ${+n.attitude<0?'bad':+n.attitude>0?'done':''}">${att[1]}</span>${n.status&&n.status!=='alive'?`<span class="tag bad">${esc(NPCSTAT[n.status]||n.status)}</span>`:''}<span>${open?'▴':'▾'}</span></div>
-  ${!open&&n.where?`<div class="muted">Last seen: ${esc(n.where)}</div>`:''}
-  ${open?`<div class="grid"><label>Name<input data-k="npcs.${i}.name" value="${esc(n.name)}"></label><label>Faction<input data-k="npcs.${i}.faction" value="${esc(n.faction||'')}" list="facList"></label>
+function curSession(){return G.data.sessions[0]||null;}
+function vSession(){const s=curSession();
+ return`<h2>Session notes<span class="sp"></span><button class="sm" data-act="addsession">New session</button>${G.data.sessions.length>1?`<button class="sm ghost" data-act="dsessions">All (${G.data.sessions.length})</button>`:''}</h2>
+  ${s?`<div class="row"><input type="date" data-k="sessions.0.date" value="${esc(s.date||'')}"><input class="grow" data-k="sessions.0.title" value="${esc(s.title||'')}" placeholder="Session title"></div>
+  <textarea data-k="sessions.0.notes" style="min-height:110px" placeholder="What happened, what the players invented, loose ends">${esc(s.notes||'')}</textarea>`:'<p class="empty">Start a session to take notes as you play.</p>'}
+  <details ${G.data.notes?'open':''}><summary>Scratchpad</summary><textarea data-k="notes" style="margin-top:6px" placeholder="Anything">${esc(G.data.notes||'')}</textarea></details>`;}
+function vGoals(){const g=G.data.story.goals;const d=g.filter(x=>x.done).length;
+ return`<h2>Tonight's goals<span class="sp"></span><span class="n">${d}/${g.length}</span>${d?'<button class="sm ghost" data-act="cleargoals">Clear done</button>':''}</h2>
+  ${g.length?`<div class="lst">${g.map((x,i)=>`<div class="ck-row ${x.done?'done':''}"><input type="checkbox" data-ck="story.goals.${i}.done" ${x.done?'checked':''} aria-label="Done"><input type="text" data-k="story.goals.${i}.text" value="${esc(x.text)}"><button class="sm ghost" data-act="rm" data-p="story.goals" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')}</div>`:''}
+  <div class="row"><input class="grow" id="newGoal" placeholder="Add a goal"><button class="sm" data-act="addgoal">Add</button></div>`;}
+function vStory(){const arcs=G.data.story.arcs;const all=arcs.reduce((a,x)=>a+x.milestones.length,0),done=arcs.reduce((a,x)=>a+x.milestones.filter(m=>m.done).length,0);
+ return`<h2>Story<span class="sp"></span><span class="n">${done}/${all} milestones</span><button class="sm ghost" data-act="dimport">Import</button></h2>
+  ${arcs.length?`<div class="lst">${arcs.map(a=>{const n=a.milestones.length,d=a.milestones.filter(m=>m.done).length;const next=a.milestones.find(m=>!m.done);
+   return`<div class="li" data-act="darc" data-id="${a.id}"><span class="t">${esc(a.title||'Untitled')}<span class="sub">${a.status==='done'?'Resolved':a.status==='failed'?'Failed':next?'Next: '+esc(next.text):n?'All milestones done':'No milestones yet'}</span></span>${a.kind==='main'?'<span class="tag main">Main</span>':''}<span class="bar"><i style="width:${n?d/n*100:0}%"></i></span><span class="muted">${d}/${n}</span></div>`;}).join('')}</div>`:'<p class="empty">No arcs yet. Add your storyline, then break it into milestones.</p>'}
+  <div class="row"><input class="grow" id="newArc" placeholder="New arc or quest"><select id="newKind" aria-label="Type">${Object.entries(KINDS).map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select><button class="sm" data-act="addarc">Add</button></div>`;}
+function pollGroups(){const groups={};G.polls.forEach(p=>{const g=p.id.split(':')[0];(groups[g]=groups[g]||{id:g,data:p.data,at:p.created_at,rows:[]}).rows.push(p);});return Object.values(groups).sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
+const ansText=a=>a?((a.choice?a.choice:'')+(a.choice&&a.text?' — ':'')+(a.text||'')):'';
+function groupCard(g){return`<div class="pc" style="cursor:default"><div class="row"><b style="flex:1">${esc(g.data.q)}</b><button class="sm ghost" data-act="pdel" data-g="${esc(g.id)}">Remove</button></div>
+  ${g.rows.map(p=>`<div class="ans"><span class="who">${esc(charName(p.char_id))}</span>${p.answer?`<span>${esc(ansText(p.answer))}</span>`:'<span class="empty">waiting…</span>'}</div>`).join('')}</div>`;}
+function vPolls(){const gs=pollGroups();
+ return`<h2>Polls<span class="sp"></span><button class="sm pri" data-act="dpoll">New poll</button></h2>${gs.length?`<div class="lst">${gs.slice(0,3).map(groupCard).join('')}</div>${gs.length>3?`<button class="sm ghost" data-act="dpoll">All polls (${gs.length})</button>`:''}`:'<p class="empty">Send private questions to individual players.</p>'}`;}
+function vNpcs(){const q=G.npcq.toLowerCase();const list=G.data.npcs.filter(n=>!q||[n.name,n.faction,n.where,n.role].join(' ').toLowerCase().includes(q));
+ return`<h2>NPCs<span class="sp"></span><span class="n">${G.data.npcs.length}</span><button class="sm ghost" data-act="dfactions">Factions (${G.data.factions.length})</button></h2>
+  ${G.data.npcs.length>5?`<input id="npcq" value="${esc(G.npcq)}" placeholder="Search NPCs">`:''}
+  ${list.length?`<div class="lst">${list.slice(0,12).map(n=>{const att=ATT.find(a=>+a[0]===+n.attitude)||ATT[2];return`<div class="li" data-act="dnpc" data-id="${n.id}"><span class="t">${esc(n.name||'Unnamed')}<span class="sub">${esc([n.role,n.faction,n.where&&('seen: '+n.where)].filter(Boolean).join(' · '))}</span></span><span class="tag ${+n.attitude<0?'bad':+n.attitude>0?'ok':''}">${att[1]}</span>${n.status&&n.status!=='alive'?`<span class="tag bad">${esc(NPCSTAT[n.status]||n.status)}</span>`:''}</div>`;}).join('')}</div>${list.length>12?`<p class="muted" style="margin:0">${list.length-12} more — search to find them.</p>`:''}`:`<p class="empty">${q?'No matches.':'No NPCs yet.'}</p>`}
+  <div class="row"><input class="grow" id="newNpc" placeholder="New NPC name"><button class="sm" data-act="addnpc">Add</button></div>`;}
+function vClocks(){const cs=G.data.story.clocks;
+ return`<h2>Pressure clocks</h2>${cs.length?`<div class="lst">${cs.map((c,i)=>`<div class="row"><input class="grow" data-k="story.clocks.${i}.name" value="${esc(c.name)}"><div class="pips">${Array.from({length:c.size},(_,k)=>`<button class="${k<c.filled?'f':''}" data-act="pip" data-i="${i}" data-k="${k}" aria-label="Segment ${k+1}"></button>`).join('')}</div><button class="sm ghost" data-act="rm" data-p="story.clocks" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')}</div>`:'<p class="empty">Clocks tick toward trouble when players ignore something.</p>'}
+  <div class="row"><input class="grow" id="newClock" placeholder="e.g. Ledgerer debt comes due"><select id="newClockSize" aria-label="Segments"><option>4</option><option selected>6</option><option>8</option></select><button class="sm" data-act="addclock">Add</button></div>`;}
+
+/* ---------- drawer ---------- */
+function drawerTitle(){const d=G.drawer;if(!d)return'';
+ if(d.type==='arc'){const a=G.data.story.arcs.find(x=>x.id===d.id);return a?a.title:'Arc';}
+ if(d.type==='npc'){const n=G.data.npcs.find(x=>x.id===d.id);return n?n.name||'NPC':'NPC';}
+ if(d.type==='pc')return charName(d.id);
+ return{poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
+function vDrawer(){const d=G.drawer;
+ if(d.type==='arc'){const i=G.data.story.arcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const a=G.data.story.arcs[i];
+  return`<div class="grid"><label>Name<input data-k="story.arcs.${i}.title" value="${esc(a.title)}"></label><label>Type<select data-ch="story.arcs.${i}.kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${a.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>
+   <label>Status<select data-ch="story.arcs.${i}.status">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${a.status===k?'selected':''}>${v}</option>`).join('')}</select></label></div>
+   <label>Summary / the truth behind it<textarea data-k="story.arcs.${i}.summary">${esc(a.summary||'')}</textarea></label>
+   <h2>Milestones<span class="sp"></span><span class="n">${a.milestones.filter(m=>m.done).length}/${a.milestones.length}</span></h2>
+   <div class="lst">${a.milestones.map((m,j)=>`<div class="ck-row ${m.done?'done':''}"><input type="checkbox" data-ck="story.arcs.${i}.milestones.${j}.done" ${m.done?'checked':''} aria-label="Done"><input type="text" data-k="story.arcs.${i}.milestones.${j}.text" value="${esc(m.text)}">
+    <button class="sm ghost" data-act="up" data-p="story.arcs.${i}.milestones" data-i="${j}" aria-label="Move up" ${j?'':'disabled'}>↑</button><button class="sm ghost" data-act="rm" data-p="story.arcs.${i}.milestones" data-i="${j}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty">No milestones yet.</p>'}</div>
+   <div class="row"><input class="grow" id="newMs" placeholder="Add a milestone"><button class="sm" data-act="addms" data-i="${i}">Add</button></div>
+   <div class="row" style="margin-top:10px"><button class="sm" data-act="up" data-p="story.arcs" data-i="${i}" ${i?'':'disabled'}>Move up in list</button><span style="flex:1"></span><button class="sm bad" data-act="rmconfirm" data-p="story.arcs" data-i="${i}" data-name="${esc(a.title)}">Delete arc</button></div>`;}
+ if(d.type==='npc'){const i=G.data.npcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const n=G.data.npcs[i];
+  return`<div class="grid"><label>Name<input data-k="npcs.${i}.name" value="${esc(n.name)}"></label><label>Faction<input data-k="npcs.${i}.faction" value="${esc(n.faction||'')}" list="facList"></label>
    <label>Role<input data-k="npcs.${i}.role" value="${esc(n.role||'')}" placeholder="Ledgerer agent, Navigator…"></label>
    <label>Attitude to party<select data-ch="npcs.${i}.attitude">${ATT.map(([v,l])=>`<option value="${v}" ${String(n.attitude??0)===v?'selected':''}>${l}</option>`).join('')}</select></label>
    <label>Status<select data-ch="npcs.${i}.status">${Object.entries(NPCSTAT).map(([k,v])=>`<option value="${k}" ${(n.status||'alive')===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -280,95 +288,128 @@ function npcCard(n,i){const open=G.open['npc'+n.id];const att=ATT.find(a=>+a[0]=
    <label>What the players know<textarea data-k="npcs.${i}.notes">${esc(n.notes||'')}</textarea></label>
    <label>Secret (GM only)<textarea data-k="npcs.${i}.secret">${esc(n.secret||'')}</textarea></label>
    <datalist id="facList">${G.data.factions.map(f=>`<option value="${esc(f.name)}">`).join('')}</datalist>
-   <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="rmconfirm" data-p="npcs" data-i="${i}" data-name="${esc(n.name)}">Delete NPC</button></div>`:''}</div>`;}
-function vSession(){
- const m=G.map;const meta=m&&m.meta||{};const has=!!meta.cells;const I=meta.init||{};const toks=(m&&m.tokens)||{};
- const curId=I.on?(I.order||[])[I.turn]:null;const cur=curId&&toks[curId];
- const nm=t=>{if(!t)return'?';if(t.kind==='pc'){const r=G.chars.find(x=>x.id===t.charId);return r?charInfo(r).name:t.name;}return t.name;};
- return`<section class="box"><h2>Battle map<span class="sp"></span><a href="map.html" style="text-transform:none;letter-spacing:0;font-family:var(--f-body)">Open map ↗</a></h2>
-  ${has?`<div class="row"><span class="tag ${meta.live===false?'bad':'done'}">${meta.live===false?'Hidden from players':'Visible to players'}</span><span class="muted">${esc(meta.theme||'')} · ${meta.w}×${meta.h} squares · ${Object.keys(toks).length} tokens</span><span style="flex:1"></span>
-   <button class="${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal map':'Hide map'}</button></div>
-   ${I.on?`<div class="row"><span>Combat · Round <b>${I.round}</b> · Now: <b>${esc(nm(cur))}</b></span><span style="flex:1"></span><button class="pri" data-act="nextturn">Next turn ▸</button><button class="bad" data-act="endcombat">End combat</button></div>
-    <div class="row">${(I.order||[]).filter(id=>toks[id]).map(id=>`<span class="tag ${id===curId?'main':''}">${esc(nm(toks[id]))}${toks[id].init!=null&&toks[id].init!==''?' '+esc(toks[id].init):''}</span>`).join('')}</div>`
-    :`<p class="muted" style="margin:0">No combat running. Players can enter initiative on the map while it's hidden; starting combat there reveals the map.</p>`}`
-  :'<p class="empty" style="margin:0">No battle map yet. Make one on the map page (GM tab).</p>'}</section>
- <section class="box"><h2>Session log<span class="sp"></span><button class="sm" data-act="addsession">New session</button></h2>
-  ${G.data.sessions.length?G.data.sessions.map((x,i)=>`<div class="card"><div class="row"><input type="date" data-k="sessions.${i}.date" value="${esc(x.date||'')}"><input class="grow" data-k="sessions.${i}.title" value="${esc(x.title||'')}" placeholder="Session title"><button class="sm ghost" data-act="rmconfirm" data-p="sessions" data-i="${i}" data-name="${esc(x.title||x.date||'this session')}" aria-label="Remove">✕</button></div>
-   <textarea data-k="sessions.${i}.notes" placeholder="What happened, what the players invented, loose ends">${esc(x.notes||'')}</textarea></div>`).join(''):'<p class="empty" style="margin:0">No sessions logged yet.</p>'}</section>
- <section class="box"><h2>Scratchpad</h2><textarea data-k="notes" style="min-height:120px" placeholder="Anything">${esc(G.data.notes||'')}</textarea></section>`;
+   <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="rmconfirm" data-p="npcs" data-i="${i}" data-name="${esc(n.name)}">Delete NPC</button></div>`;}
+ if(d.type==='pc')return vPc(d.id);
+ if(d.type==='poll')return vPollDrawer();
+ if(d.type==='factions')return`${G.data.factions.map((f,i)=>`<div class="pc" style="cursor:default"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
+   <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join('')||'<p class="empty">No factions yet.</p>'}
+   <div class="row"><input class="grow" id="newFac" placeholder="New faction"><button class="sm" data-act="addfac">Add</button></div>`;
+ if(d.type==='import')return`<p class="muted" style="margin:0">Paste story JSON from a Claude skill to add arcs, milestones, goals and clocks. Nothing is overwritten; an arc with the same name gets the new milestones added.</p>
+   <textarea id="impTxt" style="min-height:200px" placeholder='{"arcs":[{"title":"The Inheritance","kind":"main","milestones":["Clear the Footfall debt","Find Oriel"]}],"goals":["..."],"clocks":[{"name":"...","size":6}]}'></textarea>
+   <div class="row"><button class="pri" data-act="import">Import</button><button data-act="export">Copy current story as JSON</button></div>`;
+ if(d.type==='sessions')return G.data.sessions.map((x,i)=>`<div class="pc" style="cursor:default"><div class="row"><input type="date" data-k="sessions.${i}.date" value="${esc(x.date||'')}"><input class="grow" data-k="sessions.${i}.title" value="${esc(x.title||'')}"><button class="sm ghost" data-act="rmconfirm" data-p="sessions" data-i="${i}" data-name="${esc(x.title||'this session')}" aria-label="Remove">✕</button></div><textarea data-k="sessions.${i}.notes">${esc(x.notes||'')}</textarea></div>`).join('');
+ if(d.type==='newmap'){const g=G.gen||(G.gen={theme:'ship',size:'m',seed:String(1000+Math.floor(Math.random()*9000))});const has=G.map&&G.map.meta&&G.map.meta.cells;
+  return`<p class="muted" style="margin:0">Each square is 5 ft. The new map starts <b>hidden from players</b>; reveal it from the top bar, or start combat on the map's Turn tab.${has?' Tokens already on the map stay and move to open squares (party at the start, enemies at the far end).':''}</p>
+   <div class="grid"><label>Setting<select id="gTheme">${Object.entries(THEMES).map(([k,n])=>`<option value="${k}" ${g.theme===k?'selected':''}>${n}</option>`).join('')}</select></label>
+   <label>Size<select id="gSize">${Object.entries(SIZES).map(([k,v])=>`<option value="${k}" ${g.size===k?'selected':''}>${v[2]}</option>`).join('')}</select></label></div>
+   <div class="row"><label class="grow">Seed (same seed = same map)<input id="gSeed" value="${esc(g.seed)}"></label><button data-act="reroll" title="New seed" style="align-self:flex-end">🎲</button></div>
+   <button class="pri" data-act="genmap">${has?'Replace the current map':'Generate map'}</button>
+   <p class="muted" style="margin:0">To paint walls or add enemies, use the GM tab on the map itself.</p>`;}
+ return'';
 }
-function vPolls(){
- const D=G.pollDraft;const chars=G.chars.map(charInfo);
- const groups={};G.polls.forEach(p=>{const g=p.id.split(':')[0];(groups[g]=groups[g]||{id:g,data:p.data,at:p.created_at,rows:[]}).rows.push(p);});
- const list=Object.values(groups).sort((a,b)=>b.at.localeCompare(a.at));
- const nm=id=>{const c=chars.find(x=>x.id===id);return c?c.name:'(removed character)';};
- if(G.data){const seen=G.data.seen=G.data.seen||{};let ch=false;G.polls.forEach(p=>{if(p.answer!=null&&!seen[p.id]){seen[p.id]=1;ch=true;}});if(ch){dirty();setTimeout(renderTabs,0);}}
- return`<section class="box"><h2>Send a private poll</h2>
-  <p class="muted" style="margin:0">Each chosen player gets their own copy as a popup on their sheet or map. They only see their own, and answers come back here.</p>
+function vPc(id){const r=G.chars.find(x=>x.id===id);if(!r){G.drawer=null;return'';}const c=charInfo(r);
+ return`<div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>Speed <b>${c.speed}</b></span><span>PP <b>${c.pp}</b></span><span>Corruption <b>${c.corruption}</b></span><span>Insanity <b>${c.insanity}</b></span></div>
+  <div class="muted">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div>
+  <div class="row">${G.claims.includes(id)?`<span class="tag ok">🔒 Player PIN set</span><button class="sm ghost" data-act="pinreset" data-id="${esc(id)}" data-name="${esc(c.name)}">Reset PIN</button>`:'<span class="tag">No player PIN yet. Their player sets one on their sheet.</span>'}</div>
+  <label>Private GM notes<textarea data-k="pcNotes.${esc(id)}">${esc(G.data.pcNotes[id]||'')}</textarea></label>
+  ${editor()}`;}
+function editor(){
+ const e=G.edit.d;const src=e.src||{},st=e.state||{};const inv=Array.isArray(st.inv)?st.inv:null;const n=G.edit.changed.size;
+ return`<h2>GM override<span class="sp"></span><span class="n">goes straight to their sheet</span></h2>
+  <div class="ab">${ABIL.map(a=>`<label>${a.toUpperCase()}<input type="number" data-e="src.abilities.${a}" value="${esc((src.abilities||{})[a]??10)}"></label>`).join('')}</div>
+  <div class="grid"><label>Max HP<input type="number" data-e="src.maxHp" value="${esc(src.maxHp??'')}"></label><label>Current HP (blank = full)<input type="number" data-e="state.hp" value="${esc(st.hp??'')}"></label>
+   <label>Temp HP<input type="number" data-e="state.temp" value="${esc(st.temp??'')}"></label><label>AC<input type="number" data-e="src.ac" value="${esc(src.ac??'')}"></label>
+   <label>Speed (ft)<input type="number" step="5" data-e="src.speed" value="${esc(src.speed??30)}"></label><label>Corruption<input type="number" data-e="state.corruption" value="${esc(st.corruption??0)}"></label>
+   <label>Insanity<input type="number" data-e="state.insanity" value="${esc(st.insanity??0)}"></label></div>
+  <h2>Weapons</h2><div class="lst">${(src.weapons||[]).map((w,i)=>`<div class="row"><input class="grow" data-e="src.weapons.${i}.name" value="${esc(w.name)}" placeholder="Name"><input data-e="src.weapons.${i}.atk" value="${esc(w.atk||'')}" placeholder="Attack" style="width:70px"><input data-e="src.weapons.${i}.dmg" value="${esc(w.dmg||'')}" placeholder="Damage" style="width:120px"><button class="sm ghost" data-act="erm" data-p="src.weapons" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty">No weapons.</p>'}</div>
+  <div class="row"><button class="sm" data-act="eaddw">+ Weapon</button></div>
+  <h2>Gear</h2>${inv?`<div class="lst">${inv.map((it,i)=>`<div class="row"><input class="grow" data-e="state.inv.${i}.name" value="${esc(it.name)}"><input type="number" data-e="state.inv.${i}.qty" value="${esc(it.qty??1)}" style="width:64px" aria-label="Quantity"><button class="sm ghost" data-act="erm" data-p="state.inv" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty">No gear.</p>'}</div>
+   <div class="row"><input class="grow" id="newItem" placeholder="Add an item"><input type="number" id="newQty" value="1" style="width:64px" aria-label="Quantity"><button class="sm" data-act="eaddi">Add</button></div>`
+  :`<label>Equipment (their gear list hasn't been opened on the sheet yet, so edit the text)<textarea data-e="src.equipment">${esc(src.equipment||'')}</textarea></label>`}
+  <div class="row" style="position:sticky;bottom:0;background:var(--plate);padding:8px 0"><span style="flex:1" class="muted" id="eCount">${n?n+' change'+(n>1?'s':'')+' not applied yet':'No changes yet'}</span><button data-act="ecancel" ${n?'':'disabled'}>Discard</button><button class="pri" data-act="eapply" ${n?'':'disabled'}>Apply to sheet</button></div>`;
+}
+function vPollDrawer(){const D=G.pollDraft;const chars=G.chars.map(charInfo);
+ const seen=G.data.seen;let ch=false;G.polls.forEach(p=>{if(p.answer!=null&&!seen[p.id]){seen[p.id]=1;ch=true;}});if(ch)dirty();
+ return`<p class="muted" style="margin:0">Each chosen player gets their own private popup on their sheet or map. Answers come back here.</p>
   <label>Question<input id="pQ" value="${esc(D.q||'')}" placeholder="The Navigator offers you a deal no one else heard. Do you take it?"></label>
   <label>Answers, one per line (leave empty for a written reply)<textarea id="pO" placeholder="Take the deal&#10;Refuse&#10;Tell the Captain">${esc(D.o||'')}</textarea></label>
   <label class="ck"><input type="checkbox" id="pF" ${D.free?'checked':''}> Also let them write something</label>
-  <div><div class="muted" style="margin-bottom:4px">Send to</div><div class="row">${chars.length?chars.map(c=>`<button class="sm ${D.to.includes(c.id)?'on':''}" data-act="pto" data-id="${esc(c.id)}">${esc(c.name)}</button>`).join('')+`<button class="sm ghost" data-act="ptoall">All</button>`:'<span class="empty">No characters yet.</span>'}</div></div>
-  <div class="row"><span style="flex:1"></span><button class="pri" data-act="psend" ${chars.length?'':'disabled'}>Send poll</button></div>
-  <p class="muted" style="margin:0">A player gets it once they've claimed their character with a player PIN (on the map, or "Yes, that's me" on their sheet).</p></section>
- <section class="box"><h2>Sent</h2>${list.length?list.map(g=>`<div class="card"><div class="row"><b style="flex:1">${esc(g.data.q)}</b><span class="muted">${new Date(g.at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span><button class="sm ghost" data-act="pdel" data-g="${esc(g.id)}">Remove</button></div>
-  ${g.rows.map(p=>`<div class="ans"><span class="who">${esc(nm(p.char_id))}</span>${p.answer?`<span>${p.answer.choice?`<b>${esc(p.answer.choice)}</b>`:''}${p.answer.choice&&p.answer.text?' — ':''}${esc(p.answer.text||'')}</span>`:'<span class="empty">waiting…</span>'}</div>`).join('')}</div>`).join(''):'<p class="empty" style="margin:0">No polls sent yet.</p>'}</section>`;
-}
+  <div><div class="muted" style="margin-bottom:4px">Send to</div><div class="row">${chars.length?chars.map(c=>`<button class="sm ${D.to.includes(c.id)?'on':''}" data-act="pto" data-id="${esc(c.id)}">${esc(c.name)}${G.claims.includes(c.id)?'':' (unclaimed)'}</button>`).join('')+`<button class="sm ghost" data-act="ptoall">All</button>`:'<span class="empty">No characters yet.</span>'}</div></div>
+  <div class="row"><span style="flex:1" class="muted">Players get polls once they've claimed their character with a PIN.</span><button class="pri" data-act="psend" ${chars.length?'':'disabled'}>Send</button></div>
+  <h2>Sent</h2>${pollGroups().map(groupCard).join('')||'<p class="empty">Nothing sent yet.</p>'}`;}
 
 /* ---------- events ---------- */
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;G.tab=b.dataset.tab;lsSet('rtm.gm.tab',G.tab);render();window.scrollTo(0,0);});
-$('#main').addEventListener('input',e=>{const el=e.target;
+const root=document.body;
+root.addEventListener('input',e=>{const el=e.target;if(el.closest('#lock'))return;
  if(el.dataset.k){setPath(G.data,el.dataset.k,el.value);dirty();return;}
  if(el.dataset.e&&G.edit){let v=el.value;if(el.type==='number')v=v===''?null:+v;setPath(G.edit.d,el.dataset.e,v);
-  const top=el.dataset.e.split('.').slice(0,2).join('.');G.edit.changed.add(/^(src\.weapons|state\.inv)/.test(el.dataset.e)?top:el.dataset.e);updApply();return;}
- if(el.id==='npcq'){G.npcq=el.value;const pos=el.selectionStart;render();const n=$('#npcq');n.focus();n.setSelectionRange(pos,pos);return;}
+  G.edit.changed.add(/^(src\.weapons|state\.inv)/.test(el.dataset.e)?el.dataset.e.split('.').slice(0,2).join('.'):el.dataset.e);updApply();return;}
+ if(el.id==='npcq'){G.npcq=el.value;const pos=el.selectionStart;const box=$('#pNpcs');pend.delete('#pNpcs');box.innerHTML=box._h=vNpcs();const n=$('#npcq');if(n){n.focus();n.setSelectionRange(pos,pos);}return;}
  if(el.id==='pQ')G.pollDraft.q=el.value;if(el.id==='pO')G.pollDraft.o=el.value;
+ if(el.id==='gSeed'&&G.gen)G.gen.seed=el.value;
 });
-function updApply(){const b=document.querySelector('[data-act=eapply]');if(b){b.disabled=!G.edit.changed.size;const s=b.parentElement.querySelector('span');if(s)s.textContent=G.edit.changed.size+' change'+(G.edit.changed.size>1?'s':'')+' not applied yet';}}
-$('#main').addEventListener('change',e=>{const el=e.target;
- if(el.dataset.ck){setPath(G.data,el.dataset.ck,el.checked);const ms=el.closest('.ms');if(ms)ms.classList.toggle('done',el.checked);dirty();if(/milestones/.test(el.dataset.ck))render();return;}
+function updApply(){const n=G.edit.changed.size;const a=$('[data-act=eapply]'),c=$('[data-act=ecancel]'),t=$('#eCount');if(a)a.disabled=!n;if(c)c.disabled=!n;if(t)t.textContent=n?n+' change'+(n>1?'s':'')+' not applied yet':'No changes yet';}
+root.addEventListener('change',e=>{const el=e.target;if(el.closest('#lock'))return;
+ if(el.dataset.ck){setPath(G.data,el.dataset.ck,el.checked);const r=el.closest('.ck-row');if(r)r.classList.toggle('done',el.checked);dirty();render();return;}
  if(el.dataset.ch){let v=el.value;if(/attitude|standing/.test(el.dataset.ch))v=+v;setPath(G.data,el.dataset.ch,v);dirty();render();return;}
  if(el.id==='pF')G.pollDraft.free=el.checked;
+ if((el.id==='gTheme'||el.id==='gSize')&&G.gen){G.gen.theme=$('#gTheme').value;G.gen.size=$('#gSize').value;}
 });
-$('#main').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;const map={newGoal:'addgoal',newArc:'addarc',newClock:'addclock',newFac:'addfac',newNpc:'addnpc',newItem:'eaddi'};
- const a=map[e.target.id]||(/^ms/.test(e.target.id)?'addms':null);if(a){e.preventDefault();const b=e.target.parentElement.querySelector(`[data-act=${a}]`);if(b)b.click();}});
-$('#main').addEventListener('click',async e=>{
- const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;const D=G.data;const val=id=>{const el=document.getElementById(id);const v=el?el.value.trim():'';if(el)el.value='';return v;};
+root.addEventListener('keydown',e=>{
+ if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;const map={newGoal:'addgoal',newArc:'addarc',newClock:'addclock',newFac:'addfac',newNpc:'addnpc',newItem:'eaddi',newMs:'addms',lPin:null};
+ const a=map[e.target.id];if(a){e.preventDefault();const b=e.target.parentElement.querySelector(`[data-act=${a}]`);if(b)b.click();}});
+$('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();});
+function openDrawer(type,id){if(G.edit&&G.edit.changed.size&&!confirm('Discard your unapplied changes?'))return false;G.edit=null;
+ G.drawer={type,id};if(type==='pc'){const r=G.chars.find(x=>x.id===id);if(r)G.edit={id,d:clone(r.data),changed:new Set()};}
+ $('#dBody')._h='';render();setTimeout(()=>{$('#dBody').scrollTop=0;},0);return true;}
+function closeDrawer(){if(G.edit&&G.edit.changed.size&&!confirm('Discard your unapplied changes?'))return;G.edit=null;G.drawer=null;render();}
+root.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-act]');if(!b||b.closest('#lock'))return;const a=b.dataset.act;const D=G.data;if(!D)return;
+ const val=id=>{const el=document.getElementById(id);const v=el?el.value.trim():'';if(el)el.value='';return v;};
  switch(a){
-  case'toggle':G.open[b.dataset.id]=!G.open[b.dataset.id];render();break;
-  case'addgoal':{const t=val('newGoal');if(t){D.story.goals.push({id:uid(),text:t,done:false});dirty();render();$('#newGoal').focus();}break;}
+  case'dclose':closeDrawer();break;
+  case'dpc':openDrawer('pc',b.dataset.id);break;
+  case'darc':openDrawer('arc',b.dataset.id);break;
+  case'dnpc':openDrawer('npc',b.dataset.id);break;
+  case'dpoll':openDrawer('poll');break;
+  case'dfactions':openDrawer('factions');break;
+  case'dimport':openDrawer('import');break;
+  case'dsessions':openDrawer('sessions');break;
+  case'dnewmap':openDrawer('newmap');break;
+  case'bigmap':{const on=$('#cc').classList.toggle('bigmap');b.textContent=on?'⤡ Smaller':'⤢ Bigger';lsSet('rtm.gm.bigmap',on?'1':null);break;}
+  case'addgoal':{const t=val('newGoal');if(t){D.story.goals.push({id:uid(),text:t,done:false});dirty();render();setTimeout(()=>{const n=$('#newGoal');if(n)n.focus();},30);}break;}
   case'cleargoals':D.story.goals=D.story.goals.filter(g=>!g.done);dirty();render();break;
-  case'addarc':{const t=val('newArc');if(!t)return;const id=uid();D.story.arcs.push({id,title:t,kind:$('#newKind').value,status:'active',summary:'',milestones:[]});G.open['arc'+id]=true;dirty();render();break;}
-  case'addms':{const t=val('ms'+b.dataset.id);if(!t)return;D.story.arcs[+b.dataset.i].milestones.push({id:uid(),text:t,done:false});dirty();render();const n=$('#ms'+b.dataset.id);if(n)n.focus();break;}
+  case'addarc':{const t=val('newArc');if(!t)return;const id=uid();D.story.arcs.push({id,title:t,kind:$('#newKind').value,status:'active',summary:'',milestones:[]});dirty();openDrawer('arc',id);setTimeout(()=>{const n=$('#newMs');if(n)n.focus();},60);break;}
+  case'addms':{const t=val('newMs');if(!t)return;D.story.arcs[+b.dataset.i].milestones.push({id:uid(),text:t,done:false});dirty();render();setTimeout(()=>{const n=$('#newMs');if(n)n.focus();},30);break;}
   case'addclock':{const t=val('newClock');if(!t)return;D.story.clocks.push({id:uid(),name:t,size:+$('#newClockSize').value,filled:0});dirty();render();break;}
   case'pip':{const c=D.story.clocks[+b.dataset.i];const k=+b.dataset.k;c.filled=c.filled===k+1?k:k+1;dirty();render();break;}
-  case'rm':{getPath(D,b.dataset.p).splice(+b.dataset.i,1);dirty();render();break;}
-  case'rmconfirm':{if(!confirm(`Delete ${b.dataset.name||'this'}?`))return;getPath(D,b.dataset.p).splice(+b.dataset.i,1);dirty();render();break;}
+  case'rm':getPath(D,b.dataset.p).splice(+b.dataset.i,1);dirty();render();break;
+  case'rmconfirm':{if(!confirm(`Delete ${b.dataset.name||'this'}?`))return;getPath(D,b.dataset.p).splice(+b.dataset.i,1);dirty();if(/^(story\.arcs|npcs)$/.test(b.dataset.p))G.drawer=null;render();break;}
   case'up':{const l=getPath(D,b.dataset.p),i=+b.dataset.i;if(i>0){[l[i-1],l[i]]=[l[i],l[i-1]];dirty();render();}break;}
   case'addfac':{const t=val('newFac');if(t){D.factions.push({id:uid(),name:t,motive:'',standing:0,notes:''});dirty();render();}break;}
-  case'addnpc':{const t=val('newNpc');if(!t)return;const id=uid();D.npcs.unshift({id,name:t,faction:'',role:'',attitude:0,status:'alive',where:'',notes:'',secret:''});G.open['npc'+id]=true;dirty();render();break;}
+  case'addnpc':{const t=val('newNpc');if(!t)return;const id=uid();D.npcs.unshift({id,name:t,faction:'',role:'',attitude:0,status:'alive',where:'',notes:'',secret:''});dirty();openDrawer('npc',id);break;}
   case'addsession':{const d=new Date();const iso=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);D.sessions.unshift({id:uid(),date:iso,title:'Session '+(D.sessions.length+1),notes:''});dirty();render();break;}
   case'import':{let j;try{j=JSON.parse($('#impTxt').value);}catch(err){toast('That isn’t valid JSON.');return;}
    let n=0;(j.arcs||[]).forEach(x=>{const title=String(x.title||x.name||'').trim();if(!title)return;let arc=D.story.arcs.find(a=>a.title.toLowerCase()===title.toLowerCase());
     if(!arc){arc={id:uid(),title,kind:KINDS[x.kind]?x.kind:'main',status:STATUS[x.status]?x.status:'active',summary:x.summary||'',milestones:[]};D.story.arcs.push(arc);n++;}
-    (x.milestones||[]).forEach(m=>{const t=typeof m==='string'?m:m.text;if(t&&!arc.milestones.some(o=>o.text===t)){arc.milestones.push({id:uid(),text:t,done:!!m.done});n++;}});});
-   (j.goals||[]).forEach(g=>{const t=typeof g==='string'?g:g.text;if(t){D.story.goals.push({id:uid(),text:t,done:false});n++;}});
-   (j.clocks||[]).forEach(c=>{if(c.name){D.story.clocks.push({id:uid(),name:c.name,size:+c.size||6,filled:+c.filled||0});n++;}});
-   dirty();render();toast(`Added ${n} item${n===1?'':'s'}.`,true);break;}
+    (x.milestones||[]).forEach(m=>{const t=typeof m==='string'?m:m&&m.text;if(t&&!arc.milestones.some(o=>o.text===t)){arc.milestones.push({id:uid(),text:t,done:!!(m&&m.done)});n++;}});});
+   (j.goals||[]).forEach(g=>{const t=typeof g==='string'?g:g&&g.text;if(t){D.story.goals.push({id:uid(),text:t,done:false});n++;}});
+   (j.clocks||[]).forEach(c=>{if(c&&c.name){D.story.clocks.push({id:uid(),name:c.name,size:+c.size||6,filled:+c.filled||0});n++;}});
+   dirty();G.drawer=null;render();toast(`Added ${n} item${n===1?'':'s'}.`,true);break;}
   case'export':{const s=D.story;const out={arcs:s.arcs.map(a=>({title:a.title,kind:a.kind,status:a.status,summary:a.summary,milestones:a.milestones.map(m=>({text:m.text,done:m.done}))})),goals:s.goals.map(g=>g.text),clocks:s.clocks.map(c=>({name:c.name,size:c.size,filled:c.filled}))};
    const txt=JSON.stringify(out,null,2);try{await navigator.clipboard.writeText(txt);toast('Story copied as JSON.',true);}catch(err){$('#impTxt').value=txt;toast('Copy didn’t work; the JSON is in the box.');}break;}
-  case'editpc':{if(G.edit&&G.edit.id===b.dataset.id){if(G.edit.changed.size&&!confirm('Discard your unapplied changes?'))return;G.edit=null;render();return;}
-   if(G.edit&&G.edit.changed.size&&!confirm('Discard your unapplied changes to the other character?'))return;
-   const r=G.chars.find(x=>x.id===b.dataset.id);if(!r)return;G.edit={id:r.id,d:clone(r.data),changed:new Set()};render();break;}
-  case'ecancel':G.edit=null;render();break;
-  case'eaddw':G.edit.d.src.weapons=(G.edit.d.src.weapons||[]);G.edit.d.src.weapons.push({name:'New weapon',atk:'',dmg:''});G.edit.changed.add('src.weapons');render();break;
+  case'ecancel':{const id=G.edit.id;G.edit=null;openDrawer('pc',id);break;}
+  case'eaddw':G.edit.d.src.weapons=G.edit.d.src.weapons||[];G.edit.d.src.weapons.push({name:'New weapon',atk:'',dmg:''});G.edit.changed.add('src.weapons');render();break;
   case'eaddi':{const t=val('newItem');if(!t)return;const q=+$('#newQty').value||1;G.edit.d.state.inv.push({id:'g'+uid(),name:t,qty:q,cat:'gear'});G.edit.changed.add('state.inv');render();break;}
-  case'erm':{getPath(G.edit.d,b.dataset.p).splice(+b.dataset.i,1);G.edit.changed.add(b.dataset.p);render();break;}
+  case'erm':getPath(G.edit.d,b.dataset.p).splice(+b.dataset.i,1);G.edit.changed.add(b.dataset.p);render();break;
   case'eapply':await applyEdit();break;
-  case'pinreset':if(confirm(`Clear ${b.dataset.name}'s player PIN? Their player sets a new one next time they pick the character.`)){try{await rpc('char_reset',{p_party:G.code,p_gm_pin:G.pin,p_char:b.dataset.id});toast('PIN cleared.',true);await loadChars();render();}catch(err){toast(err.message);}}break;
+  case'pinreset':if(confirm(`Clear ${b.dataset.name}'s player PIN? Their player sets a new one next time.`)){try{await rpc('char_reset',{p_party:G.code,p_gm_pin:G.pin,p_char:b.dataset.id});toast('PIN cleared.',true);await loadChars();}catch(err){toast(err.message);}}break;
   case'maplive':await mapMeta(m=>{m.live=b.dataset.v==='1';},b.dataset.v==='1'?'Map revealed to players.':'Map hidden from players.');break;
-  case'nextturn':await mapMeta(m=>{const I=m.init;const toks=G.map.tokens||{};const order=(I.order||[]).filter(id=>toks[id]);if(!order.length)return false;let i=order.indexOf(I.order[I.turn]);i=i<0?0:i+1;if(i>=order.length){i=0;I.round++;}I.order=order;I.turn=i;});break;
+  case'nextturn':case'prevturn':await mapMeta(m=>{const I=m.init;const toks=G.map.tokens||{};const order=(I.order||[]).filter(id=>toks[id]);if(!order.length)return false;let i=order.indexOf(I.order[I.turn]);if(i<0)i=0;
+   i+=a==='nextturn'?1:-1;if(i>=order.length){i=0;I.round++;}if(i<0){i=order.length-1;I.round=Math.max(1,I.round-1);}I.order=order;I.turn=i;});break;
   case'endcombat':if(confirm('End combat for everyone?'))await mapMeta(m=>{m.init={on:false,order:[],turn:0,round:1};},'Combat ended.');break;
+  case'reroll':G.gen={theme:$('#gTheme').value,size:$('#gSize').value,seed:String(1000+Math.floor(Math.random()*9000))};render();break;
+  case'genmap':await genMap();break;
   case'pto':{const id=b.dataset.id;const t=G.pollDraft.to;const i=t.indexOf(id);i<0?t.push(id):t.splice(i,1);render();break;}
   case'ptoall':G.pollDraft.to=G.chars.map(r=>r.id);render();break;
   case'psend':await sendPoll();break;
@@ -379,19 +420,32 @@ async function applyEdit(){
  const E=G.edit;if(!E||!E.changed.size)return;
  try{const rows=await rpc('party_list',{p_party:G.code});const fresh=rows.find(x=>x.id===E.id);if(!fresh){toast('That character no longer exists.');return;}
   const d=clone(fresh.data);d.src=d.src||{};d.state=d.state||{};
-  E.changed.forEach(p=>setPath(d,p,clone(getPath(E.d,p)===undefined?null:getPath(E.d,p))));
+  E.changed.forEach(p=>{const v=getPath(E.d,p);setPath(d,p,v===undefined?null:clone(v));});
   d.updatedAt=Date.now();
   await rpc('party_save',{p_party:G.code,p_id:E.id,p_data:Object.assign({},d,{_auth:G.pin})});
   try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
-  toast('Applied to '+((d.src&&d.src.name)||'the sheet')+'.',true);G.edit=null;await loadChars();render();
+  toast('Applied to '+((d.src&&d.src.name)||'the sheet')+'.',true);G.edit=null;await loadChars();openDrawer('pc',E.id);
  }catch(err){toast('Couldn’t apply: '+(err.message||'unknown error'));}
 }
+function pingMap(){try{G.mchan.send({type:'broadcast',event:'reload',payload:{}});}catch(err){}}
 async function mapMeta(fn,msg){
  try{const r=await rpc('map_get',{p_party:G.code,p_pin:G.pin});const m=r.meta;if(!m||!m.cells){toast('No map yet.');return;}m.init=m.init||{on:false,order:[],turn:0,round:1};G.map=r;
-  if(fn(m)===false)return;await rpc('map_save_meta',{p_party:G.code,p_pin:G.pin,p_meta:m});
-  try{G.mchan.send({type:'broadcast',event:'reload',payload:{}});}catch(err){}
-  if(msg)toast(msg,true);await loadMap();render();
+  if(fn(m)===false)return;await rpc('map_save_meta',{p_party:G.code,p_pin:G.pin,p_meta:m});pingMap();
+  if(msg)toast(msg,true);await loadMap();
  }catch(err){toast(err.message||'Couldn’t update the map.');}
+}
+async function genMap(){
+ const g=G.gen={theme:$('#gTheme').value,size:$('#gSize').value,seed:($('#gSeed').value||'').trim()||'1'};
+ try{const r=await rpc('map_get',{p_party:G.code,p_pin:G.pin});const old=r.meta||{};
+  if(old.cells&&!confirm('Replace the current map for everyone?'))return;
+  const[w,h]=SIZES[g.size];const m=generate(g.theme,w,h,g.seed);m.init=old.init||{on:false,order:[],turn:0,round:1};m.live=false;
+  await rpc('map_save_meta',{p_party:G.code,p_pin:G.pin,p_meta:m});
+  const placed=[];for(const t of Object.values(r.tokens||{})){const s=t.size||1;const anchor=t.kind==='pc'?m.start:m.foe;
+   const p=nearestWalk(m,anchor.x,anchor.y,s,(x,y,ss)=>placed.some(o=>x<o.x+o.s&&x+ss>o.x&&y<o.y+o.s&&y+ss>o.y));
+   if(p){placed.push({x:p.x,y:p.y,s});if(p.x!==t.x||p.y!==t.y)await rpc('map_token_put',{p_party:G.code,p_pin:G.pin,p_token:Object.assign({},t,{x:p.x,y:p.y})});}}
+  pingMap();G.drawer=null;toast('New map ready. It’s hidden from players until you reveal it.',true);await loadMap();
+  const f=$('#mapf');if(f&&f.contentWindow){try{f.contentWindow.location.reload();}catch(err){f.src=f.src;}}
+ }catch(err){toast(err.message||'Couldn’t make the map.');}
 }
 async function sendPoll(){
  const D=G.pollDraft;const q=($('#pQ').value||'').trim();const opts=($('#pO').value||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,8);const free=$('#pF').checked;
@@ -399,17 +453,18 @@ async function sendPoll(){
  const group='p'+Date.now().toString(36)+uid().slice(0,3);
  try{await rpc('poll_send',{p_party:G.code,p_pin:G.pin,p_group:group,p_chars:D.to,p_data:{q,opts,free}});
   try{G.qchan.send({type:'broadcast',event:'poll',payload:{chars:D.to}});}catch(err){}
-  G.pollDraft={to:[]};toast('Poll sent.',true);await loadPolls();render();
+  G.pollDraft={to:[]};toast('Poll sent.',true);await loadPolls();
  }catch(err){toast(err.message||'Couldn’t send.');}
 }
 $('#lGo').onclick=()=>{const c=normCode($('#lCode').value);const p=$('#lPin').value;if(c.length<9){$('#lErr').textContent='Party codes look like VOID-7K3Q.';return;}if(p.length<4){$('#lErr').textContent='PINs are 4 or more characters.';return;}unlock(c,p);};
 $('#lPin').addEventListener('keydown',e=>{if(e.key==='Enter')$('#lGo').click();});
 $('#lockBtn').onclick=()=>{lsSet('rtm.map.pin.'+G.code,null);location.reload();};
-window.addEventListener('resize',()=>document.documentElement.style.setProperty('--hh',$('#hdr').offsetHeight+'px'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&G.drawer)closeDrawer();});
 (function init(){
+ if(lsGet('rtm.gm.bigmap')){$('#cc').classList.add('bigmap');$('#bigBtn').textContent='⤡ Smaller';}
  const code=normCode(lsGet('rtm.party.code'));const pin=code.length===9?lsGet('rtm.map.pin.'+code):null;
  if(code.length===9&&pin)unlock(code,pin).then(()=>{if(!G.data)relock();});
- else{relock();}
+ else relock();
 })();
 </script>
 </body>

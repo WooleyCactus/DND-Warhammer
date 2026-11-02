@@ -98,6 +98,13 @@
   draw(claimsCache.ids.includes(target.id));
   if(fresh)claimedSet().then(ids=>{claimsCache={t:Date.now(),ids};if(h.dataset.id===sig&&!document.activeElement.isSameNode(document.getElementById('rtm-pin'))){draw(ids.includes(target.id));}});
  }
+ // Sheets app on a GM device: one tap to the command center.
+ function gmFab(){const isSheets=!/(map|gm)\.html$/.test(location.pathname)&&typeof S!=='undefined'&&S&&typeof S.view==='string';const c=code();const el=document.getElementById('rtm-gm');
+  if(!isSheets||!c||!get('rtm.map.pin.'+c)){if(el)el.remove();return;}
+  if(el)return;const a=document.createElement('a');a.id='rtm-gm';a.href='gm.html';a.textContent='☩ GM Command Center';
+  a.style.cssText="position:fixed;right:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:39;background:linear-gradient(180deg,#EBCB7A,#C8A24A);color:#140F06;border:1px solid #7A5C1E;padding:11px 16px;font:700 14px 'Cinzel',Georgia,serif;letter-spacing:.06em;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.6)";
+  document.body.appendChild(a);}
+ setInterval(gmFab,1500);setTimeout(gmFab,300);
  window.RTMPolls={check,setMe:id=>{const c=code();if(c){put('rtm.map.role.'+c,id);check();}}};
  setInterval(()=>{meBar();},1200);
  setInterval(()=>{if(document.visibilityState==='visible')check();},30000);

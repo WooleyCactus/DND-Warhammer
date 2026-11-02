@@ -2901,6 +2901,8 @@ const getCode=()=>{try{return localStorage.getItem(PCODE)||'';}catch(e){return '
 const setCode=c=>{try{c?localStorage.setItem(PCODE,c):localStorage.removeItem(PCODE);}catch(e){}};
 const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.+)$/,'$1-$2').slice(0,9);
 function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=new Uint32Array(8);crypto.getRandomValues(r);r.forEach(x=>s+=a[x%a.length]);return s.slice(0,4)+'-'+s.slice(4);}
+/* This device has the GM PIN for the current party (set on the map, GM screen, or GM unlock here). */
+function gmDevice(){try{const c=getCode();return !!(c&&localStorage.getItem('rtm.map.pin.'+c));}catch(e){return false;}}
 /* Player PIN for this character on this device, else the GM PIN; the server decides if it may save. */
 function authFor(code,id){try{return localStorage.getItem('rtm.key.'+code+'.'+id)||localStorage.getItem('rtm.map.pin.'+code)||null;}catch(e){return null;}}
 /* Supabase party store, shaped like the claude db API the rest of the app uses */
@@ -2961,7 +2963,7 @@ function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit
 
 /* ---------- views ---------- */
 function render(){
- $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="map.html">Map</a>'+(gmNow()?'<a href="gm.html">GM</a>':'')+'<a href="guide.html">Guide</a>';
+ $('#nav').innerHTML=[['party','Party'],['chart','Star Chart'],['build','Create'],['import','Import']].map(([v,l])=>`<button data-act="go" data-v="${v}" ${S.view===v||(v==='import'&&S.view==='review')||(v==='party'&&S.view==='sheet')?'aria-current="page"':''}>${l}</button>`).join('')+'<a href="map.html">Map</a>'+(gmNow()||gmDevice()?'<a href="gm.html">GM</a>':'')+'<a href="guide.html">Guide</a>';
  const app=$('#app');
  if(S.view==='party')app.innerHTML=vParty();
  else if(S.view==='import')app.innerHTML=vImport();
