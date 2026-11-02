@@ -523,6 +523,39 @@ details.mc summary{cursor:pointer;font-family:var(--f-caps);font-weight:700;lett
 .loot .row{display:flex;gap:8px;flex-wrap:wrap}
 .loot-res{margin-top:8px}
 .loot-card small{white-space:normal}
+/* EXPORT-CSS */
+#printout{display:none}
+@media print{
+ @page{margin:12mm}
+ body.printing>*:not(#printout){display:none!important}
+ html:has(body.printing),body.printing{background:#fff!important;background-image:none!important;color-scheme:light!important}
+ body.printing #printout{display:block}
+}
+#printout .pr{font:10.5pt/1.35 Georgia,'Times New Roman',serif;color:#111;background:#fff}
+#printout h1{font:700 20pt/1.1 'Cinzel',Georgia,serif;margin:2px 0 4px;color:#111}
+#printout h2{font:700 9.5pt/1.2 'Cinzel',Georgia,serif;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid #999;margin:10px 0 4px;padding-bottom:2px;color:#111}
+#printout p{margin:2px 0}
+#printout small{color:#555}
+#printout .pr-h{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111;padding-bottom:6px}
+#printout .pr-eyebrow{font-size:8pt;letter-spacing:.12em;text-transform:uppercase;color:#555}
+#printout .pr-sub{font-size:9pt;color:#333}
+#printout .pr-lvl{text-align:center;font-size:8pt;text-transform:uppercase}
+#printout .pr-lvl b{display:block;font-size:22pt}
+#printout .pr-vitals{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
+#printout .pr-vitals div{border:1px solid #999;padding:4px;text-align:center}
+#printout .pr-vitals span{display:block;font-size:7.5pt;text-transform:uppercase;color:#555}
+#printout .pr-vitals b{font-size:13pt}
+#printout .pr-vitals i{display:block;font-size:7.5pt;font-style:normal;color:#555;margin-top:2px}
+#printout .pr-cols{display:grid;grid-template-columns:1fr 1.5fr;gap:14px}
+#printout .pr-t{border-collapse:collapse;width:100%;font-size:9pt}
+#printout .pr-t th,#printout .pr-t td{border-bottom:1px solid #ddd;padding:1px 4px;text-align:left;vertical-align:top}
+#printout .pr-t th{font-size:7.5pt;text-transform:uppercase;color:#555}
+#printout .pr-sk td:first-child{width:12px}
+#printout .pr-pw{font-size:9pt;margin:2px 0}
+#printout .pr-feat{font-size:9.5pt}
+#printout section,#printout .pr-t tr{break-inside:avoid-page}
+#printout .pr-foot{margin-top:10px;font-size:7.5pt;color:#777;border-top:1px solid #ccc;padding-top:3px}
+/* /EXPORT-CSS */
 </style>
 </head>
 <body>
@@ -3348,12 +3381,13 @@ function card(ch){
 
 function vImport(){
  return `<div class="page-h"><div class="grow"><div class="eyebrow">+++ Induction +++</div><h1>Import a character</h1><p class="lede">Upload a 5e sheet. You'll check what was read, fix anything that was missed, then convert.</p></div></div>
- <label class="drop" id="drop"><input type="file" id="file" accept=".pdf,.xlsx,.xls,.xlsm,.csv,application/pdf"><strong>${S.busy?'Reading the sheet…':'Choose or drop a file'}</strong><span class="muted">D&amp;D Beyond PDF export, or an .xlsx / .xls / .csv character sheet</span></label>
+ <label class="drop" id="drop"><input type="file" id="file" accept=".pdf,.xlsx,.xls,.xlsm,.csv,.json,application/pdf,application/json"><strong>${S.busy?'Reading the sheet…':'Choose or drop a file'}</strong><span class="muted">D&amp;D Beyond PDF export, an .xlsx / .xls / .csv character sheet, or a saved character backup (.rtm.json)</span></label>
  ${S.msg?`<div class="msg${S.msg.err?' err':''}">${esc(S.msg.text)}</div>`:''}
  <div class="row" style="margin-top:14px"><button class="btn primary" data-act="newbuild">Create a new character instead</button><button class="btn" data-act="blank">Type in a 5e sheet by hand</button><button class="btn ghost" data-act="trysample">Load the example character</button></div>
  <div class="reads">
   <div><h3>D&amp;D Beyond PDF</h3><p>On the character page choose Export to PDF. The form fields are read directly: abilities, skills, saves, attacks, spells, features and equipment.</p></div>
   <div><h3>Spreadsheets</h3><p>Any layout where a label sits beside its value works: "Strength 16", "Class: Wizard 5", "Max HP 38". Spell and weapon names are picked up wherever they appear.</p></div>
+  <div><h3>Character backups</h3><p>On any sheet, Save to file downloads that character. Load the file here to restore it on any device, exactly as it was, including HP and spent slots.</p></div>
   <div><h3>What converts</h3><p>All 13 classes and their subclasses, species, backgrounds, the 18 skills, weapons, armour and over 300 spells, using the Rogue Trader conversion kit's rules.</p></div>
  </div>`;
 }
@@ -3449,7 +3483,7 @@ function vSheet(ch){
    <select class="sel-inline" data-c="crewRole" aria-label="Crew role">${Object.entries(CREW_ROLES).map(([k,v])=>opt(k,v[0],(ch.choices||{}).crewRole||'trader')).join('')}</select>
    ${d.homeworld?`<select class="sel-inline" data-c="homeworld" aria-label="Homeworld">${Object.entries(HOMEWORLDS).map(([k,v])=>opt(k,v[0],(ch.choices||{}).homeworld||'void')).join('')}</select>`:''}
   </div></div>
-  <div class="row">${ex?'':'<span class="purity" aria-hidden="true"><span class="wax">✠</span><span class="slip"></span></span>'}${ex?`<button class="btn primary" data-act="adoptex">Add to the crew</button>`:`<button class="btn primary" data-act="levelup">Level up</button>${spellListFor((s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).cls||'x',(s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).sub)?`<button class="btn" data-act="managepw">Manage powers</button>`:''}<button class="btn ghost" data-act="edit">Edit 5e source</button>${S.confirmDel?`<span class="confirm">Remove ${esc(s.name)} for everyone? <button class="btn sm danger" data-act="del">Remove</button><button class="btn sm" data-act="nodel">Keep</button></span>`:`<button class="btn ghost" data-act="askdel">Remove</button>`}`}</div>
+  <div class="row">${ex?'':'<span class="purity" aria-hidden="true"><span class="wax">✠</span><span class="slip"></span></span>'}${ex?`<button class="btn primary" data-act="adoptex">Add to the crew</button>`:`<button class="btn primary" data-act="levelup">Level up</button>${spellListFor((s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).cls||'x',(s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).sub)?`<button class="btn" data-act="managepw">Manage powers</button>`:''}<button class="btn ghost" data-act="edit">Edit 5e source</button><button class="btn ghost" data-act="savefile">Save to file</button><button class="btn ghost" data-act="printsheet">Print</button>${S.confirmDel?`<span class="confirm">Remove ${esc(s.name)} for everyone? <button class="btn sm danger" data-act="del">Remove</button><button class="btn sm" data-act="nodel">Keep</button></span>`:`<button class="btn ghost" data-act="askdel">Remove</button>`}`}</div>
  </div>
 
  <div class="vitals">
@@ -3517,11 +3551,95 @@ async function handleFile(file){
    const wb=ext==='csv'?XLSX.read(await file.text(),{type:'string'}):XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array'});
    const sheets=wb.SheetNames.map(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''}));
    src=importGrid(sheets);
-  }else throw new Error(`"${name}" isn't a PDF or spreadsheet. Use a D&D Beyond PDF, .xlsx, .xls or .csv.`);
+  }else if(ext==='json'){restoreBackup(await file.text());return;}
+  else throw new Error(`"${name}" isn't a PDF, spreadsheet or character backup. Use a D&D Beyond PDF, .xlsx, .xls, .csv or a saved .rtm.json file.`);
   S.draft={src,choices:{homeworld:'void',crewRole:'trader'},state:{}};S.draftFile=name;S.draftEditing=null;S.busy=false;go('review');
  }catch(e){S.busy=false;S.msg={err:true,text:e.message||String(e)};render();}
 }
 
+/* EXPORT-START: backup file (save/load) and printable sheet */
+const BACKUP_KIND='rogue-trader-manifest.character';
+function fileSafe(n){return (String(n||'character').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'character').slice(0,60);}
+function backupChar(ch){
+ const data={kind:BACKUP_KIND,v:1,savedAt:new Date().toISOString(),character:{src:clone(ch.src),choices:clone(ch.choices||{}),state:clone(ch.state||{}),createdAt:ch.createdAt||null}};
+ delete data.character.src._auth;
+ const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileSafe(ch.src.name)+'.rtm.json';
+ document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+ toastMsg('Saved '+(ch.src.name||'character')+' to a file. Keep it somewhere safe.');
+}
+/* Returns a list of characters from a backup file's text, or throws a readable error. */
+function readBackup(text){
+ let data;try{data=JSON.parse(text);}catch(e){throw new Error('That file isn\'t a character backup (it isn\'t readable JSON).');}
+ const list=data&&data.kind===BACKUP_KIND&&data.character?[data.character]:data&&Array.isArray(data.characters)?data.characters:null;
+ if(!list||!list.length)throw new Error('That file isn\'t a Rogue Trader Manifest character backup.');
+ return list.map(c=>{if(!c||!c.src||!Array.isArray(c.src.classes))throw new Error('That backup is missing its character data.');
+  const src=clone(c.src);delete src._auth;return {src,choices:clone(c.choices||{}),state:clone(c.state||{}),createdAt:c.createdAt||Date.now()};});
+}
+function restoreBackup(text){
+ const list=readBackup(text);let last=null;
+ for(const c of list){const ch={id:uid(),src:c.src,choices:c.choices,state:c.state,createdAt:c.createdAt};S.party.push(ch);persist(ch,true);last=ch;}
+ S.cur=last.id;S.busy=false;S.msg=null;go('sheet');
+ toastMsg(list.length>1?`Loaded ${list.length} characters.`:`Loaded ${last.src.name||'character'} from the backup.`);
+}
+
+function printSheet(ch){
+ const d=derive(ch),s=ch.src,st=ch.state||{};
+ const sg=n=>(n>=0?'+':'')+n;
+ const AB=['str','dex','con','int','wis','cha'];
+ const abil=(s.abilities||{});
+ const cast=d.cast||{trads:[]};
+ const byLvl={};(d.spells||[]).forEach(x=>{const k=x.lvl==null?'?':x.lvl;(byLvl[k]=byLvl[k]||[]).push(x);});
+ const opts=(typeof optionsSheet==='function'?optionsSheet(s):[]);
+ const featLines=[...(s.style&&STYLES[s.style]?[[STYLES[s.style][1],STYLES[s.style][0],STYLES[s.style][2]]]:[]),...(s.feats||[]).map(f=>[f.w40,f.name,f.text])];
+ const traits=(d.origin&&d.origin.traits)||[];
+ const careerFeats=d.feats||[];
+ const roleName=(CREW_ROLES[(ch.choices||{}).crewRole||'trader']||[''])[0];
+ const hw=d.homeworld?d.homeworld[0]:'';
+ const slots=(cast.slots||[]).map((n,i)=>`L${i+1}: ${'○'.repeat(n)}`).join('  ')+(cast.pact?`  Pact L${cast.pact[1]}: ${'○'.repeat(cast.pact[0])}`:'');
+ const html=`<div class="pr">
+ <header class="pr-h"><div><div class="pr-eyebrow">Rogue Trader Manifest</div><h1>${esc(s.name||'Unnamed')}</h1>
+  <div>${esc(d.origin.name)} · ${d.careers.map(c=>`${esc(c.career)} ${c.level}${c.sub40?` (${esc(c.sub40)})`:''}`).join(' / ')}</div>
+  <div class="pr-sub">${[d.bg40,roleName&&('Crew role: '+roleName),hw&&('Homeworld: '+hw),s.player&&('Player: '+s.player)].filter(Boolean).map(esc).join(' · ')}</div>
+  <div class="pr-sub">5e: ${esc(s.race||'')} ${(s.classes||[]).map(c=>`${esc(CLASSES[c.cls]?CLASSES[c.cls].name:c.cls)} ${c.level}${c.sub?` (${esc(c.sub)})`:''}`).join(' / ')}</div></div>
+  <div class="pr-lvl">Level<b>${d.lvl}</b></div></header>
+ <div class="pr-vitals">
+  <div><span>Armour class</span><b>${d.ac}</b></div>
+  <div><span>Wounds (HP)</span><b>${d.maxHp}</b><i>current ____ temp ____</i></div>
+  <div><span>Speed</span><b>${esc(s.speed||30)} ft</b></div>
+  <div><span>Initiative</span><b>${sg(d.init)}</b></div>
+  <div><span>Proficiency</span><b>${sg(d.pb)}</b></div>
+  <div><span>Hit dice</span><b>${d.careers.map(c=>`${c.level}d${c.hd}`).join(' + ')}</b></div>
+ </div>
+ <div class="pr-cols">
+  <section><h2>Characteristics</h2><table class="pr-t"><tr><th></th><th>Score</th><th>Mod</th><th>Save</th></tr>
+   ${AB.map(a=>{const sv=(d.saves||[]).find(x=>x.a===a)||{};return `<tr><td>${esc(ABIL_FULL[a]||a)}</td><td>${esc(abil[a]??'')}</td><td>${sg(d.mods[a]||0)}</td><td>${sv.prof?'● ':''}${sg(sv.total||0)}</td></tr>`;}).join('')}</table>
+   <h2>Skills</h2><table class="pr-t pr-sk">${(d.skills||[]).map(k=>`<tr><td>${k.prof>1?'◆':k.prof?'●':'○'}</td><td>${esc(k.w40)}${k.w40!==k.name?` <small>(${esc(k.name)})</small>`:''}</td><td>${sg(k.total)}</td></tr>`).join('')}</table>
+   <h2>Corruption &amp; Insanity</h2><p>Corruption ${st.corruption||0} · Insanity ${st.insanity||0}</p>
+  </section>
+  <section><h2>Weapons</h2>${(d.weapons||[]).length?`<table class="pr-t"><tr><th>Weapon</th><th>Hit</th><th>Damage</th><th>Range</th></tr>${d.weapons.map(w=>`<tr><td><b>${esc(w.to)}</b>${w.from&&w.from!==w.to?`<br><small>${esc(w.from)}</small>`:''}${(w.props||[]).length?`<br><small>${esc(w.props.join(', '))}</small>`:''}</td><td>${esc(w.atk)}</td><td>${esc(w.dmg)}</td><td>${esc(w.range||'5 ft')}${w.clip?`<br><small>clip ${w.clip}</small>`:''}</td></tr>`).join('')}</table>`:'<p>None.</p>'}
+   ${d.armor?`<p><b>Armour:</b> ${esc(d.armor.to)} (${esc(d.armor.ac)})${s.shield?' + shield':''}</p>`:''}
+   ${(d.spells||[]).length?`<h2>Powers</h2>${cast.trads.map(t=>`<p class="pr-sub">${esc(t.classes.join(', '))}: save DC ${t.dc}, attack ${sg(t.atk)} (${esc(String(t.abil).toUpperCase())})</p>`).join('')}${slots?`<p class="pr-sub">Slots ${esc(slots)}</p>`:''}
+    ${Object.keys(byLvl).sort((a,b)=>(a==='?')-(b==='?')||a-b).map(k=>`<div class="pr-pw"><b>${k==='0'?'Cantrips':k==='?'?'Other':'Level '+k}:</b> ${byLvl[k].map(x=>esc(x.name40k)+(x.name40k!==x.src?` <small>(${esc(x.src)})</small>`:'')).join(', ')}</div>`).join('')}`:''}
+  </section>
+ </div>
+ <section class="pr-feat"><h2>Origin traits</h2>${traits.map(t=>`<p><b>${esc(t[0])}.</b> ${esc(t[1])}</p>`).join('')||'<p>—</p>'}
+  <h2>Career features</h2><p>${careerFeats.map(f=>`<b>${esc(f.to)}</b>${f.to!==f.from?` <small>(${esc(f.from)})</small>`:''}`).join(' · ')||'—'}</p>
+  ${d.features40?`<p>${esc(d.features40)}</p>`:''}
+  ${featLines.length?`<h2>Feats &amp; doctrine</h2>${featLines.map(f=>`<p><b>${esc(f[0])}</b> <small>(${esc(f[1])})</small>: ${esc(f[2])}</p>`).join('')}`:''}
+  ${opts.length?`<h2>Career choices</h2>${opts.map(o=>`<p><b>${esc(o[0])}</b> <small>(${esc(o[1])})</small>: ${esc(o[2])}</p>`).join('')}`:''}
+  <h2>Equipment</h2><p>${esc(d.equipment40||'—')}</p>
+  ${s.languages?`<h2>Languages</h2><p>${esc(s.languages)}</p>`:''}
+ </section>
+ <footer class="pr-foot">Printed ${new Date().toLocaleDateString()} · wooleycactus.github.io/DND-Warhammer</footer>
+ </div>`;
+ let el=document.getElementById('printout');if(!el){el=document.createElement('div');el.id='printout';document.body.appendChild(el);}
+ el.innerHTML=html;document.body.classList.add('printing');
+ const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done);};
+ window.addEventListener('afterprint',done);
+ setTimeout(()=>window.print(),50);
+}
+/* EXPORT-END */
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
@@ -3540,6 +3658,7 @@ document.addEventListener('click',e=>{
  if(S.view==='build'&&a!=='go'&&buildClick(a,b.dataset.v,b))return;
  if(S.view==='levelup'&&a!=='go'&&luClick(a,b.dataset.v,b))return;
  if(S.view==='powers'&&a!=='go'&&pmClick(a,b.dataset.v,b))return;
+ if(a==='savefile'||a==='printsheet'){const c=S.cur==='example'?exampleChar():cur();if(c){if(a==='savefile')backupChar(c);else printSheet(c);}return;}
  if(a==='levelup'){const c=cur();if(c){if(chTotalLevel(c.src)>=20){toastMsg('Already level 20.');return;}S.lu=newLU(c);go('levelup');}return;}
  if(a==='managepw'){const c=cur();if(c){S.pm=newPM(c);if(S.pm)go('powers');}return;}const ch=S.view==='sheet'?(S.cur==='example'?null:cur()):null;
  const st=ch?(ch.state=ch.state||{}):null;
