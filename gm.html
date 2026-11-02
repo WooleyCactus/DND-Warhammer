@@ -60,7 +60,8 @@ button.on{border-color:var(--gold);background:#3a2f1c;color:var(--gold-hi)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 label.ck{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px}
-label>input,label>select,label>textarea{width:100%}
+label:not(.ck)>input,label>select,label>textarea{width:100%}
+label.ck input{width:18px;height:18px;flex:none}
 .muted{color:var(--muted);font-size:13px}
 .empty{color:var(--muted);font-style:italic;font-size:14px;margin:0}
 .tag{font:11px var(--f-mono);border:1px solid var(--line);padding:1px 6px;color:var(--muted);white-space:nowrap}
@@ -145,6 +146,8 @@ const KINDS={main:'Main arc',thread:'Side thread',quest:'Quest',player:'Player-s
 const STATUS={active:'Active',paused:'On hold',done:'Resolved',failed:'Failed'};
 const ATT=[['-2','Hostile'],['-1','Wary'],['0','Neutral'],['1','Friendly'],['2','Allied']];
 const NPCSTAT={alive:'Alive',dead:'Dead',missing:'Missing',unknown:'Unknown'};
+const CONDS=['Prone','Grappled','Restrained','Stunned','Frightened','Poisoned','Blinded','Unconscious','Concentrating','Dodging'];
+const NPC_COLORS=['#B3262A','#7E2B2B','#5E7A2E','#6B4A9E','#555048','#2E5E7A'];
 
 const G={code:'',pin:'',client:null,data:null,chars:[],claims:[],map:null,polls:[],drawer:null,edit:null,pollDraft:{to:[]},npcq:'',status:'connecting',gen:null};
 
@@ -223,15 +226,36 @@ function vCmd(){
  <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
  <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
+function hpBar(hp,max){const f=max?Math.max(0,Math.min(1,hp/max)):1;return`<div class="hpbar"><i style="width:${f*100}%;background:${f>.5?'var(--ok)':f>.25?'var(--warn)':'var(--blood)'}"></i></div>`;}
+function mapToks(){return(G.map&&G.map.tokens)||{};}
+function curTurn(){const I=G.map&&G.map.meta&&G.map.meta.init;return I&&I.on?(I.order||[])[I.turn]:null;}
+function npcToken(n){return Object.values(mapToks()).find(t=>t.npcRef===n.id)||null;}
+// One card for anything with HP that the GM runs: quick damage/heal, conditions, initiative.
+function combatCard(t,o){const cur=curTurn()===t.id;const dead=t.maxHp&&t.hp<=0;
+ return`<div class="pc" data-act="${o.act}" data-id="${esc(o.id)}" style="${cur?'border-color:var(--gold);background:#2a2216;':''}${dead?'opacity:.6;':''}">
+  <div class="top"><b>${esc(o.name)}</b>${t.hidden?'<span title="Hidden from players">👁</span>':''}${cur?'<span class="tag main">Turn</span>':''}${dead?'<span class="tag bad">Down</span>':''}</div>
+  ${o.sub?`<div class="muted" style="margin-top:-3px">${esc(o.sub)}</div>`:''}
+  ${t.maxHp?hpBar(+t.hp||0,+t.maxHp):''}
+  <div class="stats">${t.maxHp?`<span>HP <b>${t.hp??'?'}/${t.maxHp}</b></span>`:''}${t.ac!=null&&t.ac!==''?`<span>AC <b>${esc(t.ac)}</b></span>`:''}${t.init!=null&&t.init!==''?`<span>Init <b>${esc(t.init)}</b></span>`:''}${o.onMap===false?'<span>not on map</span>':''}</div>
+  ${t.cond&&t.cond.length?`<div class="row">${t.cond.map(x=>`<span class="tag bad">${esc(x)}</span>`).join('')}</div>`:''}
+  ${t.maxHp?`<div class="row"><input type="number" inputmode="numeric" class="qd" placeholder="amt" style="width:64px" aria-label="Amount"><button class="sm bad" data-act="${o.kind}dmg" data-id="${esc(o.id)}">− Damage</button><button class="sm" data-act="${o.kind}heal" data-id="${esc(o.id)}">+ Heal</button></div>`:''}</div>`;}
 function vParty(){
- const list=G.chars.map(r=>{const c=charInfo(r);const t=tokenFor(c.id);const f=c.max?Math.max(0,Math.min(1,c.hp/c.max)):1;
-  return`<div class="pc" data-act="dpc" data-id="${esc(c.id)}"><div class="top"><b>${esc(c.name)}</b>${G.claims.includes(c.id)?'<span title="Player PIN set">🔒</span>':'<span class="tag" title="No player PIN yet">unclaimed</span>'}</div>
+ const pcs=G.chars.map(r=>{const c=charInfo(r);const t=tokenFor(c.id);const cur=t&&curTurn()===t.id;
+  return`<div class="pc" data-act="dpc" data-id="${esc(c.id)}" style="${cur?'border-color:var(--gold);background:#2a2216;':''}"><div class="top"><b>${esc(c.name)}</b>${cur?'<span class="tag main">Turn</span>':''}${G.claims.includes(c.id)?'<span title="Player PIN set">🔒</span>':'<span class="tag" title="No player PIN yet">unclaimed</span>'}</div>
    <div class="muted" style="margin-top:-3px">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div>
-   <div class="hpbar"><i style="width:${f*100}%;background:${f>.5?'var(--ok)':f>.25?'var(--warn)':'var(--blood)'}"></i></div>
+   ${hpBar(c.hp,c.max)}
    <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>PP <b>${c.pp}</b></span>${t&&t.init!=null&&t.init!==''?`<span>Init <b>${esc(t.init)}</b></span>`:''}${c.corruption?`<span>Corr <b style="${c.corruption>=25?'color:#ff8487':''}">${c.corruption}</b></span>`:''}${c.insanity?`<span>Ins <b>${c.insanity}</b></span>`:''}</div>
    ${t&&t.cond&&t.cond.length?`<div class="row">${t.cond.map(x=>`<span class="tag bad">${esc(x)}</span>`).join('')}</div>`:''}
    ${G.data.pcNotes[c.id]?`<div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${esc(G.data.pcNotes[c.id])}</div>`:''}</div>`;}).join('');
- return`<h2>Party<span class="sp"></span><span class="n">${G.chars.length}</span></h2>${G.chars.length?`<div class="pcs lst">${list}</div><p class="muted" style="margin:0">Tap a character for notes, GM overrides and their PIN.</p>`:`<p class="empty">No characters in ${esc(G.code)} yet. Send the invite link from the Party page.</p>`}`;
+ const comps=G.data.npcs.filter(n=>n.companion).map(n=>{const t=npcToken(n);const st=t||n;
+  return combatCard(st,{act:t?'dtok':'dnpc',id:t?t.id:n.id,name:n.name||'Unnamed',sub:[n.role,n.faction].filter(Boolean).join(' · '),kind:t?'t':'n',onMap:!!t});}).join('');
+ const I=G.map&&G.map.meta&&G.map.meta.init;const order=I&&I.on?I.order||[]:[];
+ const foes=Object.values(mapToks()).filter(t=>t.kind!=='pc'&&!(t.npcRef&&(G.data.npcs.find(n=>n.id===t.npcRef)||{}).companion))
+  .sort((a,b)=>order.length?((order.indexOf(a.id)+1||999)-(order.indexOf(b.id)+1||999)):String(a.name).localeCompare(String(b.name),undefined,{numeric:true}));
+ const foeHtml=foes.map(t=>combatCard(t,{act:'dtok',id:t.id,name:t.name||'?',kind:'t'})).join('');
+ return`<h2>Party<span class="sp"></span><span class="n">${G.chars.length}</span></h2>${G.chars.length?`<div class="pcs lst">${pcs}</div>`:`<p class="empty">No characters in ${esc(G.code)} yet. Send the invite link from the Party page.</p>`}
+  <h2 style="margin-top:6px">Companions<span class="sp"></span><span class="n">${G.data.npcs.filter(n=>n.companion).length}</span></h2>${comps?`<div class="pcs lst">${comps}</div>`:'<p class="empty">NPCs travelling with the party show here. Mark one as a companion in the NPC list.</p>'}
+  <h2 style="margin-top:6px">On the map<span class="sp"></span><span class="n">${foes.length}</span></h2>${foeHtml?`<div class="pcs lst">${foeHtml}</div>`:`<p class="empty">${G.map&&G.map.meta&&G.map.meta.cells?'No enemies or NPCs on the map. Add them from the NPC list or the map’s GM tab.':'No battle map yet.'}</p>`}`;
 }
 function curSession(){return G.data.sessions[0]||null;}
 function vSession(){const s=curSession();
@@ -268,6 +292,7 @@ function drawerTitle(){const d=G.drawer;if(!d)return'';
  if(d.type==='arc'){const a=G.data.story.arcs.find(x=>x.id===d.id);return a?a.title:'Arc';}
  if(d.type==='npc'){const n=G.data.npcs.find(x=>x.id===d.id);return n?n.name||'NPC':'NPC';}
  if(d.type==='pc')return charName(d.id);
+ if(d.type==='tok'){const t=mapToks()[d.id];return t?t.name||'Token':'Token';}
  return{poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
 function vDrawer(){const d=G.drawer;
  if(d.type==='arc'){const i=G.data.story.arcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const a=G.data.story.arcs[i];
@@ -285,11 +310,17 @@ function vDrawer(){const d=G.drawer;
    <label>Attitude to party<select data-ch="npcs.${i}.attitude">${ATT.map(([v,l])=>`<option value="${v}" ${String(n.attitude??0)===v?'selected':''}>${l}</option>`).join('')}</select></label>
    <label>Status<select data-ch="npcs.${i}.status">${Object.entries(NPCSTAT).map(([k,v])=>`<option value="${k}" ${(n.status||'alive')===k?'selected':''}>${v}</option>`).join('')}</select></label>
    <label>Last seen<input data-k="npcs.${i}.where" value="${esc(n.where||'')}"></label></div>
+   <label class="ck"><input type="checkbox" data-ck="npcs.${i}.companion" ${n.companion?'checked':''}> Travels with the party (shows under Companions)</label>
+   <div class="grid"><label>HP<input type="number" data-n="hp" data-i="${i}" value="${esc(n.hp??'')}"></label><label>Max HP<input type="number" data-n="maxHp" data-i="${i}" value="${esc(n.maxHp??'')}"></label>
+    <label>AC<input type="number" data-n="ac" data-i="${i}" value="${esc(n.ac??'')}"></label><label>Speed (ft)<input type="number" step="5" data-n="speed" data-i="${i}" value="${esc(n.speed??30)}"></label></div>
+   ${(()=>{const t=npcToken(n);if(t)return`<div class="row"><span class="tag ok">On the battle map</span><button class="sm" data-act="dtok" data-id="${esc(t.id)}">Combat controls</button></div>`;
+     return G.map&&G.map.meta&&G.map.meta.cells?`<div class="row"><button data-act="npc2map" data-i="${i}">Put on the battle map</button><label class="ck"><input type="checkbox" id="n2mHid"> hidden</label></div>`:'';})()}
    <label>What the players know<textarea data-k="npcs.${i}.notes">${esc(n.notes||'')}</textarea></label>
    <label>Secret (GM only)<textarea data-k="npcs.${i}.secret">${esc(n.secret||'')}</textarea></label>
    <datalist id="facList">${G.data.factions.map(f=>`<option value="${esc(f.name)}">`).join('')}</datalist>
    <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="rmconfirm" data-p="npcs" data-i="${i}" data-name="${esc(n.name)}">Delete NPC</button></div>`;}
  if(d.type==='pc')return vPc(d.id);
+ if(d.type==='tok')return vTok(d.id);
  if(d.type==='poll')return vPollDrawer();
  if(d.type==='factions')return`${G.data.factions.map((f,i)=>`<div class="pc" style="cursor:default"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
    <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join('')||'<p class="empty">No factions yet.</p>'}
@@ -307,6 +338,16 @@ function vDrawer(){const d=G.drawer;
    <p class="muted" style="margin:0">To paint walls or add enemies, use the GM tab on the map itself.</p>`;}
  return'';
 }
+function vTok(id){const t=mapToks()[id];if(!t){G.drawer=null;return'';}const ref=t.npcRef&&G.data.npcs.find(n=>n.id===t.npcRef);
+ return`<div class="grid"><label>Name<input data-t="name" value="${esc(t.name||'')}"></label><label>HP<input type="number" data-t="hp" value="${esc(t.hp??'')}"></label><label>Max HP<input type="number" data-t="maxHp" value="${esc(t.maxHp??'')}"></label>
+   <label>AC<input type="number" data-t="ac" value="${esc(t.ac??'')}"></label><label>Speed (ft)<input type="number" step="5" data-t="speed" value="${esc(t.speed??30)}"></label><label>Initiative<input type="number" data-t="init" value="${esc(t.init??'')}"></label>
+   <label>Size<select data-t="size">${[[1,'1 square'],[2,'2×2'],[3,'3×3'],[4,'4×4']].map(([v,l])=>`<option value="${v}" ${(t.size||1)==v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="row"><input type="number" inputmode="numeric" class="qd" placeholder="amount" style="width:90px" aria-label="Amount"><button class="bad" data-act="tdmg" data-id="${esc(id)}">− Damage</button><button data-act="theal" data-id="${esc(id)}">+ Heal</button></div>
+  <h2>Conditions</h2><div class="row">${CONDS.map(c=>`<button class="sm ${(t.cond||[]).includes(c)?'on':''}" data-act="tcond" data-id="${esc(id)}" data-c="${c}">${c}</button>`).join('')}</div>
+  <label class="ck"><input type="checkbox" data-tf="hidden" ${t.hidden?'checked':''}> Hidden from players</label>
+  <label class="ck"><input type="checkbox" data-tf="free" ${t.free?'checked':''}> Players can move it</label>
+  <div class="row" style="margin-top:6px">${ref?`<button class="sm" data-act="dnpc" data-id="${esc(ref.id)}">Open ${esc(ref.name)} in NPC list</button>`:`<button class="sm" data-act="tok2npc" data-id="${esc(id)}">Save to NPC list</button>`}<span style="flex:1"></span><button class="sm bad" data-act="tdel" data-id="${esc(id)}">Remove from map</button></div>
+  <p class="muted" style="margin:0">Changes show on the battle map for everyone right away. Move tokens on the map itself.</p>`;}
 function vPc(id){const r=G.chars.find(x=>x.id===id);if(!r){G.drawer=null;return'';}const c=charInfo(r);
  return`<div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>Speed <b>${c.speed}</b></span><span>PP <b>${c.pp}</b></span><span>Corruption <b>${c.corruption}</b></span><span>Insanity <b>${c.insanity}</b></span></div>
   <div class="muted">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div>
@@ -352,6 +393,10 @@ function updApply(){const n=G.edit.changed.size;const a=$('[data-act=eapply]'),c
 root.addEventListener('change',e=>{const el=e.target;if(el.closest('#lock'))return;
  if(el.dataset.ck){setPath(G.data,el.dataset.ck,el.checked);const r=el.closest('.ck-row');if(r)r.classList.toggle('done',el.checked);dirty();render();return;}
  if(el.dataset.ch){let v=el.value;if(/attitude|standing/.test(el.dataset.ch))v=+v;setPath(G.data,el.dataset.ch,v);dirty();render();return;}
+ if(el.dataset.t&&G.drawer&&G.drawer.type==='tok'){const t=mapToks()[G.drawer.id];if(!t)return;let v=el.value;if(el.dataset.t!=='name')v=v===''?null:+v;tokPut(Object.assign({},t,{[el.dataset.t]:v}));return;}
+ if(el.dataset.tf&&G.drawer&&G.drawer.type==='tok'){const t=mapToks()[G.drawer.id];if(!t)return;tokPut(Object.assign({},t,{[el.dataset.tf]:el.checked}));return;}
+ if(el.dataset.n!=null&&el.dataset.i!=null){const n=G.data.npcs[+el.dataset.i];if(!n)return;n[el.dataset.n]=el.value===''?null:+el.value;dirty();const t=npcToken(n);
+  if(t&&['hp','maxHp','ac','speed'].includes(el.dataset.n))tokPut(Object.assign({},t,{[el.dataset.n]:n[el.dataset.n]}));render();return;}
  if(el.id==='pF')G.pollDraft.free=el.checked;
  if((el.id==='gTheme'||el.id==='gSize')&&G.gen){G.gen.theme=$('#gTheme').value;G.gen.size=$('#gSize').value;}
 });
@@ -364,11 +409,21 @@ function openDrawer(type,id){if(G.edit&&G.edit.changed.size&&!confirm('Discard y
  $('#dBody')._h='';render();setTimeout(()=>{$('#dBody').scrollTop=0;},0);return true;}
 function closeDrawer(){if(G.edit&&G.edit.changed.size&&!confirm('Discard your unapplied changes?'))return;G.edit=null;G.drawer=null;render();}
 root.addEventListener('click',async e=>{
+ if(e.target.matches('input,select,textarea,label'))return;
  const b=e.target.closest('[data-act]');if(!b||b.closest('#lock'))return;const a=b.dataset.act;const D=G.data;if(!D)return;
  const val=id=>{const el=document.getElementById(id);const v=el?el.value.trim():'';if(el)el.value='';return v;};
  switch(a){
   case'dclose':closeDrawer();break;
   case'dpc':openDrawer('pc',b.dataset.id);break;
+  case'dtok':openDrawer('tok',b.dataset.id);break;
+  case'tdmg':case'theal':case'ndmg':case'nheal':{const box=b.closest('.pc,.db,.row');const inp=(b.parentElement.querySelector('.qd'))||(box&&box.querySelector('.qd'));const v=Math.abs(+((inp||{}).value)||0);if(!v){toast('Type an amount first.');return;}
+   const sign=/dmg$/.test(a)?-1:1;if(a[0]==='t'){const t=mapToks()[b.dataset.id];if(!t)return;const base=t.hp==null?(+t.maxHp||0):+t.hp;const hp=Math.max(0,Math.min(+t.maxHp||Infinity,base+sign*v));await tokPut(Object.assign({},t,{hp}));}
+   else{const n=D.npcs.find(x=>x.id===b.dataset.id);if(!n)return;const base=n.hp==null?(+n.maxHp||0):+n.hp;n.hp=Math.max(0,Math.min(+n.maxHp||Infinity,base+sign*v));dirty();render();}
+   if(inp)inp.value='';break;}
+  case'tcond':{const t=mapToks()[b.dataset.id];if(!t)return;const c=new Set(t.cond||[]);c.has(b.dataset.c)?c.delete(b.dataset.c):c.add(b.dataset.c);await tokPut(Object.assign({},t,{cond:[...c]}));break;}
+  case'tdel':{const t=mapToks()[b.dataset.id];if(!t||!confirm(`Remove ${t.name||'this token'} from the map?`))return;try{await rpc('map_token_del',{p_party:G.code,p_pin:G.pin,p_id:t.id});try{G.mchan.send({type:'broadcast',event:'del',payload:{id:t.id}});}catch(err){}delete G.map.tokens[t.id];G.drawer=null;render();}catch(err){toast(err.message);}break;}
+  case'tok2npc':{const t=mapToks()[b.dataset.id];if(!t)return;const id=uid();D.npcs.unshift({id,name:t.name||'NPC',faction:'',role:'',attitude:-1,status:'alive',where:'',notes:'',secret:'',hp:t.hp,maxHp:t.maxHp,ac:t.ac,speed:t.speed});dirty();await tokPut(Object.assign({},t,{npcRef:id}));openDrawer('npc',id);break;}
+  case'npc2map':{const n=D.npcs[+b.dataset.i];if(!n)return;await npcToMap(n,($('#n2mHid')||{}).checked);break;}
   case'darc':openDrawer('arc',b.dataset.id);break;
   case'dnpc':openDrawer('npc',b.dataset.id);break;
   case'dpoll':openDrawer('poll');break;
@@ -426,6 +481,26 @@ async function applyEdit(){
   try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
   toast('Applied to '+((d.src&&d.src.name)||'the sheet')+'.',true);G.edit=null;await loadChars();openDrawer('pc',E.id);
  }catch(err){toast('Couldn’t apply: '+(err.message||'unknown error'));}
+}
+// Write one token as GM, tell the map (and players, unless it's secret), and keep a linked NPC record's HP in step.
+async function tokPut(t){
+ try{await rpc('map_token_put',{p_party:G.code,p_pin:G.pin,p_token:t});G.map.tokens[t.id]=t;
+  const live=!(G.map.meta&&G.map.meta.live===false);const shown=!t.hidden&&(t.kind==='pc'||live);
+  try{G.mchan.send({type:'broadcast',event:shown?'tok':'hid',payload:shown?{t}:{id:t.id}});}catch(err){}
+  if(t.npcRef){const n=G.data.npcs.find(x=>x.id===t.npcRef);if(n){let ch=false;['hp','maxHp','ac','speed'].forEach(k=>{if(t[k]!==undefined&&n[k]!==t[k]){n[k]=t[k];ch=true;}});if(ch)dirty();}}
+  render();
+ }catch(err){toast(err.message||'Couldn\u2019t update the token.');}
+}
+async function npcToMap(n,hidden){
+ const r=await rpc('map_get',{p_party:G.code,p_pin:G.pin});G.map=r;const m=r.meta;if(!m||!m.cells){toast('Make a battle map first.');return;}
+ if(npcToken(n)){toast(n.name+' is already on the map.');return;}
+ const toks=Object.values(r.tokens||{});const anchor=n.companion?m.start:m.foe;
+ const p=nearestWalk(m,anchor.x,anchor.y,1,(x,y,s)=>toks.some(t=>{const ts=t.size||1;return x<t.x+ts&&x+s>t.x&&y<t.y+ts&&y+s>t.y;}));
+ if(!p){toast('No room on the map.');return;}
+ const words=String(n.name||'NPC').split(/[\s-]+/).filter(Boolean);const lab=(words.length>1?words[words.length-1].slice(0,2):words[0].slice(0,2));
+ const t={id:'n-'+uid(),kind:'npc',npcRef:n.id,name:n.name||'NPC',label:lab,color:n.companion?'#3FB3A8':NPC_COLORS[[...(n.name||'x')].reduce((a,c)=>a+c.charCodeAt(0),0)%NPC_COLORS.length],
+  x:p.x,y:p.y,size:1,hp:n.hp??null,maxHp:n.maxHp??null,ac:n.ac??null,speed:n.speed||30,hidden:!!hidden,free:!!n.companion,cond:[]};
+ await tokPut(t);toast(`${t.name} is on the map${hidden?' (hidden)':''}.`,true);
 }
 function pingMap(){try{G.mchan.send({type:'broadcast',event:'reload',payload:{}});}catch(err){}}
 async function mapMeta(fn,msg){
