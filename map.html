@@ -246,6 +246,12 @@ function statCard(){const t=S.gm&&S.sel&&S.tokens[S.sel];if(!t||!(t.stat||t.shee
   return`<div style="display:flex;gap:6px;align-items:flex-start;margin-top:6px;${spent?'opacity:.5':''}"><div style="flex:1;font-size:14px;line-height:1.35"><b>${esc(a.n)}</b>${spec}${a.text?`<div class="muted" style="font-size:13px">${esc(a.text)}</div>`:''}</div>${use}${btn}</div>`;}).join('');
  const lr=S.lastRoll&&S.lastRoll.id===t.id?`<div style="margin-top:8px;padding:6px 8px;background:#2b1214;border:1px solid var(--blood);font:600 14px 'Share Tech Mono',monospace">🎲 ${esc(S.lastRoll.txt)}</div>`:'';
  return box(rows+lr+(t.sheet.tactics?`<p class="muted" style="margin:8px 0 0;font-size:13px"><b>Tactics.</b> ${esc(t.sheet.tactics)}</p>`:'')+(anyUse?`<button class="sm ghost" data-act="sreset" style="margin-top:6px">Reset uses</button>`:''));}
+// Roll initiative for every visible enemy in one room (d20 + sheet.init).
+function roomFoes(r){return Object.values(S.tokens).filter(t=>t.kind!=='pc'&&!t.hidden&&inRoom(r,t.x,t.y,0));}
+function rollRoomInit(id){const r=(S.meta.rooms||[]).find(x=>x.id===id);if(!r)return;const f=roomFoes(r);if(!f.length){toast('No visible enemies in '+r.name+'.');return;}
+ f.forEach(t=>saveToken(Object.assign({},t,{init:1+Math.floor(Math.random()*20)+(+(t.sheet&&t.sheet.init)||0)})));toast('Rolled initiative for '+f.length+' in '+r.name+'.');}
+function roomInitRow(){const R=S.gm&&S.meta&&S.meta.rooms;if(!R)return'';const rs=R.filter(r=>roomFoes(r).length);if(!rs.length)return'';
+ return`<div class="chips" style="margin-top:6px"><span class="muted" style="align-self:center">🎲 Roll enemies in:</span>${rs.map(r=>`<button data-act="rinit" data-id="${esc(r.id)}">${esc(r.name)} (${roomFoes(r).length})</button>`).join('')}</div>`;}
 function roomsPanel(){const m=S.meta;if(!S.gm||!m||!(m.rooms||[]).length&&!(m.overlays||[]).length)return'';
  return`<h3>Rooms</h3><div class="chips">${(m.rooms||[]).map(r=>`<button data-act="room" data-id="${esc(r.id)}" class="${r.on?'on':''}">${r.on?'👁 ':'🔒 '}${esc(r.name)}</button>`).join('')}</div>
  ${(m.overlays||[]).map(o=>`<button data-act="ovl" data-id="${esc(o.id)}" style="width:100%;margin-top:6px" class="${o.on?'':'pri'}">${o.on?'Close':'Open'} ${esc(o.name)}</button>`).join('')}
@@ -534,6 +540,7 @@ function turnPanel(){
   else if(cur&&S.tokens[cur]&&S.tokens[cur].charId===S.role)h+=`<p class="muted" style="margin:0">It's your turn. Drag your token; gold squares are within your speed.</p>`;
  }else{
   h+=`<h3>Initiative</h3><p class="muted" style="margin:0">${S.gm?'Enter everyone\'s initiative, then start combat.':'Enter your initiative roll. The GM starts combat.'}</p>`;
+  h+=roomInitRow();
   const sorted=toks.filter(t=>S.gm||t.kind==='pc'||cellVisible(t.x,t.y)).sort((a,b)=>(+b.init||-99)-(+a.init||-99));
   h+=`<div class="list">${sorted.map(t=>{const st=stats(t);return`<div class="it ${t.id===S.sel?'sel':''}" data-pick="${esc(t.id)}"><span class="sw" style="background:${esc(t.color)}"></span><span class="nm">${esc(st.name)}${t.hidden?' 👁':''}</span>${canEdit(t)?`<input type="number" inputmode="numeric" data-init="${esc(t.id)}" value="${esc(t.init==null?'':t.init)}" placeholder="init">`:`<span class="hp">${esc(t.init==null||t.init===''?'–':t.init)}</span>`}</div>`;}).join('')||'<p class="muted">No tokens on the map yet.</p>'}</div>`;
   if(S.gm)h+=`<button class="pri" data-act="startcombat" ${toks.length?'':'disabled'}>${S.meta.live===false?'Start combat &amp; reveal map':'Start combat'}</button>`;
@@ -615,6 +622,7 @@ $('#side').addEventListener('click',e=>{
     if(p){placed[tk.id]={x:p.x,y:p.y,s};if(p.x!==tk.x||p.y!==tk.y)saveToken(Object.assign({},tk,{x:p.x,y:p.y}));}});
    changed();break;}
   case'room':toggleRoom(b.dataset.id);break;
+  case'rinit':rollRoomInit(b.dataset.id);break;
   case'sroll':if(t&&t.sheet)sheetRoll(t,+b.dataset.i);break;
   case'suse':if(t&&t.sheet)sheetUse(t,+b.dataset.i);break;
   case'sreset':if(t&&t.sheet)sheetReset(t);break;
