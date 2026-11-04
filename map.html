@@ -189,7 +189,7 @@ async function loadMap(){
   if(S.role==='gm'&&S.pin&&!r.gm){S.pin='';lsSet('rtm.map.pin.'+S.code,null);toast('That GM PIN no longer works. Enter it again on the GM tab.');}
   S.gm=S.role==='gm'&&!!r.gm;
   const m=r.meta&&r.meta.cells?r.meta:null;
-  if(!S.meta||!m||m.cells!==S.meta.cells||m.w!==S.meta.w)terrainDirty();
+  if(!S.meta||!m||m.cells!==S.meta.cells||m.w!==S.meta.w||JSON.stringify(m.rooms||0)!==JSON.stringify(S.meta.rooms||0))terrainDirty();
   S.meta=m;S.tokens=r.tokens||{};S.veiled=!m&&!!r.meta&&r.meta.live===false;S.pmeta=S.veiled?r.meta:null;
   if(S.drag&&S.tokens[S.drag.id]){S.tokens[S.drag.id].x=S.drag.x;S.tokens[S.drag.id].y=S.drag.y;}
   if(S.sel&&!S.tokens[S.sel])S.sel=null;
@@ -209,6 +209,24 @@ const canMove=t=>S.gm||!!t.free||(t.kind==='pc'&&!!S.role&&t.charId===S.role);
 const canEdit=t=>S.gm||(t.kind==='pc'&&!!S.role&&t.charId===S.role);
 // Would players see this token right now? (hidden tokens, and enemies while the map is veiled, stay private)
 const shown=t=>!t.hidden&&(t.kind==='pc'||!S.meta||S.meta.live!==false);
+/*ROOMS-START*/
+// Room-by-room reveal: meta.rooms=[{id,name,x0,y0,x1,y1,on}]. A map with rooms shows players only the open rooms (plus their walls).
+// meta.overlays=[{id,name,c,cells:[[x,y]],orig:'...',on}]: GM switches a patch of terrain (e.g. a warp breach) on and off.
+const inRoom=(r,x,y,pad)=>x>=r.x0-pad&&x<=r.x1+pad&&y>=r.y0-pad&&y<=r.y1+pad;
+function cellVisible(x,y){const R=S.meta&&S.meta.rooms;if(!R||!R.length||S.gm)return true;return R.some(r=>r.on&&inRoom(r,x,y,1));}
+function cellOpen(x,y){const R=S.meta&&S.meta.rooms;if(!R||!R.length)return true;return R.some(r=>r.on&&inRoom(r,x,y,1));}
+function toggleRoom(id){const r=(S.meta.rooms||[]).find(x=>x.id===id);if(!r)return;r.on=!r.on;terrainDirty();saveMeta(true);changed();toast(r.on?r.name+' revealed.':r.name+' hidden.');}
+function toggleOverlay(id){const o=(S.meta.overlays||[]).find(x=>x.id===id);if(!o)return;const m=S.meta;const g=m.cells.split('');
+ o.on=!o.on;o.cells.forEach(([x,y],k)=>{g[y*m.w+x]=o.on?o.c:(o.orig||'.')[k]||'.';});m.cells=g.join('');terrainDirty();saveMeta(true);changed();toast(o.on?o.name+' revealed!':o.name+' removed.');}
+function roomsPanel(){const m=S.meta;if(!S.gm||!m||!(m.rooms||[]).length&&!(m.overlays||[]).length)return'';
+ return`<h3>Rooms</h3><div class="chips">${(m.rooms||[]).map(r=>`<button data-act="room" data-id="${esc(r.id)}" class="${r.on?'on':''}">${r.on?'👁 ':'🔒 '}${esc(r.name)}</button>`).join('')}</div>
+ ${(m.overlays||[]).map(o=>`<button data-act="ovl" data-id="${esc(o.id)}" style="width:100%;margin-top:6px" class="${o.on?'':'pri'}">${o.on?'Close':'Open'} ${esc(o.name)}</button>`).join('')}
+ <p class="muted" style="margin:0">Players only see open rooms. Enemies inside a closed room stay hidden from them.</p>`;}
+function drawRoomLabels(ox,oy,cs){const R=S.meta&&S.meta.rooms;if(!R)return;ctx.textAlign='left';ctx.textBaseline='top';
+ for(const r of R){if(!S.gm&&!r.on)continue;ctx.font=`700 ${Math.max(10,cs*.38)}px 'Alegreya Sans',sans-serif`;const tx=ox+r.x0*cs+4*dpr,ty=oy+r.y0*cs+3*dpr;
+  ctx.fillStyle='rgba(0,0,0,.6)';const tw=ctx.measureText(r.name.toUpperCase()).width;ctx.fillRect(tx-3*dpr,ty-2*dpr,tw+6*dpr,cs*.38+6*dpr);
+  ctx.fillStyle=r.on?'#EBCB7A':'rgba(235,203,122,.55)';ctx.fillText(r.name.toUpperCase()+(S.gm&&!r.on?' 🔒':''),tx,ty);}}
+/*ROOMS-END*/
 function saveToken(t){
  S.tokens[t.id]=t;changed();
  send(shown(t)?'tok':'hid',shown(t)?{t}:{id:t.id});
@@ -260,7 +278,7 @@ function buildTerrain(){
  for(let i=0;i<220;i++){c.fillStyle=`rgba(232,222,198,${.05+R()*.2})`;c.fillRect(R()*terr.width,R()*terr.height,1.4,1.4);}
  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){
   const ch=at(x,y),X=x*P,Y=y*P,hsh=hashStr(x+','+y);
-  if(ch===' ')continue;
+  if(ch===' '||!cellVisible(x,y))continue;
   if(ch==='#'){
    c.fillStyle='#2a231c';c.fillRect(X,Y,P,P);
    c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=2;c.save();c.beginPath();c.rect(X,Y,P,P);c.clip();
@@ -283,8 +301,9 @@ function buildTerrain(){
   if(ch==='h'){c.fillStyle='rgba(179,38,42,.28)';c.fillRect(X,Y,P,P);c.save();c.beginPath();c.rect(X,Y,P,P);c.clip();c.strokeStyle='rgba(220,60,50,.5)';c.lineWidth=3;c.beginPath();
    for(let k=-P;k<P;k+=12){c.moveTo(X+k,Y);c.lineTo(X+k+P,Y+P);}c.stroke();c.restore();}
  }
+ if(S.gm&&(m.rooms||[]).length){c.fillStyle='rgba(8,7,10,.55)';for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++)if(at(x,y)!==' '&&!cellOpen(x,y))c.fillRect(x*P,y*P,P,P);}
  c.strokeStyle='rgba(232,222,198,.11)';c.lineWidth=1;c.beginPath();
- for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){if(!WALK.includes(at(x,y)))continue;c.rect(x*P+.5,y*P+.5,P-1,P-1);}c.stroke();
+ for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){if(!WALK.includes(at(x,y))||!cellVisible(x,y))continue;c.rect(x*P+.5,y*P+.5,P-1,P-1);}c.stroke();
 }
 let lastSize=null;
 function resize(){const r=$('#stage').getBoundingClientRect();
@@ -316,7 +335,7 @@ function paint(){
  const selT=S.sel&&S.tokens[S.sel];
  // movement range
  if(selT&&canMove(selT)){const o=S.drag&&S.drag.id===selT.id?S.drag:{ox:selT.x,oy:selT.y};const d=rangeFor(selT,o.ox,o.oy);const sp=Math.floor(stats(selT).speed/5);
-  for(let i=0;i<d.length;i++){if(d[i]<0||d[i]>sp*2)continue;const x=i%m.w,y=(i/m.w)|0;ctx.fillStyle=d[i]<=sp?'rgba(200,162,74,.17)':'rgba(208,138,46,.07)';ctx.fillRect(ox+x*cs,oy+y*cs,cs,cs);}}
+  for(let i=0;i<d.length;i++){if(d[i]<0||d[i]>sp*2)continue;const x=i%m.w,y=(i/m.w)|0;if(!cellVisible(x,y))continue;ctx.fillStyle=d[i]<=sp?'rgba(200,162,74,.17)':'rgba(208,138,46,.07)';ctx.fillRect(ox+x*cs,oy+y*cs,cs,cs);}}
  // drag path
  if(S.drag&&S.drag.moved){const t=S.tokens[S.drag.id];const s=t.size||1;const a={x:ox+(S.drag.ox+s/2)*cs,y:oy+(S.drag.oy+s/2)*cs},b={x:ox+(S.drag.x+s/2)*cs,y:oy+(S.drag.y+s/2)*cs};
   const d=rangeFor(t,S.drag.ox,S.drag.oy)[S.drag.y*m.w+S.drag.x];const ft=d>=0?d*5:null;const sp=stats(t).speed;const bad=ft==null||occupied(S.drag.x,S.drag.y,s,t.id);
@@ -327,7 +346,8 @@ function paint(){
  // tokens
  const cur=curTurnId(),now=performance.now();
  const list=Object.values(S.tokens).sort((p,q)=>(p.id===S.sel)-(q.id===S.sel)||(p.kind==='pc')-(q.kind==='pc'));
- for(const t of list){const s=t.size||1,st=stats(t);const x0=ox+t.x*cs,y0=oy+t.y*cs,sz=s*cs,cx=x0+sz/2,cy=y0+sz/2,r=sz*.4;
+ drawRoomLabels(ox,oy,cs);
+ for(const t of list){if(!S.gm&&t.kind!=='pc'&&!cellVisible(t.x,t.y))continue;const s=t.size||1,st=stats(t);const x0=ox+t.x*cs,y0=oy+t.y*cs,sz=s*cs,cx=x0+sz/2,cy=y0+sz/2,r=sz*.4;
   const dead=st.maxHp&&st.hp<=0;ctx.globalAlpha=t.hidden?.5:dead?.55:1;
   if(t.id===cur){const p=(Math.sin(now/260)+1)/2;ctx.strokeStyle=`rgba(235,203,122,${.5+p*.5})`;ctx.lineWidth=(3+p*3)*dpr;ctx.beginPath();ctx.arc(cx,cy,r+6*dpr+p*3*dpr,0,7);ctx.stroke();}
   ctx.fillStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(cx+2*dpr,cy+3*dpr,r,0,7);ctx.fill();
@@ -466,11 +486,11 @@ function turnPanel(){
  const I=((S.meta||S.pmeta||{}).init)||{on:false,order:[],turn:0,round:1};
  const toks=Object.values(S.tokens);const cur=curTurnId();
  let h='';
- if(S.gm&&S.meta)h+=`<div class="row" style="justify-content:space-between;background:var(--sunk);border:1px solid ${S.meta.live===false?'var(--blood-dk)':'var(--line)'};padding:8px"><span>${S.meta.live===false?'🔒 Map hidden from players':'👁 Players can see the map'}</span><button data-act="${S.meta.live===false?'reveal':'veil'}">${S.meta.live===false?'Reveal':'Hide'}</button></div>`;
+ if(S.gm&&S.meta)h+=`<div class="row" style="justify-content:space-between;background:var(--sunk);border:1px solid ${S.meta.live===false?'var(--blood-dk)':'var(--line)'};padding:8px"><span>${S.meta.live===false?'🔒 Map hidden from players':'👁 Players can see the map'}</span><button data-act="${S.meta.live===false?'reveal':'veil'}">${S.meta.live===false?'Reveal':'Hide'}</button></div>`+roomsPanel();
  if(S.veiled)h+=`<p class="muted" style="margin:0">The GM hasn't revealed the map yet.</p>`;
  if(!S.meta&&!S.veiled)return`<p class="muted">${S.gm?'Make a map on the GM tab first.':'Waiting for the GM to set up a map.'}</p>${S.role?'':'<p class="muted">Pick your character at the top so you can move your token.</p>'}`;
  if(I.on){
-  const order=I.order.filter(id=>S.tokens[id]);
+  const order=I.order.filter(id=>S.tokens[id]&&(S.gm||S.tokens[id].kind==='pc'||cellVisible(S.tokens[id].x,S.tokens[id].y)));
   h+=`<h3>Round ${I.round}</h3><div class="list">${order.map(id=>{const t=S.tokens[id],st=stats(t);
    return`<div class="it ${id===cur?'cur':''} ${id===S.sel?'sel':''}" data-pick="${esc(id)}"><span class="sw" style="background:${esc(t.color)}"></span><span class="nm">${esc(st.name)}${t.hidden?' 👁':''}</span><span class="hp">${t.init!=null&&t.init!==''?esc(t.init):'–'}</span>${st.maxHp&&(t.kind==='pc'||S.gm)?`<span class="hp">${st.hp}/${st.maxHp}</span>`:''}</div>`;}).join('')}</div>`;
   if(S.gm)h+=`<div class="row"><button data-act="prev">◂ Back</button><button class="pri" data-act="next" style="flex:1">Next turn ▸</button></div><div class="row"><button data-act="sortinit">Re-sort</button><button class="bad" data-act="endcombat">End combat</button></div>`;
@@ -557,6 +577,8 @@ $('#side').addEventListener('click',e=>{
     const p=nearestWalk(m,anchor.x,anchor.y,s,(x,y,ss)=>Object.values(placed).some(o=>x<o.x+o.s&&x+ss>o.x&&y<o.y+o.s&&y+ss>o.y));
     if(p){placed[tk.id]={x:p.x,y:p.y,s};if(p.x!==tk.x||p.y!==tk.y)saveToken(Object.assign({},tk,{x:p.x,y:p.y}));}});
    changed();break;}
+  case'room':toggleRoom(b.dataset.id);break;
+  case'ovl':toggleOverlay(b.dataset.id);break;
   case'reveal':setLive(true);break;
   case'veil':setLive(false);break;
   case'mode-move':S.mode='move';renderPanel(true);break;
@@ -574,7 +596,7 @@ $('#side').addEventListener('click',e=>{
   case'dup':{if(!t)return;const p=freeSpot(t.x,t.y,t.size||1);if(!p)return;const base=(t.name||'Enemy').replace(/\s*\d+$/,'');const n=Object.values(S.tokens).filter(x=>(x.name||'').replace(/\s*\d+$/,'')===base).length+1;
    const tk=Object.assign({},t,{id:'n-'+uid(),x:p.x,y:p.y,hp:t.maxHp,name:`${base} ${n}`,label:'',cond:[]});S.tokens[tk.id]=tk;S.sel=tk.id;saveToken(tk);break;}
   case'del':if(t&&confirm(`Remove ${stats(t).name} from the map?`))delToken(t.id);break;
-  case'startcombat':{const order=Object.values(S.tokens).sort((a,b)=>(+b.init||-99)-(+a.init||-99)||(a.kind==='pc'?-1:1)).map(x=>x.id);
+  case'startcombat':{const order=Object.values(S.tokens).filter(x=>x.kind==='pc'||cellOpen(x.x,x.y)).sort((a,b)=>(+b.init||-99)-(+a.init||-99)||(a.kind==='pc'?-1:1)).map(x=>x.id);
    S.meta.init={on:true,order,turn:0,round:1};const wasHidden=S.meta.live===false;S.meta.live=true;saveMeta(true);if(wasHidden)send('reload',{});changed();const f=S.tokens[order[0]];if(f)centerOn(f);break;}
   case'sortinit':{I.order=Object.values(S.tokens).sort((a,b)=>(+b.init||-99)-(+a.init||-99)).map(x=>x.id);I.turn=0;saveMeta(true);changed();break;}
   case'next':case'prev':{const order=I.order.filter(id=>S.tokens[id]);if(!order.length)return;const curId=curTurnId();let i=Math.max(0,order.indexOf(curId));
