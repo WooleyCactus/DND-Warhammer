@@ -218,6 +218,11 @@ function cellOpen(x,y){const R=S.meta&&S.meta.rooms;if(!R||!R.length)return true
 function toggleRoom(id){const r=(S.meta.rooms||[]).find(x=>x.id===id);if(!r)return;r.on=!r.on;terrainDirty();saveMeta(true);changed();toast(r.on?r.name+' revealed.':r.name+' hidden.');}
 function toggleOverlay(id){const o=(S.meta.overlays||[]).find(x=>x.id===id);if(!o)return;const m=S.meta;const g=m.cells.split('');
  o.on=!o.on;o.cells.forEach(([x,y],k)=>{g[y*m.w+x]=o.on?o.c:(o.orig||'.')[k]||'.';});m.cells=g.join('');terrainDirty();saveMeta(true);changed();toast(o.on?o.name+' revealed!':o.name+' removed.');}
+// GM-only stat card for the selected enemy: token.stat = plain text, one line per trait/attack.
+function statCard(){const t=S.gm&&S.sel&&S.tokens[S.sel];if(!t||!t.stat)return'';const st=stats(t);
+ return`<div style="background:var(--sunk);border:1px solid var(--gold-dk);padding:8px 10px;margin-bottom:10px"><b style="font:700 15px var(--f-display);color:var(--gold)">${esc(st.name)}</b>
+ <div class="muted" style="font-size:13px">AC ${esc(st.ac)} · HP ${esc(st.hp)}/${esc(st.maxHp)} · Speed ${esc(st.speed)} ft</div>
+ ${String(t.stat).split('\n').map(l=>{const m=l.match(/^([^:]{1,40}):(.*)$/);return`<p style="margin:5px 0 0;font-size:14px;line-height:1.35">${m?`<b>${esc(m[1])}.</b>${esc(m[2])}`:esc(l)}</p>`;}).join('')}</div>`;}
 function roomsPanel(){const m=S.meta;if(!S.gm||!m||!(m.rooms||[]).length&&!(m.overlays||[]).length)return'';
  return`<h3>Rooms</h3><div class="chips">${(m.rooms||[]).map(r=>`<button data-act="room" data-id="${esc(r.id)}" class="${r.on?'on':''}">${r.on?'👁 ':'🔒 '}${esc(r.name)}</button>`).join('')}</div>
  ${(m.overlays||[]).map(o=>`<button data-act="ovl" data-id="${esc(o.id)}" style="width:100%;margin-top:6px" class="${o.on?'':'pri'}">${o.on?'Close':'Open'} ${esc(o.name)}</button>`).join('')}
@@ -476,7 +481,8 @@ function renderPanel(force){
  const tabs=[['turn','Turn'],['token','Token'],['gm','GM']];
  $('#tabs').innerHTML=tabs.map(([k,n])=>`<button data-tab="${k}" class="${S.tab===k?'on':''}">${n}</button>`).join('')+`<button class="grip" data-act="min" title="Show or hide panel">${S.min?'▴':'▾'}</button>`;
  side.classList.toggle('min',S.min);
- $('#panel').innerHTML=S.tab==='turn'?turnPanel():S.tab==='token'?tokenPanel():gmPanel();
+ $('#panel').innerHTML=S.tab==='turn'?statCard()+turnPanel():S.tab==='token'?tokenPanel()+statCard():gmPanel();
+ if(S.sel!==S.lastCard){S.lastCard=S.sel;if(S.tab==='turn'&&statCard()){let e=$('#panel');while(e&&e!==document.body){e.scrollTop=0;e=e.parentElement;}}}
  cv.classList.toggle('paint',S.mode==='paint'&&S.gm);
  renderBanner();
 }
