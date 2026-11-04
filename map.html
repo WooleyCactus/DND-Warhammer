@@ -218,11 +218,34 @@ function cellOpen(x,y){const R=S.meta&&S.meta.rooms;if(!R||!R.length)return true
 function toggleRoom(id){const r=(S.meta.rooms||[]).find(x=>x.id===id);if(!r)return;r.on=!r.on;terrainDirty();saveMeta(true);changed();toast(r.on?r.name+' revealed.':r.name+' hidden.');}
 function toggleOverlay(id){const o=(S.meta.overlays||[]).find(x=>x.id===id);if(!o)return;const m=S.meta;const g=m.cells.split('');
  o.on=!o.on;o.cells.forEach(([x,y],k)=>{g[y*m.w+x]=o.on?o.c:(o.orig||'.')[k]||'.';});m.cells=g.join('');terrainDirty();saveMeta(true);changed();toast(o.on?o.name+' revealed!':o.name+' removed.');}
-// GM-only stat card for the selected enemy: token.stat = plain text, one line per trait/attack.
-function statCard(){const t=S.gm&&S.sel&&S.tokens[S.sel];if(!t||!t.stat)return'';const st=stats(t);
- return`<div style="background:var(--sunk);border:1px solid var(--gold-dk);padding:8px 10px;margin-bottom:10px"><b style="font:700 15px var(--f-display);color:var(--gold)">${esc(st.name)}</b>
- <div class="muted" style="font-size:13px">AC ${esc(st.ac)} · HP ${esc(st.hp)}/${esc(st.maxHp)} · Speed ${esc(st.speed)} ft</div>
- ${String(t.stat).split('\n').map(l=>{const m=l.match(/^([^:]{1,40}):(.*)$/);return`<p style="margin:5px 0 0;font-size:14px;line-height:1.35">${m?`<b>${esc(m[1])}.</b>${esc(m[2])}`:esc(l)}</p>`;}).join('')}</div>`;}
+// GM-only stat card for the selected enemy. token.sheet={abilities:[{n,t:'atk'|'dmg'|'use'|'trait',hit?,dmg?,uses?,used?,text?}],tactics?}
+// Fallback: token.stat = plain text, one line per trait.
+function rollExpr(e){let tot=0;const parts=[];String(e).replace(/\s+/g,'').replace(/([+-]?)(\d*)d(\d+)|([+-]?)(\d+)/g,(m,s1,n,d,s2,k)=>{
+ if(d){const c=+(n||1),sg=s1==='-'?-1:1,r=[];for(let i=0;i<c;i++)r.push(1+Math.floor(Math.random()*+d));const v=r.reduce((a,b)=>a+b,0)*sg;tot+=v;parts.push((sg<0?'−':'')+'['+r.join(',')+']');}
+ else{const v=+k*(s2==='-'?-1:1);tot+=v;parts.push((v<0?'−':'+')+Math.abs(v));}return m;});return{tot,txt:parts.join(' ')};}
+function critExpr(e){return String(e).replace(/(\d*)d(\d+)/g,(m,n,d)=>(2*(+(n||1)))+'d'+d);}
+function sheetRoll(t,i){const a=t.sheet.abilities[i];if(!a)return;let out=a.n+': ';
+ if(a.t==='atk'||a.hit!=null){const d=1+Math.floor(Math.random()*20),tot=d+(+a.hit||0),crit=d===20,miss1=d===1;
+  out+=`to hit ${tot} (d20 ${d}${a.hit>=0?'+':''}${a.hit})${crit?' CRIT!':miss1?' natural 1':''}`;
+  if(a.dmg){const r=rollExpr(crit?critExpr(a.dmg):a.dmg);out+=` · damage ${r.tot} ${r.txt}`;}}
+ else{const r=rollExpr(a.dmg);out+=`${r.tot} ${r.txt}`;}
+ S.lastRoll={id:t.id,i,txt:out};if(a.t==='use'&&(+a.used||0)<(+a.uses||1))sheetUse(t,i);else renderPanel(true);}
+function sheetUse(t,i){const ab=t.sheet.abilities.map(x=>Object.assign({},x));const a=ab[i];if(!a)return;a.used=(+a.used||0)>=(+a.uses||1)?0:(+a.used||0)+1;
+ saveToken(Object.assign({},t,{sheet:Object.assign({},t.sheet,{abilities:ab})}));}
+function sheetReset(t){const ab=t.sheet.abilities.map(x=>Object.assign({},x,{used:0}));saveToken(Object.assign({},t,{sheet:Object.assign({},t.sheet,{abilities:ab})}));}
+function statCard(){const t=S.gm&&S.sel&&S.tokens[S.sel];if(!t||!(t.stat||t.sheet))return'';const st=stats(t);
+ const head=`<b style="font:700 15px var(--f-display);color:var(--gold)">${esc(st.name)}</b>
+ <div class="muted" style="font-size:13px">AC ${esc(st.ac)} · HP ${esc(st.hp)}/${esc(st.maxHp)} · Speed ${esc(st.speed)} ft</div>`;
+ const box=c=>`<div style="background:var(--sunk);border:1px solid var(--gold-dk);padding:8px 10px;margin-bottom:10px">${head}${c}</div>`;
+ if(!t.sheet)return box(String(t.stat).split('\n').map(l=>{const m=l.match(/^([^:]{1,40}):(.*)$/);return`<p style="margin:5px 0 0;font-size:14px;line-height:1.35">${m?`<b>${esc(m[1])}.</b>${esc(m[2])}`:esc(l)}</p>`;}).join(''));
+ const A=t.sheet.abilities||[];const anyUse=A.some(a=>a.t==='use'&&+a.used);
+ const rows=A.map((a,i)=>{const used=+a.used||0,max=+a.uses||1,spent=a.t==='use'&&used>=max;
+  const spec=a.hit!=null?` <span style="color:var(--gold)">${a.hit>=0?'+':''}${esc(a.hit)}</span>${a.dmg?' · '+esc(a.dmg):''}`:a.dmg&&a.t!=='atk'?` · ${esc(a.dmg)}`:'';
+  const btn=(a.t==='atk'||a.dmg)?`<button class="sm" data-act="sroll" data-i="${i}" style="flex:none" ${spent?'disabled':''}>Roll</button>`:'';
+  const use=a.t==='use'?`<button class="sm ${spent?'':'ghost'}" data-act="suse" data-i="${i}" style="flex:none" title="Mark used">${spent?'Used':used+'/'+max}</button>`:'';
+  return`<div style="display:flex;gap:6px;align-items:flex-start;margin-top:6px;${spent?'opacity:.5':''}"><div style="flex:1;font-size:14px;line-height:1.35"><b>${esc(a.n)}</b>${spec}${a.text?`<div class="muted" style="font-size:13px">${esc(a.text)}</div>`:''}</div>${use}${btn}</div>`;}).join('');
+ const lr=S.lastRoll&&S.lastRoll.id===t.id?`<div style="margin-top:8px;padding:6px 8px;background:#2b1214;border:1px solid var(--blood);font:600 14px 'Share Tech Mono',monospace">🎲 ${esc(S.lastRoll.txt)}</div>`:'';
+ return box(rows+lr+(t.sheet.tactics?`<p class="muted" style="margin:8px 0 0;font-size:13px"><b>Tactics.</b> ${esc(t.sheet.tactics)}</p>`:'')+(anyUse?`<button class="sm ghost" data-act="sreset" style="margin-top:6px">Reset uses</button>`:''));}
 function roomsPanel(){const m=S.meta;if(!S.gm||!m||!(m.rooms||[]).length&&!(m.overlays||[]).length)return'';
  return`<h3>Rooms</h3><div class="chips">${(m.rooms||[]).map(r=>`<button data-act="room" data-id="${esc(r.id)}" class="${r.on?'on':''}">${r.on?'👁 ':'🔒 '}${esc(r.name)}</button>`).join('')}</div>
  ${(m.overlays||[]).map(o=>`<button data-act="ovl" data-id="${esc(o.id)}" style="width:100%;margin-top:6px" class="${o.on?'':'pri'}">${o.on?'Close':'Open'} ${esc(o.name)}</button>`).join('')}
@@ -592,6 +615,9 @@ $('#side').addEventListener('click',e=>{
     if(p){placed[tk.id]={x:p.x,y:p.y,s};if(p.x!==tk.x||p.y!==tk.y)saveToken(Object.assign({},tk,{x:p.x,y:p.y}));}});
    changed();break;}
   case'room':toggleRoom(b.dataset.id);break;
+  case'sroll':if(t&&t.sheet)sheetRoll(t,+b.dataset.i);break;
+  case'suse':if(t&&t.sheet)sheetUse(t,+b.dataset.i);break;
+  case'sreset':if(t&&t.sheet)sheetReset(t);break;
   case'ovl':toggleOverlay(b.dataset.id);break;
   case'reveal':setLive(true);break;
   case'veil':setLive(false);break;
