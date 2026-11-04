@@ -505,7 +505,7 @@ function turnPanel(){
   else if(cur&&S.tokens[cur]&&S.tokens[cur].charId===S.role)h+=`<p class="muted" style="margin:0">It's your turn. Drag your token; gold squares are within your speed.</p>`;
  }else{
   h+=`<h3>Initiative</h3><p class="muted" style="margin:0">${S.gm?'Enter everyone\'s initiative, then start combat.':'Enter your initiative roll. The GM starts combat.'}</p>`;
-  const sorted=toks.slice().sort((a,b)=>(+b.init||-99)-(+a.init||-99));
+  const sorted=toks.filter(t=>S.gm||t.kind==='pc'||cellVisible(t.x,t.y)).sort((a,b)=>(+b.init||-99)-(+a.init||-99));
   h+=`<div class="list">${sorted.map(t=>{const st=stats(t);return`<div class="it ${t.id===S.sel?'sel':''}" data-pick="${esc(t.id)}"><span class="sw" style="background:${esc(t.color)}"></span><span class="nm">${esc(st.name)}${t.hidden?' 👁':''}</span>${canEdit(t)?`<input type="number" inputmode="numeric" data-init="${esc(t.id)}" value="${esc(t.init==null?'':t.init)}" placeholder="init">`:`<span class="hp">${esc(t.init==null||t.init===''?'–':t.init)}</span>`}</div>`;}).join('')||'<p class="muted">No tokens on the map yet.</p>'}</div>`;
   if(S.gm)h+=`<button class="pri" data-act="startcombat" ${toks.length?'':'disabled'}>${S.meta.live===false?'Start combat &amp; reveal map':'Start combat'}</button>`;
  }
