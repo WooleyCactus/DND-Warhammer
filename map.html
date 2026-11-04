@@ -222,10 +222,16 @@ function roomsPanel(){const m=S.meta;if(!S.gm||!m||!(m.rooms||[]).length&&!(m.ov
  return`<h3>Rooms</h3><div class="chips">${(m.rooms||[]).map(r=>`<button data-act="room" data-id="${esc(r.id)}" class="${r.on?'on':''}">${r.on?'👁 ':'🔒 '}${esc(r.name)}</button>`).join('')}</div>
  ${(m.overlays||[]).map(o=>`<button data-act="ovl" data-id="${esc(o.id)}" style="width:100%;margin-top:6px" class="${o.on?'':'pri'}">${o.on?'Close':'Open'} ${esc(o.name)}</button>`).join('')}
  <p class="muted" style="margin:0">Players only see open rooms. Enemies inside a closed room stay hidden from them.</p>`;}
-function drawRoomLabels(ox,oy,cs){const R=S.meta&&S.meta.rooms;if(!R)return;ctx.textAlign='left';ctx.textBaseline='top';
- for(const r of R){if(!S.gm&&!r.on)continue;ctx.font=`700 ${Math.max(10,cs*.38)}px 'Alegreya Sans',sans-serif`;const tx=ox+r.x0*cs+4*dpr,ty=oy+r.y0*cs+3*dpr;
-  ctx.fillStyle='rgba(0,0,0,.6)';const tw=ctx.measureText(r.name.toUpperCase()).width;ctx.fillRect(tx-3*dpr,ty-2*dpr,tw+6*dpr,cs*.38+6*dpr);
-  ctx.fillStyle=r.on?'#EBCB7A':'rgba(235,203,122,.55)';ctx.fillText(r.name.toUpperCase()+(S.gm&&!r.on?' 🔒':''),tx,ty);}}
+function drawRoomLabels(ox,oy,cs){const m=S.meta,R=m&&m.rooms;S.badges=[];if(!R)return;ctx.textAlign='left';ctx.textBaseline='middle';
+ const fs=Math.max(11*dpr,Math.min(16*dpr,cs*.42)),ph=fs+10*dpr;
+ const pill=(txt,x,y,on,act,id,hot)=>{ctx.font=`700 ${fs}px 'Alegreya Sans',sans-serif`;const w=ctx.measureText(txt).width+14*dpr;
+  ctx.fillStyle=hot?'rgba(120,20,30,.95)':on?'rgba(13,12,10,.85)':'rgba(60,45,15,.95)';ctx.fillRect(x,y,w,ph);
+  ctx.strokeStyle=hot?'#ff6060':on?'rgba(235,203,122,.5)':'#EBCB7A';ctx.lineWidth=(S.gm&&!on?2:1)*dpr;ctx.strokeRect(x+.5,y+.5,w-1,ph-1);
+  ctx.fillStyle=hot?'#fff':'#EBCB7A';ctx.fillText(txt,x+7*dpr,y+ph/2+1);if(act)S.badges.push({x:x/dpr,y:y/dpr,w:w/dpr,h:ph/dpr,act,id});};
+ for(const r of R){if(!S.gm&&!r.on)continue;const nm=r.name.toUpperCase();
+  pill(S.gm?(r.on?'👁 '+nm:'🔒 '+nm+' · TAP TO REVEAL'):nm,ox+r.x0*cs+3*dpr,oy+r.y0*cs+3*dpr,r.on,S.gm?'room':null,r.id);}
+ if(S.gm)for(const o of(m.overlays||[])){const xs=o.cells.map(c=>c[0]),ys=o.cells.map(c=>c[1]);
+  pill(o.on?'✕ CLOSE '+o.name.toUpperCase():'⚠ OPEN '+o.name.toUpperCase(),ox+Math.min(...xs)*cs,oy+(Math.max(...ys)+1)*cs+4*dpr,o.on,'ovl',o.id,!o.on);}}
 /*ROOMS-END*/
 function saveToken(t){
  S.tokens[t.id]=t;changed();
@@ -389,6 +395,8 @@ cv.addEventListener('pointerdown',e=>{
  if(ptrs.size===2){revertDrag();S.painting=false;S.press=null;clearTimeout(lpT);const[a,b]=[...ptrs.values()];
   S.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,s:S.view.s,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,vx:S.view.x,vy:S.view.y};return;}
  if(ptrs.size>2)return;
+ const bd=S.gm&&(S.badges||[]).find(q=>e.offsetX>=q.x&&e.offsetX<=q.x+q.w&&e.offsetY>=q.y&&e.offsetY<=q.y+q.h);
+ if(bd){ptrs.delete(e.pointerId);bd.act==='room'?toggleRoom(bd.id):toggleOverlay(bd.id);return;}
  const c=cellAt(e.offsetX,e.offsetY);S.press={x:e.offsetX,y:e.offsetY,cell:c,moved:false};
  clearTimeout(lpT);lpT=setTimeout(()=>{if(S.press&&!S.press.moved&&ptrs.size===1){S.press.pinged=true;revertDrag();S.pan=null;doPing(c);}},550);
  if(S.mode==='paint'&&S.gm){S.painting=true;paintCell(c);return;}
