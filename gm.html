@@ -149,13 +149,13 @@ const NPCSTAT={alive:'Alive',dead:'Dead',missing:'Missing',unknown:'Unknown'};
 const CONDS=['Prone','Grappled','Restrained','Stunned','Frightened','Poisoned','Blinded','Unconscious','Concentrating','Dodging'];
 const NPC_COLORS=['#B3262A','#7E2B2B','#5E7A2E','#6B4A9E','#555048','#2E5E7A'];
 
-const G={code:'',pin:'',client:null,data:null,chars:[],claims:[],map:null,polls:[],drawer:null,edit:null,pollDraft:{to:[]},npcq:'',status:'connecting',gen:null};
+const G={code:'',pin:'',client:null,data:null,chars:[],claims:[],map:null,polls:[],vox:[],voxDraft:{to:[],style:'static'},drawer:null,edit:null,pollDraft:{to:[]},npcq:'',status:'connecting',gen:null};
 
 /* ---------- connection ---------- */
 function loadScript(src){return new Promise((ok,no)=>{if(window.supabase)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s);});}
 async function rpc(fn,args){const{data,error}=await G.client.rpc(fn,args);if(error)throw error;return data;}
-function blank(){return{v:1,story:{arcs:[],goals:[],clocks:[]},npcs:[],factions:[],sessions:[],notes:'',pcNotes:{},seen:{}};}
-function norm(d){const b=blank();d=Object.assign(b,d||{});d.story=Object.assign(blank().story,d.story||{});d.pcNotes=d.pcNotes||{};d.seen=d.seen||{};return d;}
+function blank(){return{v:1,story:{arcs:[],goals:[],clocks:[]},npcs:[],factions:[],sessions:[],notes:'',pcNotes:{},seen:{},voxReady:[]};}
+function norm(d){const b=blank();d=Object.assign(b,d||{});d.story=Object.assign(blank().story,d.story||{});d.pcNotes=d.pcNotes||{};d.seen=d.seen||{};d.voxReady=d.voxReady||[];return d;}
 async function unlock(code,pin){
  $('#lErr').textContent='';
  try{await loadScript(SUPA_LIB);}catch(e){$('#lErr').textContent='Couldn’t reach the server. Check your connection.';return;}
@@ -173,15 +173,17 @@ function subscribe(){
  G.mchan=G.client.channel('map-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'meta'},()=>loadMapSoon()).on('broadcast',{event:'reload'},()=>loadMapSoon())
   .on('broadcast',{event:'tok'},()=>loadMapSoon()).on('broadcast',{event:'del'},()=>loadMapSoon()).on('broadcast',{event:'hid'},()=>loadMapSoon()).subscribe();
  G.qchan=G.client.channel('polls-'+room,{config:{broadcast:{self:false}}}).on('broadcast',{event:'answered'},()=>loadPolls()).subscribe();
- setInterval(()=>{if(document.visibilityState==='visible'){loadChars();loadMap();loadPolls();}},25000);
+ G.vchan=G.client.channel('vox-'+room,{config:{broadcast:{self:false}}}).subscribe();
+ setInterval(()=>{if(document.visibilityState==='visible'){loadChars();loadMap();loadPolls();loadVox();}},25000);
 }
 function setStatus(st){G.status=st==='SUBSCRIBED'?'live':st==='CHANNEL_ERROR'||st==='TIMED_OUT'?'off':'connecting';$('#dot').className='dot '+(G.status==='live'?'live':G.status==='off'?'off':'');}
-async function loadAll(){await Promise.all([loadData(),loadChars(),loadMap(),loadPolls()]);render();}
+async function loadAll(){await Promise.all([loadData(),loadChars(),loadMap(),loadPolls(),loadVox()]);render();}
 async function loadData(){try{const r=await rpc('gm_get',{p_party:G.code,p_pin:G.pin});G.data=norm(r.data);}catch(e){toast(e.message);if(/PIN/.test(e.message||''))relock();}}
 async function loadChars(){try{G.chars=(await rpc('party_list',{p_party:G.code}))||[];try{G.claims=(await rpc('char_claims',{p_party:G.code}))||[];}catch(e){}render();}catch(e){}}
 async function loadMap(){try{G.map=await rpc('map_get',{p_party:G.code,p_pin:G.pin});render();}catch(e){}}
 let mapT=0;function loadMapSoon(){clearTimeout(mapT);mapT=setTimeout(loadMap,700);}
 async function loadPolls(){try{G.polls=(await rpc('poll_list',{p_party:G.code,p_pin:G.pin}))||[];render();}catch(e){}}
+async function loadVox(){try{G.vox=(await rpc('vox_list',{p_party:G.code,p_pin:G.pin}))||[];render();}catch(e){}}
 function relock(){$('#lock').hidden=false;$('#lCode').value=G.code||normCode(lsGet('rtm.party.code'));$('#lPin').value='';}
 
 /* ---------- saving the GM notes ---------- */
@@ -224,6 +226,7 @@ function vCmd(){
  const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
  return`<div class="grp"><span class="lbl">Map</span>${has?`<span class="tag ${meta.live===false?'bad':'ok'}">${meta.live===false?'🔒 Hidden from players':'👁 Players can see it'}</span><button class="sm ${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal':'Hide'}</button>`:'<span class="tag">No map yet</span>'}<button class="sm ${has?'':'pri'}" data-act="dnewmap">${has?'New map':'Generate a map'}</button></div>
  <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
+ <div class="grp"><span class="lbl">Vox</span>${(G.data.voxReady||[]).map(r=>`<button class="sm pri" data-act="vfire" data-id="${esc(r.id)}" title="${esc(r.text)}">📡 ${esc(r.label||r.from||'Vox')}</button>`).join('')}<button class="sm" data-act="dvox">${(G.data.voxReady||[]).length?'Vox…':'Send a vox'}</button></div>
  <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
 function hpBar(hp,max){const f=max?Math.max(0,Math.min(1,hp/max)):1;return`<div class="hpbar"><i style="width:${f*100}%;background:${f>.5?'var(--ok)':f>.25?'var(--warn)':'var(--blood)'}"></i></div>`;}
@@ -293,7 +296,7 @@ function drawerTitle(){const d=G.drawer;if(!d)return'';
  if(d.type==='npc'){const n=G.data.npcs.find(x=>x.id===d.id);return n?n.name||'NPC':'NPC';}
  if(d.type==='pc')return charName(d.id);
  if(d.type==='tok'){const t=mapToks()[d.id];return t?t.name||'Token':'Token';}
- return{poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
+ return{vox:'Vox transmissions',poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
 function vDrawer(){const d=G.drawer;
  if(d.type==='arc'){const i=G.data.story.arcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const a=G.data.story.arcs[i];
   return`<div class="grid"><label>Name<input data-k="story.arcs.${i}.title" value="${esc(a.title)}"></label><label>Type<select data-ch="story.arcs.${i}.kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${a.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -322,6 +325,7 @@ function vDrawer(){const d=G.drawer;
  if(d.type==='pc')return vPc(d.id);
  if(d.type==='tok')return vTok(d.id);
  if(d.type==='poll')return vPollDrawer();
+ if(d.type==='vox')return vVoxDrawer();
  if(d.type==='factions')return`${G.data.factions.map((f,i)=>`<div class="pc" style="cursor:default"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
    <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join('')||'<p class="empty">No factions yet.</p>'}
    <div class="row"><input class="grow" id="newFac" placeholder="New faction"><button class="sm" data-act="addfac">Add</button></div>`;
@@ -379,6 +383,26 @@ function vPollDrawer(){const D=G.pollDraft;const chars=G.chars.map(charInfo);
   <div class="row"><span style="flex:1" class="muted">Players get polls once they've claimed their character with a PIN.</span><button class="pri" data-act="psend" ${chars.length?'':'disabled'}>Send</button></div>
   <h2>Sent</h2>${pollGroups().map(groupCard).join('')||'<p class="empty">Nothing sent yet.</p>'}`;}
 
+const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
+function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
+function vVoxDrawer(){const D=G.voxDraft;const chars=G.chars.map(charInfo);const R=G.data.voxReady||[];
+ return`<p class="muted" style="margin:0">Players get an “Incoming vox” alert on their sheet or map, then it stays in their Vox log. Save one as <b>ready</b> to get a one-tap button in the command bar.</p>
+  <label>From (what the players see)<input id="vFrom" list="vFromList" value="${esc(D.from||'')}" placeholder="Unknown source"></label>
+  <datalist id="vFromList"><option value="Unknown source"><option value="Ship's vox">${G.data.npcs.map(n=>`<option value="${esc(n.name)}">`).join('')}</datalist>
+  <label>Message<textarea id="vText" style="min-height:110px" placeholder="Brother? Is it done?">${esc(D.text||'')}</textarea></label>
+  <div class="grid"><label>Signal<select id="vStyle">${Object.entries(VSTY).map(([k,v])=>`<option value="${k}" ${D.style===k?'selected':''}>${v}</option>`).join('')}</select></label>
+   <label>Button label (ready only)<input id="vLabel" value="${esc(D.label||'')}" placeholder="Choir leader"></label></div>
+  <div><div class="muted" style="margin-bottom:4px">Send to (none picked = whole party)</div><div class="row">${chars.map(c=>`<button class="sm ${D.to.includes(c.id)?'on':''}" data-act="vto" data-id="${esc(c.id)}">${esc(c.name)}</button>`).join('')}${D.to.length?'<button class="sm ghost" data-act="vtoall">Whole party</button>':''}</div></div>
+  <div class="row"><span style="flex:1"></span><button data-act="vsave">${D.editing?'Update ready':'Save as ready'}</button><button class="pri" data-act="vsend">Send now</button></div>
+  <h2>Ready to send</h2>${R.length?R.map(r=>`<div class="pc" style="cursor:default"><div class="row"><b class="grow">📡 ${esc(r.label||r.from||'Vox')}</b><button class="sm pri" data-act="vfire" data-id="${esc(r.id)}">Send</button><button class="sm" data-act="vedit" data-id="${esc(r.id)}">Edit</button><button class="sm ghost" data-act="vrm" data-id="${esc(r.id)}" aria-label="Remove">✕</button></div><div class="muted">${esc(r.from||'Unknown source')} → ${esc(voxTo(r.to))} · ${esc((VSTY[r.style]||'').split(' ')[0])}</div><div style="white-space:pre-wrap">${esc(r.text)}</div></div>`).join(''):'<p class="empty">Nothing saved yet.</p>'}
+  <h2>Sent</h2>${G.vox.length?G.vox.slice(0,30).map(v=>`<div class="pc" style="cursor:default"><div class="row"><b class="grow">${esc((v.data||{}).from||'Unknown source')}</b><span class="muted">${esc(new Date(v.created_at).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}))}</span><button class="sm ghost" data-act="vdel" data-id="${esc(v.id)}" title="Remove from players' logs">Retract</button></div><div class="muted">→ ${esc(voxTo(v.chars))}</div><div style="white-space:pre-wrap">${esc((v.data||{}).text||'')}</div></div>`).join(''):'<p class="empty">Nothing sent yet.</p>'}`;}
+function voxFromForm(){const D=G.voxDraft;return{from:($('#vFrom').value||'').trim()||'Unknown source',text:($('#vText').value||'').trim(),style:$('#vStyle').value||'static',label:($('#vLabel').value||'').trim(),to:[...D.to]};}
+async function voxSend(m){if(!m.text){toast('Write the message first.');return false;}
+ const id='v'+Date.now().toString(36)+uid().slice(0,4);
+ try{await rpc('vox_send',{p_party:G.code,p_pin:G.pin,p_id:id,p_chars:m.to||[],p_data:{from:m.from,text:m.text,style:m.style}});
+  try{G.vchan.send({type:'broadcast',event:'vox',payload:{chars:m.to||[]}});}catch(err){}
+  toast('Vox sent to '+voxTo(m.to)+'.',true);await loadVox();return true;}catch(err){toast(err.message||'Couldn’t send.');return false;}}
+
 /* ---------- events ---------- */
 const root=document.body;
 root.addEventListener('input',e=>{const el=e.target;if(el.closest('#lock'))return;
@@ -386,6 +410,7 @@ root.addEventListener('input',e=>{const el=e.target;if(el.closest('#lock'))retur
  if(el.dataset.e&&G.edit){let v=el.value;if(el.type==='number')v=v===''?null:+v;setPath(G.edit.d,el.dataset.e,v);
   G.edit.changed.add(/^(src\.weapons|state\.inv)/.test(el.dataset.e)?el.dataset.e.split('.').slice(0,2).join('.'):el.dataset.e);updApply();return;}
  if(el.id==='npcq'){G.npcq=el.value;const pos=el.selectionStart;const box=$('#pNpcs');pend.delete('#pNpcs');box.innerHTML=box._h=vNpcs();const n=$('#npcq');if(n){n.focus();n.setSelectionRange(pos,pos);}return;}
+ if(el.id==='vFrom')G.voxDraft.from=el.value;if(el.id==='vText')G.voxDraft.text=el.value;if(el.id==='vLabel')G.voxDraft.label=el.value;
  if(el.id==='pQ')G.pollDraft.q=el.value;if(el.id==='pO')G.pollDraft.o=el.value;
  if(el.id==='gSeed'&&G.gen)G.gen.seed=el.value;
 });
@@ -398,6 +423,7 @@ root.addEventListener('change',e=>{const el=e.target;if(el.closest('#lock'))retu
  if(el.dataset.n!=null&&el.dataset.i!=null){const n=G.data.npcs[+el.dataset.i];if(!n)return;n[el.dataset.n]=el.value===''?null:+el.value;dirty();const t=npcToken(n);
   if(t&&['hp','maxHp','ac','speed'].includes(el.dataset.n))tokPut(Object.assign({},t,{[el.dataset.n]:n[el.dataset.n]}));render();return;}
  if(el.id==='pF')G.pollDraft.free=el.checked;
+ if(el.id==='vStyle')G.voxDraft.style=el.value;
  if((el.id==='gTheme'||el.id==='gSize')&&G.gen){G.gen.theme=$('#gTheme').value;G.gen.size=$('#gSize').value;}
 });
 root.addEventListener('keydown',e=>{
@@ -427,6 +453,16 @@ root.addEventListener('click',async e=>{
   case'darc':openDrawer('arc',b.dataset.id);break;
   case'dnpc':openDrawer('npc',b.dataset.id);break;
   case'dpoll':openDrawer('poll');break;
+  case'dvox':openDrawer('vox');break;
+  case'vto':{const t=G.voxDraft.to;const i=t.indexOf(b.dataset.id);i<0?t.push(b.dataset.id):t.splice(i,1);Object.assign(G.voxDraft,voxFromForm(),{to:t});render();break;}
+  case'vtoall':Object.assign(G.voxDraft,voxFromForm(),{to:[]});render();break;
+  case'vsend':{const m=voxFromForm();if(await voxSend(m)){G.voxDraft={to:[],style:m.style};render();}break;}
+  case'vsave':{const m=voxFromForm();if(!m.text){toast('Write the message first.');break;}const R=D.voxReady;const ed=G.voxDraft.editing;const i=ed?R.findIndex(r=>r.id===ed):-1;
+   const r=Object.assign({id:ed||uid()},m);i>=0?R.splice(i,1,r):R.push(r);dirty();G.voxDraft={to:[],style:m.style};toast('Saved. It’s a button in the command bar now.',true);render();break;}
+  case'vfire':{const r=D.voxReady.find(x=>x.id===b.dataset.id);if(!r)break;if(!confirm(`Send “${r.label||r.from}” to ${voxTo(r.to)} now?`))break;await voxSend(r);break;}
+  case'vedit':{const r=D.voxReady.find(x=>x.id===b.dataset.id);if(!r)break;G.voxDraft=Object.assign({},r,{to:[...(r.to||[])],editing:r.id});openDrawer('vox');render();break;}
+  case'vrm':{const i=D.voxReady.findIndex(x=>x.id===b.dataset.id);if(i>=0&&confirm('Remove this ready message?')){D.voxReady.splice(i,1);dirty();render();}break;}
+  case'vdel':if(confirm('Retract this vox? It disappears from players’ logs.')){try{await rpc('vox_delete',{p_party:G.code,p_pin:G.pin,p_id:b.dataset.id});await loadVox();}catch(err){toast(err.message);}}break;
   case'dfactions':openDrawer('factions');break;
   case'dimport':openDrawer('import');break;
   case'dsessions':openDrawer('sessions');break;
