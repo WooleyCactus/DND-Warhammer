@@ -42,7 +42,8 @@
    [880,660,990].forEach((hz,i)=>{const o=ac.createOscillator(),gg=ac.createGain();o.type='square';o.frequency.value=hz;gg.gain.setValueAtTime(.0001,t+.4+i*.14);gg.gain.exponentialRampToValueAtTime(.08,t+.42+i*.14);gg.gain.exponentialRampToValueAtTime(.0001,t+.52+i*.14);o.connect(gg).connect(ac.destination);o.start(t+.4+i*.14);o.stop(t+.56+i*.14);});}catch(e){}}
 
  const css=`#rtm-vox-b{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:60;background:#0d1a0f;border:1px solid #3f8f4a;color:#9BF0A6;padding:12px 16px;font:700 14px 'Share Tech Mono',ui-monospace,Menlo,monospace;letter-spacing:.08em;box-shadow:0 0 0 1px #000,0 8px 30px rgba(0,0,0,.7),0 0 18px rgba(80,220,110,.35);cursor:pointer;display:flex;gap:10px;align-items:center;animation:rtmvp 1.2s ease-in-out infinite;max-width:calc(100% - 24px)}
- #rtm-vox-b small{font-weight:400;color:#6fbf7a;letter-spacing:.02em}
+ #rtm-vox-b small{font-weight:400;color:#6fbf7a;letter-spacing:.02em;white-space:nowrap}
+ #rtm-vox-b>span{white-space:nowrap}
  @keyframes rtmvp{50%{box-shadow:0 0 0 1px #000,0 8px 30px rgba(0,0,0,.7),0 0 28px rgba(80,220,110,.7)}}
  #rtm-vox{position:fixed;inset:0;z-index:61;display:grid;place-items:center;background:rgba(2,6,3,.72);padding:14px}
  #rtm-vox .card{width:100%;max-width:480px;max-height:86vh;overflow:auto;background:#07110a;color:#9BF0A6;border:1px solid #3f8f4a;box-shadow:0 0 30px rgba(80,220,110,.25),inset 0 0 60px rgba(0,0,0,.6);padding:18px;font:15px/1.5 'Share Tech Mono',ui-monospace,Menlo,monospace;position:relative}
