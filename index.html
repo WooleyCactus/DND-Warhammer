@@ -160,6 +160,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .vital .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .vital .v{font-family:var(--f-mono);font-size:26px;line-height:1.1;color:var(--gold-hi);text-shadow:0 0 12px rgba(200,162,74,.2)}
 .vital.hp{grid-column:span 2}
+.stash{margin:12px 0;padding:10px 12px;border:1px solid var(--gold-dk);background:rgba(200,162,74,.05)}.stash .tk-h{display:flex;align-items:center;gap:6px}.stash .gi-row{display:flex;align-items:center;gap:8px;padding:5px 0 5px 8px}.stash details.gi-n{flex:1;min-width:0}.stash details.gi-n summary{cursor:pointer}.stash details small{display:block;margin-top:3px}.stash-log{margin:6px 0 0;font-size:12px}.gi-stow{background:none;border:1px solid var(--line);color:var(--gold);cursor:pointer;padding:2px 7px;margin-left:4px}
 .vital.thr{grid-column:1/-1}.vital.thr .thr-tot{font-size:22px;color:var(--gold-hi);width:9em;max-width:100%}.vital.thr .thr-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.vital.thr .thr-row input{width:7em}.thr-log{font-size:12px}
 .hp-ctl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .hp-ctl input{width:66px;text-align:center;font-family:var(--f-mono);font-size:20px;background:var(--sunk);border:1px solid var(--line);border-radius:var(--r);padding:3px;color:var(--ok);box-shadow:inset 0 1px 3px #000}
@@ -2707,15 +2708,55 @@ function giveItem(ch,c,qty){
 }
 
 /* ---- inventory UI ---- */
+/* STASH-START: the Ship's Armoury, a shared stash per party (supabase/stash.sql) */
+const SH={data:null,t:0,busy:false};
+function stashOn(){return S.store==='party'&&!!(DB&&DB.client&&DB.code);}
+async function stashLoad(force){if(!stashOn())return;if(!force&&Date.now()-SH.t<15000)return;SH.t=Date.now();
+ try{const {data,error}=await DB.client.rpc('stash_get',{p_party:DB.code});if(!error&&data){const was=JSON.stringify(SH.data);SH.data=data;if(was!==JSON.stringify(data)&&S.view==='sheet')render();}}catch(e){}}
+setInterval(()=>{if(S.view==='sheet'&&document.visibilityState==='visible')stashLoad();},5000);
+function stashPanel(ch){
+ if(!stashOn())return '';
+ if(!SH.data){stashLoad();return `<div class="stash"><div class="tk-h">Ship's armoury</div><p class="muted">Opening the armoury…</p></div>`;}
+ stashLoad();
+ const items=(SH.data.items||[]).slice().sort((a,b)=>(CAT_ORDER.findIndex(c=>c[0]===a.cat)-CAT_ORDER.findIndex(c=>c[0]===b.cat))||String(a.name).localeCompare(String(b.name)));
+ const log=(SH.data.log||[]).slice(0,3);
+ return `<div class="stash"><div class="tk-h">Ship's armoury<small> · shared by the whole crew</small><button class="btn sm ghost" data-act="stashref" style="margin-left:auto">Refresh</button></div>
+  ${items.length?items.map(it=>`<div class="gi-row" style="--rc:${rarColor(it.rarity)}"><span class="gw-ic">${itemIcon(it)}</span>
+   <details class="gi-n"><summary>${esc(it.name)}${it.cat?` <small class="muted">${esc(CAT_LABEL[it.cat]||it.cat)}</small>`:''}</summary>${it.desc?`<small>${esc(it.desc)}</small>`:''}</details>
+   <span class="mono">×${esc(it.qty)}</span>
+   <button class="btn sm" data-act="stake" data-k="${esc(it.key)}" ${SH.busy?'disabled':''}>Take</button>${+it.qty>1?`<button class="btn sm ghost" data-act="stakeall" data-k="${esc(it.key)}" data-q="${esc(it.qty)}" ${SH.busy?'disabled':''}>All</button>`:''}</div>`).join(''):'<p class="muted">Empty. Tap ⇪ on any of your items to stow it here.</p>'}
+  ${log.length?`<p class="note stash-log">${log.map(l=>`${esc(l.who)} ${l.dir==='in'?'stowed':'took'} ${esc(l.qty)} ${esc(l.name)}`).join(' · ')}</p>`:''}</div>`;
+}
+async function stashClick(a,b,ch){
+ if(!stashOn()||SH.busy)return;const st=ch.state=ch.state||{};const inv=invOf(ch);const who=String((ch.src&&ch.src.name)||'Someone').split(',')[0].slice(0,40);const pin=authFor(DB.code,ch.id);
+ if(a==='stashref'){SH.t=0;await stashLoad(true);render();return;}
+ SH.busy=true;render();
+ try{
+  if(a==='stow'){const it=inv.find(x=>x.id===b.dataset.id);if(!it)return;
+   const item={id:it.cid||('x:'+N(it.name)),name:it.name,cat:it.cat||catFor(it.name),rarity:it.rarity||'common',desc:it.desc||'',icon:it.icon,hb:!!it.hb,att:it.att,hbDef:it.hbDef};
+   const {data,error}=await DB.client.rpc('stash_store',{p_party:DB.code,p_char:ch.id,p_pin:pin,p_who:who,p_item:item,p_qty:1});
+   if(error){toastMsg(error.message||'Couldn\u2019t reach the armoury.');return;}
+   it.qty=(+it.qty||1)-1;if(it.qty<=0)st.inv=inv.filter(x=>x!==it);persist(ch,true);toastMsg(`${it.name} stowed in the ship's armoury.`);SH.t=0;await stashLoad(true);}
+  else{const q=a==='stakeall'?Math.max(1,+b.dataset.q||1):1;
+   const {data,error}=await DB.client.rpc('stash_take',{p_party:DB.code,p_char:ch.id,p_pin:pin,p_who:who,p_key:b.dataset.k,p_qty:q});
+   if(error||!data){toastMsg((error&&error.message)||'Couldn\u2019t take that.');SH.t=0;await stashLoad(true);return;}
+   const c={id:data.id||data.key,name:data.name,cat:data.cat||'gear',rarity:data.rarity||'common',desc:data.desc||'',base:data.base,att:data.att,hbDef:data.hbDef,hb:!!data.hb,icon:data.icon};
+   if(c.cat==='weapon'&&!c.base)c.cat='gear';
+   const msg=giveItem(ch,c,+data.qty||q);persist(ch,true);toastMsg(msg);SH.t=0;await stashLoad(true);}
+ }catch(e){toastMsg('Couldn\u2019t reach the armoury.');}
+ finally{SH.busy=false;render();}
+}
+/* STASH-END */
 function vGear(ch,d){
  const inv=invOf(ch);const ex=!!ch.example;const gm=gmNow();
  const groups=CAT_ORDER.filter(([c])=>c!=='weapon').map(([c,label])=>{const items=inv.filter(i=>(i.cat||catFor(i.name))===c);if(!items.length)return '';
   return `<div class="gcat"><div class="tk-h">${label}</div>${items.map(it=>{const open=S.invOpen===it.id;return `<div class="gi-row" style="--rc:${rarColor(it.rarity)}"><span class="gw-ic">${itemIcon(it)}</span>
    <button class="gi-n" data-act="ginfo" data-id="${it.id}" aria-expanded="${open}">${esc(it.name)}${it.hb?' <span class="hb">Homebrew</span>':''}${open&&it.desc?`<small>${esc(it.desc)}</small>`:''}</button>
    <span class="gi-q"><button class="step" data-act="gq" data-id="${it.id}" data-d="-1" aria-label="Use or drop one"${ex?' disabled':''}>−</button><span class="mono">${it.cat==='money'?Number(it.qty).toLocaleString():it.qty}</span>${gm||it.cat==='money'?`<button class="step" data-act="gq" data-id="${it.id}" data-d="1" aria-label="Add one"${ex?' disabled':''}>+</button>`:''}</span>
-   ${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Discard ${esc(it.name)}">×</button>`}</div>`;}).join('')}</div>`;}).join('');
+   ${ex||it.cat==='money'||!stashOn()?'':`<button class="gi-stow" data-act="stow" data-id="${it.id}" title="Stow one in the ship's armoury" aria-label="Stow ${esc(it.name)} in the ship's armoury">⇪</button>`}${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Discard ${esc(it.name)}">×</button>`}</div>`;}).join('')}</div>`;}).join('');
  return `<section class="sec"><h2 class="sec-h">Gear<small>${gm?'GM mode':'ammo, grenades, kit'}</small></h2>
   <div class="gcats">${groups||'<p class="muted">No gear yet.</p>'}</div>
+  ${ex?'':stashPanel(ch)}
   ${ex?'':addPanel(gm)}
   ${gm&&!ex&&typeof lootPanel==='function'?lootPanel():''}
   ${gm&&!ex?hbPanel():''}
@@ -3706,7 +3747,8 @@ document.addEventListener('click',e=>{
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{const i=+b.dataset.i;const w=d.weapons[i];const sp=spareOf(ch,i,w);if(sp<=0){toastMsg(w.to+': no spare clips left.');break;}st.ammo=st.ammo||{};if((st.ammo[i]==null?w.clip:st.ammo[i])>=w.clip){toastMsg('Clip is already full.');break;}st.spare=st.spare||{};st.spare[i]=sp-1;st.ammo[i]=w.clip;persist(ch);render();toastMsg(`${w.to} reloaded. ${sp-1} spare clip${sp-1===1?'':'s'} left.`);break;}
   case 'loedit':case 'lopend':case 'lopendx':case 'loinst':case 'lorem':loClick(a,b,ch);break;
-  case 'gcat':case 'ginfo':case 'gpick':case 'gq':case 'gdel':case 'hbtoggle':case 'lootroll':case 'hbdel':case 'hbsave':case 'spare':case 'shot3':armouryClick(a,b,ch);break;
+  case 'gcat':case 'ginfo':case 'stow':case 'stake':case 'stakeall':case 'stashref':stashClick(a,b,ch);break;
+  case 'gpick':case 'gq':case 'gdel':case 'hbtoggle':case 'lootroll':case 'hbdel':case 'hbsave':case 'spare':case 'shot3':armouryClick(a,b,ch);break;
   case 'rage':st.raging=!st.raging;persist(ch);render();break;
   case 'res':{const k=b.dataset.k,j=+b.dataset.j;st.res=st.res||{};const u2=st.res[k]||0;st.res[k]=j<u2?j:j+1;persist(ch);render();break;}
   case 'respool':{const k=b.dataset.k;const r=resources(ch,d).find(x=>x.k===k);st.res=st.res||{};st.res[k]=Math.max(0,Math.min(r.max,(st.res[k]||0)+(+b.dataset.d)));persist(ch);render();break;}
