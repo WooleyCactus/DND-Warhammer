@@ -361,6 +361,7 @@ function rangeFor(t,ox,oy){const key=[t.id,ox,oy,t.size||1,S.metaVer,S.meta&&S.m
  if(!rangeCache||rangeCache.key!==key)rangeCache={key,d:flood(S.meta,ox,oy,t.size||1)};return rangeCache.d;}
 const label=t=>{if(t.label)return t.label;const n=(stats(t).name||'?').trim();const num=(n.match(/(\d+)$/)||[])[1];const w=n.replace(/\s*\d+$/,'').split(/\s+/);
  return num?(w[0][0]+num):(w.length>1?w[0][0]+w[1][0]:n.slice(0,2));};
+const isDead=t=>!!t&&t.kind!=='pc'&&+t.maxHp>0&&t.hp!=null&&t.hp!==''&&+t.hp<=0;
 function curTurnId(){const I=(S.meta||S.pmeta||{}).init;if(!I||!I.on)return null;return I.order[I.turn]||null;}
 let raf=0;
 function changed(soft){S.ver++;if(!soft)renderPanel();draw();}
@@ -541,7 +542,7 @@ function turnPanel(){
  }else{
   h+=`<h3>Initiative</h3><p class="muted" style="margin:0">${S.gm?'Enter everyone\'s initiative, then start combat.':'Enter your initiative roll. The GM starts combat.'}</p>`;
   h+=roomInitRow();
-  const sorted=toks.filter(t=>S.gm||t.kind==='pc'||cellVisible(t.x,t.y)).sort((a,b)=>(+b.init||-99)-(+a.init||-99));
+  const sorted=toks.filter(t=>!isDead(t)&&(S.gm||t.kind==='pc'||cellVisible(t.x,t.y))).sort((a,b)=>(+b.init||-99)-(+a.init||-99));
   h+=`<div class="list">${sorted.map(t=>{const st=stats(t);return`<div class="it ${t.id===S.sel?'sel':''}" data-pick="${esc(t.id)}"><span class="sw" style="background:${esc(t.color)}"></span><span class="nm">${esc(st.name)}${t.hidden?' 👁':''}</span>${canEdit(t)?`<input type="number" inputmode="numeric" data-init="${esc(t.id)}" value="${esc(t.init==null?'':t.init)}" placeholder="init">`:`<span class="hp">${esc(t.init==null||t.init===''?'–':t.init)}</span>`}</div>`;}).join('')||'<p class="muted">No tokens on the map yet.</p>'}</div>`;
   if(S.gm)h+=`<button class="pri" data-act="startcombat" ${toks.length?'':'disabled'}>${S.meta.live===false?'Start combat &amp; reveal map':'Start combat'}</button>`;
  }
@@ -644,10 +645,10 @@ $('#side').addEventListener('click',e=>{
   case'dup':{if(!t)return;const p=freeSpot(t.x,t.y,t.size||1);if(!p)return;const base=(t.name||'Enemy').replace(/\s*\d+$/,'');const n=Object.values(S.tokens).filter(x=>(x.name||'').replace(/\s*\d+$/,'')===base).length+1;
    const tk=Object.assign({},t,{id:'n-'+uid(),x:p.x,y:p.y,hp:t.maxHp,name:`${base} ${n}`,label:'',cond:[]});S.tokens[tk.id]=tk;S.sel=tk.id;saveToken(tk);break;}
   case'del':if(t&&confirm(`Remove ${stats(t).name} from the map?`))delToken(t.id);break;
-  case'startcombat':{const order=Object.values(S.tokens).filter(x=>x.kind==='pc'||cellOpen(x.x,x.y)).sort((a,b)=>(+b.init||-99)-(+a.init||-99)||(a.kind==='pc'?-1:1)).map(x=>x.id);
+  case'startcombat':{const order=Object.values(S.tokens).filter(x=>!isDead(x)&&(x.kind==='pc'||cellOpen(x.x,x.y))).sort((a,b)=>(+b.init||-99)-(+a.init||-99)||(a.kind==='pc'?-1:1)).map(x=>x.id);
    S.meta.init={on:true,order,turn:0,round:1};const wasHidden=S.meta.live===false;S.meta.live=true;saveMeta(true);if(wasHidden)send('reload',{});changed();const f=S.tokens[order[0]];if(f)centerOn(f);break;}
-  case'sortinit':{I.order=Object.values(S.tokens).sort((a,b)=>(+b.init||-99)-(+a.init||-99)).map(x=>x.id);I.turn=0;saveMeta(true);changed();break;}
-  case'next':case'prev':{const order=I.order.filter(id=>S.tokens[id]);if(!order.length)return;const curId=curTurnId();let i=Math.max(0,order.indexOf(curId));
+  case'sortinit':{I.order=Object.values(S.tokens).filter(x=>!isDead(x)).sort((a,b)=>(+b.init||-99)-(+a.init||-99)).map(x=>x.id);I.turn=0;saveMeta(true);changed();break;}
+  case'next':case'prev':{const order=I.order.filter(id=>S.tokens[id]&&(!isDead(S.tokens[id])||id===curTurnId()));if(!order.length)return;const curId=curTurnId();let i=Math.max(0,order.indexOf(curId));
    i+=b.dataset.act==='next'?1:-1;if(i>=order.length){i=0;I.round++;}if(i<0){i=order.length-1;I.round=Math.max(1,I.round-1);}
    I.order=order;I.turn=i;saveMeta(true);changed();const nt=S.tokens[order[i]];if(nt){S.sel=nt.id;centerOn(nt);}break;}
   case'endcombat':S.meta.init={on:false,order:[],turn:0,round:1};saveMeta(true);changed();break;
