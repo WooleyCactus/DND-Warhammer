@@ -95,6 +95,14 @@ label.ck input{width:18px;height:18px;flex:none}
 details>summary{cursor:pointer;color:var(--muted);font-size:13px}
 #drawer{position:fixed;inset:0;z-index:20;background:rgba(5,4,3,.55);display:flex;justify-content:flex-end}
 #drawer .dp{width:min(560px,100%);height:100%;background:var(--plate);border-left:1px solid var(--gold-dk);display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.6)}
+#drawer.wide .dp{width:min(1180px,100%)}
+.cx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.cx{background:var(--sunk);border:1px solid var(--line);border-left:3px solid var(--rc,#A0957D);padding:8px 10px;display:flex;flex-direction:column;gap:3px}
+.cx b{color:var(--ink)}.cx .st{font:13px var(--f-mono);color:var(--gold-hi)}.cx .ds{font-size:13px;color:var(--muted)}
+.cx .pp{display:flex;flex-wrap:wrap;gap:4px}.cx .pp span{font-size:11px;border:1px solid var(--line);padding:0 5px;color:var(--muted)}
+.cx .rr{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.cx-sec>summary{cursor:pointer;font:700 13px var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 0}
+.cx-sec>summary .n{color:var(--muted);font-family:var(--f-mono);margin-left:6px}
 #drawer .dh{display:flex;align-items:center;gap:8px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
 #drawer .dh b{font:700 15px var(--f-display);color:var(--gold-hi);flex:1}
 #drawer .db{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:max(30px,env(safe-area-inset-bottom))}
@@ -217,7 +225,7 @@ function paint(sel,html){const el=$(sel);if(!el)return;const a=document.activeEl
 document.addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;[...pend].forEach(sel=>{const el=$(sel);if(!(a&&el&&el.contains(a)&&a.matches('input,textarea,select'))){pend.delete(sel);render();}});},0));
 let rT=0;function render(){if(rT)return;rT=requestAnimationFrame(()=>{rT=0;if(!G.data)return;
  paint('#cmd',vCmd());paint('#pParty',vParty());paint('#pSession',vSession());paint('#pGoals',vGoals());paint('#pStory',vStory());paint('#pPolls',vPolls());paint('#pNpcs',vNpcs());paint('#pClocks',vClocks());
- if(G.drawer){$('#drawer').hidden=false;$('#dTitle').textContent=drawerTitle();paint('#dBody',vDrawer());}else $('#drawer').hidden=true;});}
+ if(G.drawer){$('#drawer').hidden=false;$('#drawer').classList.toggle('wide',G.drawer.type==='codex');$('#dTitle').textContent=drawerTitle();paint('#dBody',vDrawer());}else $('#drawer').hidden=true;});}
 
 function vCmd(){
  const m=G.map;const meta=(m&&m.meta)||{};const has=!!meta.cells;const I=meta.init||{};const toks=(m&&m.tokens)||{};
@@ -226,7 +234,7 @@ function vCmd(){
  const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
  return`<div class="grp"><span class="lbl">Map</span>${has?`<span class="tag ${meta.live===false?'bad':'ok'}">${meta.live===false?'🔒 Hidden from players':'👁 Players can see it'}</span><button class="sm ${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal':'Hide'}</button>`:'<span class="tag">No map yet</span>'}<button class="sm ${has?'':'pri'}" data-act="dnewmap">${has?'New map':'Generate a map'}</button></div>
  <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
- <div class="grp"><span class="lbl">Items</span><button class="sm" data-act="ditems">🎁 Give items</button></div>
+ <div class="grp"><span class="lbl">Items</span><button class="sm" data-act="ditems">🎁 Give items</button><button class="sm" data-act="dcodex">📖 Codex</button></div>
  <div class="grp"><span class="lbl">Vox</span>${(G.data.voxReady||[]).map(r=>`<button class="sm pri" data-act="vfire" data-id="${esc(r.id)}" title="${esc(r.text)}">📡 ${esc(r.label||r.from||'Vox')}</button>`).join('')}<button class="sm" data-act="dvox">${(G.data.voxReady||[]).length?'Vox…':'Send a vox'}</button></div>
  <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
@@ -297,7 +305,7 @@ function drawerTitle(){const d=G.drawer;if(!d)return'';
  if(d.type==='npc'){const n=G.data.npcs.find(x=>x.id===d.id);return n?n.name||'NPC':'NPC';}
  if(d.type==='pc')return charName(d.id);
  if(d.type==='tok'){const t=mapToks()[d.id];return t?t.name||'Token':'Token';}
- return{items:'Give items',vox:'Vox transmissions',poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
+ return{codex:'Codex · every weapon, armour and item',items:'Give items',vox:'Vox transmissions',poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
 function vDrawer(){const d=G.drawer;
  if(d.type==='arc'){const i=G.data.story.arcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const a=G.data.story.arcs[i];
   return`<div class="grid"><label>Name<input data-k="story.arcs.${i}.title" value="${esc(a.title)}"></label><label>Type<select data-ch="story.arcs.${i}.kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${a.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -328,6 +336,7 @@ function vDrawer(){const d=G.drawer;
  if(d.type==='poll')return vPollDrawer();
  if(d.type==='vox')return vVoxDrawer();
  if(d.type==='items')return vItemsDrawer();
+ if(d.type==='codex')return vCodex();
  if(d.type==='factions')return`${G.data.factions.map((f,i)=>`<div class="pc" style="cursor:default"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
    <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join('')||'<p class="empty">No factions yet.</p>'}
    <div class="row"><input class="grow" id="newFac" placeholder="New faction"><button class="sm" data-act="addfac">Add</button></div>`;
@@ -449,6 +458,62 @@ document.addEventListener('input',e=>{const el=e.target;if(!G.items)return;const
  if(el.id==='icName')C.name=el.value;if(el.id==='icDesc')C.desc=el.value;if(el.id==='icAc')C.ac=el.value;if(el.id==='icCap')C.cap=el.value;});
 document.addEventListener('change',e=>{const el=e.target;if(!G.items)return;const C=G.items.c;if(el.id==='icCat'){C.cat=el.value;const box=$('#dBody');if(box){pend.delete('#dBody');box.innerHTML=box._h=vDrawer();}}if(el.id==='icRar')C.rarity=el.value;});
 /* ITEMS-END */
+/* CODEX-START: GM encyclopedia of every item, standard and homebrew, by type and rarity */
+G.cx={q:'',rar:'',src:'',form:null};
+const RORD=['common','uncommon','rare','veryrare','legendary'];const RLAB={common:'Common',uncommon:'Uncommon',rare:'Rare',veryrare:'Very rare',legendary:'Legendary'};
+const CX_SECTIONS=[['melee','Melee weapons',c=>c.cat==='weapon'&&c.melee!==false&&!c.range],['ranged','Ranged weapons',c=>c.cat==='weapon'&&!(c.melee!==false&&!c.range)],
+ ['armour','Armour & shields',c=>c.cat==='armour'],['grenade','Grenades & explosives',c=>c.cat==='grenade'],['ammo','Ammunition',c=>c.cat==='ammo'],['attachment','Weapon attachments',c=>c.cat==='attachment'],
+ ['consumable','Consumables',c=>c.cat==='consumable'],['gear','Equipment',c=>c.cat==='gear'],['relic','Relics',c=>c.cat==='relic'],['curio','Curios (joke loot)',c=>c.cat==='curio'],
+ ['other','Other',c=>!['weapon','armour','grenade','ammo','attachment','consumable','gear','relic','curio','money'].includes(c.cat)]];
+function hbWeapon(c){const wb=((G.catalog||{}).items||[]).find(x=>x.cat==='weapon'&&x.base===c.base);return wb?Object.assign({},wb,{id:c.id,name:c.name,rarity:c.rarity,desc:c.desc,hb:true,bonus:c.bonus}):c;}
+function codexItems(){const C=G.cx;const q=iN(C.q);
+ return [...((G.catalog&&G.catalog.items)||[]),...G.hb.map(c=>c.cat==='weapon'&&c.base?hbWeapon(c):c)].filter(c=>c.cat!=='money')
+  .filter(c=>(!C.rar||(c.rarity||'common')===C.rar)&&(!C.src||(C.src==='hb'?c.hb:C.src==='std'?!c.hb&&c.cat!=='curio':c.cat==='curio'))&&(!q||iN(c.name).includes(q)||iN(c.desc).includes(q)||iN(c.base5e).includes(q)||(c.props||[]).some(p=>iN(p).includes(q))));}
+function statLine(c){if(c.cat==='weapon'&&c.dice){const b=+c.bonus||0;return `${b?`+${b} · `:''}${esc(c.dice)}${b?'+'+b:''} ${esc(c.dtype||'')}${c.range?` · ${esc(c.range)} ft`:' · melee'}${c.clip?` · clip ${esc(c.clip)}`:''}`;}
+ if(Array.isArray(c.armour)){const [a,cap]=c.armour;return `AC ${a}${cap>=99?' + Dex':cap>0?` + Dex (max ${cap})`:''}`;}
+ if(c.d20||c.d13)return c.d20?`Enemy loot d20: ${c.d20}`:`Special curio d13: ${c.d13}`;return '';}
+function cxCard(c){const pt=(G.catalog&&G.catalog.propText)||{};const r=c.rarity||'common';
+ return `<div class="cx" style="--rc:${RARC[r]||RARC.common}"><div class="row" style="gap:6px"><b class="grow">${esc(c.name)}</b><span class="rr" style="color:${RARC[r]||RARC.common}">${esc(RLAB[r]||r)}</span>${c.hb?'<span class="tag">Homebrew</span>':''}</div>
+  ${statLine(c)?`<div class="st">${statLine(c)}</div>`:''}
+  ${(c.props||[]).length?`<div class="pp">${c.props.map(p=>`<span title="${esc(pt[p]||'')}">${esc(p)}</span>`).join('')}</div>`:''}
+  ${c.desc&&!(c.cat==='weapon'&&!c.hb)?`<div class="ds">${esc(c.desc)}</div>`:c.base5e?`<div class="ds">5e base: ${esc(c.base5e)}</div>`:''}
+  <div class="row" style="gap:6px;margin-top:2px"><button class="sm" data-act="cxgive" data-id="${esc(c.id)}">Give…</button>${c.hb?`<button class="sm ghost" data-act="cxedit" data-id="${esc(c.id)}">Edit</button><button class="sm ghost" data-act="cxdel" data-id="${esc(c.id)}">Delete</button>`:''}</div></div>`;}
+function cxForm(){const f=G.cx.form;if(!f)return '';const bases=(G.catalog&&G.catalog.weaponBases)||[];const cats=((G.catalog&&G.catalog.cats)||[]).filter(([k])=>!['weapon','money','attachment'].includes(k));
+ return `<div class="pc" style="cursor:default;border-color:var(--gold)"><b>${f.id?'Edit homebrew item':'New homebrew item'}</b>
+  <div class="grid"><label>Name<input id="cxName" value="${esc(f.name||'')}" placeholder="The Emperor's Lucky Grox Toe"></label>
+   <label>Kind<select id="cxKind"><option value="item" ${f.kind!=='weapon'?'selected':''}>Item</option><option value="weapon" ${f.kind==='weapon'?'selected':''}>Weapon</option></select></label>
+   <label>Rarity<select id="cxRar">${RORD.map(r=>`<option value="${r}" ${f.rarity===r?'selected':''}>${RLAB[r]}</option>`).join('')}</select></label></div>
+  ${f.kind==='weapon'?`<div class="grid"><label>Works like<select id="cxBase">${bases.map(([k,n])=>`<option value="${esc(k)}" ${f.base===k?'selected':''}>${esc(n)}</option>`).join('')}</select></label><label>Bonus<select id="cxBonus">${[0,1,2,3].map(n=>`<option value="${n}" ${+f.bonus===n?'selected':''}>${n?'+'+n+' '+['','Mastercrafted','Archeotech','Relic'][n]:'+0 (no bonus)'}</option>`).join('')}</select></label></div>`
+   :`<div class="grid"><label>Category<select id="cxCat">${cats.map(([k,l])=>`<option value="${esc(k)}" ${f.cat===k?'selected':''}>${esc(l)}</option>`).join('')}</select></label>${f.cat==='armour'?`<label>Armour AC (base)<input id="cxAc" type="number" value="${esc(f.ac??'')}"></label><label>Max Dex (blank = no limit)<input id="cxCap" type="number" value="${esc(f.cap??'')}"></label>`:''}</div>`}
+  <label>Description<textarea id="cxDesc" placeholder="What it does, how often, any catch">${esc(f.desc||'')}</textarea></label>
+  <div class="row"><span style="flex:1" class="muted">Saved to this party's homebrew list: shows here, in Give items, and in the players' armoury search.</span><button data-act="cxcancel">Cancel</button><button class="pri" data-act="cxsave">Save to codex</button></div></div>`;}
+function vCodex(){if(!G.catalog)loadCatalog();const C=G.cx;const list=codexItems();const ro=c=>RORD.indexOf(c.rarity||'common');
+ const secs=CX_SECTIONS.map(([k,label,fn])=>{const xs=list.filter(fn).sort((a,b)=>ro(a)-ro(b)||(a.d20||a.d13||0)-(b.d20||b.d13||0)||String(a.name).localeCompare(String(b.name)));if(!xs.length)return '';
+  const byR=RORD.map(r=>[r,xs.filter(c=>(c.rarity||'common')===r)]).filter(([,a])=>a.length);
+  return `<details class="cx-sec" open><summary>${esc(label)}<span class="n">${xs.length}</span></summary>${byR.map(([r,a])=>`<div class="muted" style="margin:6px 0 4px;font-size:12px;color:${RARC[r]}">${RLAB[r]}</div><div class="cx-grid">${a.map(cxCard).join('')}</div>`).join('')}</details>`;}).join('');
+ return `<div class="row"><input id="cxQ" class="grow" value="${esc(C.q)}" placeholder="Search: lasgun, Burst, healing, squig…" autocomplete="off"><button class="pri" data-act="cxnew">+ New homebrew item</button></div>
+  <div class="row"><span class="muted">Rarity</span>${['',...RORD].map(r=>`<button class="sm ${C.rar===r?'on':''}" data-act="cxrar" data-v="${r}">${r?RLAB[r]:'All'}</button>`).join('')}
+   <span class="muted" style="margin-left:8px">Source</span>${[['','All'],['std','Standard'],['hb','Homebrew ('+G.hb.length+')'],['curio','Curios']].map(([v,l])=>`<button class="sm ${C.src===v?'on':''}" data-act="cxsrc" data-v="${v}">${esc(l)}</button>`).join('')}</div>
+  ${cxForm()}
+  <div id="cxBody">${secs||'<p class="empty">Nothing matches.</p>'}</div>`;}
+async function cxSave(){const f=G.cx.form;if(!f||!String(f.name||'').trim()){toast('Give the item a name.');return;}
+ const c={id:f.id||('hb:'+uid()),hb:true,name:f.name.trim(),rarity:f.rarity||'common',desc:(f.desc||'').trim()};
+ if(f.kind==='weapon'){Object.assign(c,{cat:'weapon',base:f.base||'longsword',bonus:+f.bonus||0});}
+ else{c.cat=f.cat||'relic';if(c.cat==='armour'&&f.ac!==''&&f.ac!=null)c.armour=[+f.ac,(f.cap===''||f.cap==null)?99:+f.cap];}
+ try{const ch=(await rpc('chart_get',{p_party:G.code}))||{v:1,nodes:[],routes:[],ship:null};const cat=(ch.catalog||[]).filter(x=>x.id!==c.id);cat.push(c);ch.catalog=cat;ch.updatedAt=Date.now();
+  await rpc('chart_save',{p_party:G.code,p_data:ch});try{G.pchan.send({type:'broadcast',event:'chart',payload:{t:Date.now()}});}catch(e){}
+  G.cx.form=null;toast(`${c.name} saved to the codex.`,true);await loadCatalog();
+ }catch(err){toast('Couldn’t save: '+(err.message||'unknown error'));}}
+async function cxDelete(id){const c=G.hb.find(x=>x.id===id);if(!c||!confirm(`Delete ${c.name} from the codex? Copies players already have stay on their sheets.`))return;
+ try{const ch=await rpc('chart_get',{p_party:G.code});ch.catalog=(ch.catalog||[]).filter(x=>x.id!==id);ch.updatedAt=Date.now();await rpc('chart_save',{p_party:G.code,p_data:ch});
+  try{G.pchan.send({type:'broadcast',event:'chart',payload:{t:Date.now()}});}catch(e){}toast('Deleted.',true);await loadCatalog();}catch(err){toast('Couldn’t delete: '+(err.message||'unknown error'));}}
+function cxRepaint(){const box=$('#dBody');if(box&&G.drawer&&G.drawer.type==='codex'){pend.delete('#dBody');box.innerHTML=box._h=vCodex();}}
+document.addEventListener('input',e=>{const el=e.target;if(!G.cx)return;const f=G.cx.form;
+ if(el.id==='cxQ'){G.cx.q=el.value;const b=$('#cxBody');if(b){const tmp=document.createElement('div');tmp.innerHTML=vCodex();const nb=tmp.querySelector('#cxBody');if(nb)b.innerHTML=nb.innerHTML;}}
+ if(f){if(el.id==='cxName')f.name=el.value;if(el.id==='cxDesc')f.desc=el.value;if(el.id==='cxAc')f.ac=el.value;if(el.id==='cxCap')f.cap=el.value;}});
+document.addEventListener('change',e=>{const el=e.target;const f=G.cx&&G.cx.form;if(!f)return;
+ if(el.id==='cxKind'){f.kind=el.value;cxRepaint();}if(el.id==='cxCat'){f.cat=el.value;cxRepaint();}if(el.id==='cxRar')f.rarity=el.value;if(el.id==='cxBase')f.base=el.value;if(el.id==='cxBonus')f.bonus=+el.value;});
+/* CODEX-END */
 const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
 function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
 function vVoxDrawer(){const D=G.voxDraft;const chars=G.chars.map(charInfo);const R=G.data.voxReady||[];
@@ -521,6 +586,15 @@ root.addEventListener('click',async e=>{
   case'dpoll':openDrawer('poll');break;
   case'dvox':openDrawer('vox');break;
   case'ditems':openDrawer('items');loadCatalog();break;
+  case'dcodex':openDrawer('codex');loadCatalog();break;
+  case'cxrar':G.cx.rar=b.dataset.v;render();break;
+  case'cxsrc':G.cx.src=b.dataset.v;render();break;
+  case'cxnew':G.cx.form={kind:'item',cat:'relic',rarity:'uncommon',bonus:0,base:'longsword'};render();break;
+  case'cxcancel':G.cx.form=null;render();break;
+  case'cxsave':await cxSave();break;
+  case'cxdel':await cxDelete(b.dataset.id);break;
+  case'cxedit':{const c=G.hb.find(x=>x.id===b.dataset.id);if(c){G.cx.form={id:c.id,name:c.name,kind:c.cat==='weapon'?'weapon':'item',cat:c.cat,rarity:c.rarity||'common',desc:c.desc||'',base:c.base,bonus:c.bonus||0,ac:c.armour?c.armour[0]:'',cap:c.armour&&c.armour[1]<99?c.armour[1]:''};render();const d=$('#dBody');if(d)d.scrollTop=0;}break;}
+  case'cxgive':{const c=[...((G.catalog||{}).items||[]),...G.hb].find(x=>x.id===b.dataset.id);G.items.q=c?c.name:'';openDrawer('items');break;}
   case'ito':{const I=G.items;if(b.dataset.id==='__stash')I.stash=!I.stash;else{const i=I.to.indexOf(b.dataset.id);i<0?I.to.push(b.dataset.id):I.to.splice(i,1);}render();break;}
   case'itoall':G.items.to=G.chars.map(r=>r.id);render();break;
   case'icat':G.items.cat=G.items.cat===b.dataset.v?'':b.dataset.v;render();break;

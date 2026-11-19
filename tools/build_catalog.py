@@ -4,9 +4,13 @@ Needs Playwright + Chrome (it loads index.html headless and reads the live catal
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-JS = """JSON.stringify({v:1,
- items:[...STD_ITEMS,...STD_WEAPONS,...CURIO_ITEMS].map(x=>{const o=Object.assign({},x);delete o.gmOnly;return o;}),
- cats:CAT_ORDER, d20:LOOT_D20.map(x=>x.id), d13:CURIOS.map(x=>x.id)})"""
+JS = """JSON.stringify({v:2,
+ items:[...STD_ITEMS,...STD_WEAPONS,...CURIO_ITEMS].map(x=>{const o=Object.assign({},x);delete o.gmOnly;
+  if(o.base&&WEAPONS[o.base]){const w=WEAPONS[o.base],b=W5E[o.base]||[];o.dice=w.dice||b[0];o.dtype=w.type||b[1];o.range=w.range||'';o.clip=w.clip||null;o.props=w.props||[];o.melee=!/ranged/.test(b[2]||'');o.base5e=niceKey(o.base);}
+  if(o.cat==='curio'){const n=LOOT_D20.indexOf(x);const m=CURIOS.indexOf(x);if(n>=0)o.d20=n+1;if(m>=0)o.d13=m+1;}
+  return o;}),
+ cats:CAT_ORDER, d20:LOOT_D20.map(x=>x.id), d13:CURIOS.map(x=>x.id), propText:PROP_TEXT,
+ weaponBases:Object.keys(W5E).filter(k=>WEAPONS[k]).map(k=>[k,WEAPONS[k].to])})"""
 async def main():
     exe = os.environ.get('CHROME', '/usr/bin/google-chrome')
     async with async_playwright() as p:
