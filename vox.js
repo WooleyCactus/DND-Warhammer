@@ -61,7 +61,7 @@
  #rtm-vox .log .it.new{border-color:#5fd06e}
  #rtm-vox .log .it b{color:#C8FFD0}
  #rtm-vox .log .it p{margin:4px 0 0;color:#86d892;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
- #rtm-voxfab{position:fixed;left:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:38;background:#0d1a0f;border:1px solid #3f8f4a;color:#9BF0A6;padding:9px 12px;font:700 13px 'Share Tech Mono',ui-monospace,monospace;letter-spacing:.06em;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+ #rtm-voxfab{position:fixed;left:14px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + var(--rtm-fab-lift,0px));z-index:38;background:#0d1a0f;border:1px solid #3f8f4a;color:#9BF0A6;padding:9px 12px;font:700 13px 'Share Tech Mono',ui-monospace,monospace;letter-spacing:.06em;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.6)}
  #rtm-voxfab i{font-style:normal;background:#B3262A;color:#fff;border-radius:9px;padding:1px 6px;margin-left:6px}`;
  function host(id){if(!document.getElementById('rtm-vox-css')){const st=document.createElement('style');st.id='rtm-vox-css';st.textContent=css;document.head.appendChild(st);}
   let el=document.getElementById(id);if(!el){el=document.createElement('div');el.id=id;document.body.appendChild(el);}return el;}

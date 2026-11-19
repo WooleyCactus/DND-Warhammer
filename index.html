@@ -240,6 +240,23 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
 
 /* dice: parchment slips */
+:root{--rtm-fab-lift:74px}
+#dtray{position:fixed;left:max(14px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:45;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;pointer-events:none}
+#dtray>*{pointer-events:auto}
+#dtray .dt-row{display:flex;align-items:center;gap:8px}
+#dtray .dt-fab{width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle at 40% 35%,#7a1a1a,#2a0808);color:var(--gold-hi,#F1D27A);display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 14px rgba(200,162,74,.25);transition:transform .15s}
+#dtray .dt-fab:hover{transform:scale(1.06)}#dtray .dt-fab svg{width:34px;height:34px}
+#dtray.open .dt-fab{transform:rotate(-20deg)}
+#dtray .dt-menu{display:none;flex-direction:column-reverse;gap:6px;padding-left:5px}#dtray.open .dt-menu{display:flex}
+#dtray .dt-die{position:relative;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:#16110d;color:var(--gold-hi,#F1D27A);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.7),0 0 0 1px #000;user-select:none;-webkit-user-select:none}
+#dtray.anim .dt-die{animation:dtin .18s ease-out both}#dtray .dt-die:hover{border-color:var(--gold)}#dtray .dt-die svg{width:40px;height:40px}
+#dtray .dt-die i{position:absolute;right:-5px;top:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--gold);color:#1a1208;font:700 12px/20px ui-monospace,Menlo,monospace;font-style:normal;text-align:center;box-shadow:0 0 0 2px #0b0806}
+#dtray .dt-roll{display:flex;align-items:center;gap:0;border:1px solid var(--gold);background:#1f1a12;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+#dtray .dt-roll button{background:none;border:0;color:var(--gold-hi,#F1D27A);cursor:pointer;font:700 14px ui-monospace,Menlo,monospace;padding:10px 12px}
+#dtray .dt-roll .go{background:var(--gold);color:#1a1208;font-family:inherit;letter-spacing:.1em;text-transform:uppercase}
+#dtray .dt-roll .mod{padding:10px 6px;color:var(--muted)}
+@keyframes dtin{from{opacity:0;transform:translateY(10px) scale(.8)}to{opacity:1;transform:none}}
+@media print{#dtray{display:none}}
 .dice{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;max-width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
 .die{pointer-events:auto;background:linear-gradient(180deg,#e2d1a8,var(--parch));color:var(--parch-ink);padding:9px 14px 9px 14px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.7),0 0 0 1px #7a6440;animation:pop .18s ease-out;position:relative;font-family:var(--f-body)}
 .die::before{content:"+++";font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;color:#7a2a1c;display:block}
@@ -3424,6 +3441,38 @@ function go(view,extra){Object.assign(S,{view,confirmDel:false,perils:null},extr
 
 /* ---------- dice ---------- */
 // Every die the app rolls goes on the tape; pushRoll hands it to the 3D dice (dice3d.js), which land on these exact numbers.
+/* DICETRAY-START */
+// Free dice tray, bottom-left (like D&D Beyond): tap the d20, tap dice to add (right-click / long-press removes one), Roll.
+const DT={open:false,n:{4:0,6:0,8:0,10:0,12:0,20:0},mod:0};
+function dtSvg(f){const P={4:'24,5 43,39 5,39',6:'8,8 40,8 40,40 8,40',8:'24,3 44,24 24,45 4,24',10:'24,3 44,20 24,45 4,20',12:'24,3 44,17 37,41 11,41 4,17',20:'24,2 44,13 44,35 24,46 4,35 4,13'};
+ const inner=f===20?'<polygon points="24,12 36,32 12,32" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55"/>':'';
+ return `<svg viewBox="0 0 48 48" aria-hidden="true"><polygon points="${P[f]}" fill="#5a1414" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>${inner}<text x="24" y="${f===4?33:f===20?29:28}" text-anchor="middle" font-size="${f>=10?11:12}" font-weight="700" fill="currentColor" font-family="ui-monospace,Menlo,monospace">${f}</text></svg>`;}
+function dtNote(){const p=[4,6,8,10,12,20].filter(f=>DT.n[f]).map(f=>`${DT.n[f]}d${f}`);return p.join(' + ')+(DT.mod?` ${DT.mod>0?'+':'−'} ${Math.abs(DT.mod)}`:'');}
+function dtDraw(){let el=document.getElementById('dtray');if(!el){el=document.createElement('div');el.id='dtray';document.body.appendChild(el);dtWire(el);}
+ const any=[4,6,8,10,12,20].some(f=>DT.n[f]);el.classList.toggle('open',DT.open);el.classList.toggle('anim',!!DT.anim);DT.anim=false;
+ el.innerHTML=`<div class="dt-row"><button class="dt-fab" data-dt="toggle" title="${DT.open?'Close the dice tray':'Roll dice'}" aria-label="Dice tray">${dtSvg(20).replace('#5a1414','none')}</button>
+  ${any?`<div class="dt-roll"><button data-dt="clear" title="Clear">✕</button><button class="mod" data-dt="mod-" title="−1 modifier">−</button><button class="mod" data-dt="mod+" title="+1 modifier">+</button><button class="go" data-dt="roll">Roll ${esc(dtNote())}</button></div>`:''}</div>
+  <div class="dt-menu">${[4,6,8,10,12,20].map((f,i)=>`<button class="dt-die" data-dt="add" data-f="${f}" title="Add a d${f} (right-click or hold to remove)" style="animation-delay:${i*25}ms">${dtSvg(f)}${DT.n[f]?`<i>${DT.n[f]}</i>`:''}</button>`).join('')}</div>`;}
+function dtWire(el){let hold=0,held=false;
+ const remove=f=>{if(DT.n[f]>0){DT.n[f]--;dtDraw();}};
+ el.addEventListener('click',e=>{const b=e.target.closest('[data-dt]');if(!b)return;if(held){held=false;return;}const k=b.dataset.dt;
+  if(k==='toggle'){DT.open=!DT.open;DT.anim=DT.open;if(DT.open&&window.Dice3D)Dice3D.preload();}
+  else if(k==='add'){DT.n[+b.dataset.f]=Math.min(15,DT.n[+b.dataset.f]+1);}
+  else if(k==='clear'){Object.keys(DT.n).forEach(f=>DT.n[f]=0);DT.mod=0;}
+  else if(k==='mod-')DT.mod--;else if(k==='mod+')DT.mod++;
+  else if(k==='roll')dtRoll();
+  dtDraw();});
+ el.addEventListener('contextmenu',e=>{const b=e.target.closest('[data-dt=add]');if(b){e.preventDefault();remove(+b.dataset.f);}});
+ el.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-dt=add]');if(!b)return;clearTimeout(hold);hold=setTimeout(()=>{held=true;remove(+b.dataset.f);},500);});
+ ['pointerup','pointerleave','pointercancel'].forEach(t=>el.addEventListener(t,()=>clearTimeout(hold)));
+ document.addEventListener('click',e=>{if(DT.open&&!e.composedPath().includes(el)){DT.open=false;dtDraw();}});}
+function dtRoll(){const parts=[];let total=0;const label=dtNote();
+ [4,6,8,10,12,20].forEach(f=>{if(!DT.n[f])return;const r=[];for(let i=0;i<DT.n[f];i++)r.push(die(f));total+=r.reduce((a,b)=>a+b,0);parts.push(`${DT.n[f]}d${f}[${r.join(',')}]`);});
+ total+=DT.mod;const one20=DT.n[20]===1&&Object.keys(DT.n).every(f=>f==='20'||!DT.n[f]);const nat=one20?TAPE[TAPE.length-1][1]:0;
+ pushRoll({label,total,detail:parts.join(' ')+(DT.mod?' '+sgn(DT.mod):''),crit:nat===20,fail:one20&&nat===1});
+ Object.keys(DT.n).forEach(f=>DT.n[f]=0);DT.mod=0;DT.open=false;}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dtDraw);else setTimeout(dtDraw,0);
+/* DICETRAY-END */
 let TAPE=[];function die(f){const v=1+Math.floor(Math.random()*f);TAPE.push([f,v]);return v;}
 function rollExpr(expr){
  const s=String(expr||'').replace(/−/g,'-');const parts=[];let total=0;let m;const rx=/(\d*)d(\d+)/gi;let rest=s;
