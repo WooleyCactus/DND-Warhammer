@@ -687,7 +687,12 @@ function swapOne(s,id){const P=poolOf(s);const cur=P.find(x=>x.id===id);if(!cur|
 // ---- item cards ----
 function imgSlug(it){return iN(it.name);}
 function phFor(it){return ICON_PH[it.service?'service':isWpn(it)?(it.cls||'melee'):it.cat]||'📦';}
-function imgTag(it){const slug=imgSlug(it);return `<img src="img/items/${slug}.webp" alt="" loading="lazy" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='img/items/${slug}.png';}else{this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'${phFor(it)}'}));}">`;}
+// pictures: Supabase bucket "item-images" (file name = squashed item name + .webp/.png/.jpg), listed once via item_images()
+let IMGS=null,imgsLoading=false;
+async function loadImgs(){if(IMGS||imgsLoading||!G.client)return;imgsLoading=true;try{const {data}=await G.client.rpc('item_images');IMGS={};(data||[]).forEach(n=>{const m=String(n).match(/^(.*)\.(webp|png|jpe?g)$/i);if(m)IMGS[iN(m[1])]=n;});}catch(e){IMGS={};}imgsLoading=false;render();}
+function imgTag(it){const slug=imgSlug(it);if(!IMGS)loadImgs();const f=IMGS&&IMGS[slug];
+ if(!f)return `<span class="ph">${phFor(it)}</span>`;
+ return `<img src="${SUPA_URL}/storage/v1/object/public/item-images/${encodeURIComponent(f)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'${phFor(it)}'}))">`;}
 function statBoxes(it){const B=(k,v)=>`<div class="ic-stat"><span class="k">${k}</span><span class="v">${v}</span></div>`;
  if(isWpn(it)&&it.dice){const flame=(it.props||[]).includes('Flame');return B('Damage',`${esc(it.dice)}${+it.bonus?'+'+it.bonus:''} <small>${esc(it.dtype||'')}</small>`)+B(flame?'Cone':'Range',it.range?`${esc(it.range)}<small> ft</small>`:'Melee')+(it.clip?B('Clip',esc(it.clip)):'');}
  if(Array.isArray(it.armour)){const [a,c]=it.armour;return B('AC',`${a}${c>=99?'<small> + Dex</small>':c>0?`<small> + Dex (max ${c})</small>`:''}`)+B('Type',`<small>${a>=16||c===0?'Heavy':c>=99?'Light':'Medium'}</small>`);}

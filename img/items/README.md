@@ -1,1 +1,1 @@
-Drop item pictures here, named as in prompts.csv (e.g. lasgun.webp; .png also works). Square, ~512px. The GM Shops cards pick them up automatically; missing ones show an icon.
+Item pictures live in the Supabase Storage bucket `item-images` (public). File name = the item name with spaces/punctuation removed, e.g. `lasgun.webp`, `combatshotgun.png` (case and punctuation are ignored when matching). See prompts.csv for every file name. Square, ~512px.
