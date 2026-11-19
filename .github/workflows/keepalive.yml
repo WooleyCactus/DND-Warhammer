@@ -1,10 +1,10 @@
 name: Keep Supabase awake
 
 # Free Supabase projects pause after 7 days without activity.
-# This calls the party API every 3 days so it stays live between sessions.
+# This calls the party API every day (every 3 days was not enough: it paused on 2026-11-17) so it stays live between sessions.
 on:
   schedule:
-    - cron: "17 15 */3 * *"
+    - cron: "17 15 * * *"
   workflow_dispatch:
 
 jobs:
