@@ -226,6 +226,7 @@ function vCmd(){
  const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
  return`<div class="grp"><span class="lbl">Map</span>${has?`<span class="tag ${meta.live===false?'bad':'ok'}">${meta.live===false?'🔒 Hidden from players':'👁 Players can see it'}</span><button class="sm ${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal':'Hide'}</button>`:'<span class="tag">No map yet</span>'}<button class="sm ${has?'':'pri'}" data-act="dnewmap">${has?'New map':'Generate a map'}</button></div>
  <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
+ <div class="grp"><span class="lbl">Items</span><button class="sm" data-act="ditems">🎁 Give items</button></div>
  <div class="grp"><span class="lbl">Vox</span>${(G.data.voxReady||[]).map(r=>`<button class="sm pri" data-act="vfire" data-id="${esc(r.id)}" title="${esc(r.text)}">📡 ${esc(r.label||r.from||'Vox')}</button>`).join('')}<button class="sm" data-act="dvox">${(G.data.voxReady||[]).length?'Vox…':'Send a vox'}</button></div>
  <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
@@ -296,7 +297,7 @@ function drawerTitle(){const d=G.drawer;if(!d)return'';
  if(d.type==='npc'){const n=G.data.npcs.find(x=>x.id===d.id);return n?n.name||'NPC':'NPC';}
  if(d.type==='pc')return charName(d.id);
  if(d.type==='tok'){const t=mapToks()[d.id];return t?t.name||'Token':'Token';}
- return{vox:'Vox transmissions',poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
+ return{items:'Give items',vox:'Vox transmissions',poll:'Polls',factions:'Factions',import:'Import / export story',sessions:'All sessions',newmap:'New battle map'}[d.type]||'';}
 function vDrawer(){const d=G.drawer;
  if(d.type==='arc'){const i=G.data.story.arcs.findIndex(x=>x.id===d.id);if(i<0){G.drawer=null;return'';}const a=G.data.story.arcs[i];
   return`<div class="grid"><label>Name<input data-k="story.arcs.${i}.title" value="${esc(a.title)}"></label><label>Type<select data-ch="story.arcs.${i}.kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${a.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -326,6 +327,7 @@ function vDrawer(){const d=G.drawer;
  if(d.type==='tok')return vTok(d.id);
  if(d.type==='poll')return vPollDrawer();
  if(d.type==='vox')return vVoxDrawer();
+ if(d.type==='items')return vItemsDrawer();
  if(d.type==='factions')return`${G.data.factions.map((f,i)=>`<div class="pc" style="cursor:default"><div class="row"><input class="grow" data-k="factions.${i}.name" value="${esc(f.name)}" placeholder="Faction"><label class="ck">Standing<select data-ch="factions.${i}.standing">${[-3,-2,-1,0,1,2,3].map(v=>`<option value="${v}" ${+f.standing===v?'selected':''}>${sgn(v)}</option>`).join('')}</select></label><button class="sm ghost" data-act="rmconfirm" data-p="factions" data-i="${i}" data-name="${esc(f.name)}" aria-label="Remove">✕</button></div>
    <input data-k="factions.${i}.motive" value="${esc(f.motive||'')}" placeholder="What they want"><textarea data-k="factions.${i}.notes" placeholder="Notes">${esc(f.notes||'')}</textarea></div>`).join('')||'<p class="empty">No factions yet.</p>'}
    <div class="row"><input class="grow" id="newFac" placeholder="New faction"><button class="sm" data-act="addfac">Add</button></div>`;
@@ -383,6 +385,70 @@ function vPollDrawer(){const D=G.pollDraft;const chars=G.chars.map(charInfo);
   <div class="row"><span style="flex:1" class="muted">Players get polls once they've claimed their character with a PIN.</span><button class="pri" data-act="psend" ${chars.length?'':'disabled'}>Send</button></div>
   <h2>Sent</h2>${pollGroups().map(groupCard).join('')||'<p class="empty">Nothing sent yet.</p>'}`;}
 
+/* ITEMS-START: GM Items panel. Catalogue from catalog.json (tools/build_catalog.py) + homebrew from the star chart. */
+G.items={to:[],stash:false,q:'',cat:'',qty:1,roll:null,log:[],c:{name:'',cat:'gear',rarity:'common',desc:'',ac:'',cap:''},thr:''};G.catalog=null;G.hb=[];
+const iN=x=>String(x??'').toLowerCase().replace(/[^a-z0-9]/g,'');const iSing=x=>iN(x).replace(/s$/,'');
+const niceKey=k=>k.replace(/(hand|light|heavy|short|long|great|battle|war|quarter|morning)(?=[a-z])/,'$1 ').replace(/^./,c=>c.toUpperCase());
+const RARC={common:'#A0957D',uncommon:'#7FA36A',rare:'#5B8FD0',veryrare:'#8E5BC4',legendary:'#D08A2E'};
+async function loadCatalog(){if(!G.catalog){try{const r=await fetch('catalog.json',{cache:'no-cache'});G.catalog=await r.json();}catch(e){G.catalog={items:[],cats:[],d20:[],d13:[]};}}
+ try{const c=await rpc('chart_get',{p_party:G.code});G.hb=((c&&c.catalog)||[]).map(x=>Object.assign({},x,{hb:true}));}catch(e){}render();}
+function allItems(){return [...((G.catalog&&G.catalog.items)||[]),...G.hb].filter(x=>x.cat!=='money');}
+function itemById(id){return allItems().find(x=>x.id===id);}
+function itemRow(c,act,extra){return`<div class="pc" style="cursor:default;border-left:3px solid ${RARC[c.rarity]||RARC.common}"><div class="row"><b class="grow">${esc(c.name)}</b><span class="muted">${esc(c.cat||'')}${c.rarity&&c.rarity!=='common'?' · '+esc(c.rarity):''}</span><button class="sm pri" data-act="${act}" data-id="${esc(c.id||'')}">Give</button></div>${c.desc?`<div class="muted" style="font-size:13px">${esc(c.desc)}</div>`:''}${extra||''}</div>`;}
+function itemResults(){const I=G.items;const q=iN(I.q);if(!q&&!I.cat)return'<p class="empty">Search or pick a category.</p>';
+ const list=allItems().filter(c=>(!I.cat||c.cat===I.cat)&&(!q||iN(c.name).includes(q)||iN(c.desc).includes(q))).slice(0,30);
+ return list.length?list.map(c=>itemRow(c,'igive')).join(''):'<p class="empty">Nothing matches. Make it as a custom item below.</p>';}
+function vItemsDrawer(){if(!G.catalog)loadCatalog();const I=G.items;const chars=G.chars.map(charInfo);const C=I.c;
+ const cats=((G.catalog&&G.catalog.cats)||[]).filter(([k])=>k!=='money');
+ const roll=I.roll?(()=>{const c=itemById(I.roll.id);return c?`<div style="margin-top:6px"><div class="muted">${esc(I.roll.die)}: <b style="color:var(--gold-hi)">${I.roll.n}</b></div>${itemRow(c,'igive')}</div>`:'';})():'';
+ return`<p class="muted" style="margin:0">Pick who gets it, then roll or find an item and tap Give. It goes straight onto their sheets (or into the Ship's armoury).</p>
+  <div><div class="muted" style="margin-bottom:4px">Give to</div><div class="row">${chars.map(c=>`<button class="sm ${I.to.includes(c.id)?'on':''}" data-act="ito" data-id="${esc(c.id)}">${esc(c.name.split(',')[0])}</button>`).join('')}<button class="sm ${I.stash?'on':''}" data-act="ito" data-id="__stash">🛡 Ship's armoury</button><button class="sm ghost" data-act="itoall">All players</button></div></div>
+  <div class="row"><label class="ck">Quantity <input id="iQty" type="number" min="1" value="${esc(I.qty)}" style="width:5em"></label></div>
+  <h2>Roll loot</h2><div class="row"><button data-act="iroll" data-v="d20">Enemy loot (d20)</button><button data-act="iroll" data-v="d13">Special curio (d13)</button></div>${roll}
+  <h2>Find an item</h2><input id="iQ" value="${esc(I.q)}" placeholder="lasgun, stimm, carapace, squig…" autocomplete="off">
+  <div class="row">${cats.map(([k,l])=>`<button class="sm ${I.cat===k?'on':''}" data-act="icat" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
+  <div id="iRes" class="lst">${itemResults()}</div>
+  <h2>Custom item</h2>
+  <div class="grid"><label>Name<input id="icName" value="${esc(C.name)}" placeholder="Choir codebook"></label><label>Category<select id="icCat">${cats.filter(([k])=>k!=='weapon').map(([k,l])=>`<option value="${esc(k)}" ${C.cat===k?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+   <label>Rarity<select id="icRar">${Object.keys(RARC).map(r=>`<option ${C.rarity===r?'selected':''}>${r}</option>`).join('')}</select></label></div>
+  <label>Description<textarea id="icDesc" placeholder="What it does, what it's worth">${esc(C.desc)}</textarea></label>
+  ${C.cat==='armour'?`<div class="grid"><label>Armour AC (base)<input id="icAc" type="number" value="${esc(C.ac)}" placeholder="13"></label><label>Max Dex bonus (blank = no limit, 0 = none)<input id="icCap" type="number" value="${esc(C.cap)}" placeholder="2"></label></div>`:''}
+  <div class="row"><span style="flex:1"></span><button class="pri" data-act="icgive">Give custom item</button></div>
+  <h2>Thrones</h2><div class="row"><input id="iThr" type="number" min="1" value="${esc(I.thr)}" placeholder="amount each" style="width:9em"><button class="pri" data-act="ithr">Give to each picked player</button></div>
+  ${I.log.length?`<h2>Given this session</h2><div class="muted" style="font-size:13px">${I.log.slice(0,12).map(l=>esc(l)).join('<br>')}</div>`:''}`;}
+function giveTo(d,c,qty){const st=d.state=d.state||{};const src=d.src=d.src||{};
+ if(c.cat==='weapon'&&c.base){src.weapons=src.weapons||[];for(let n=0;n<qty;n++){const i=src.weapons.length;src.weapons.push({name:niceKey(c.base),atk:'',dmg:'',calc:true});st.wx=st.wx||{};const wx=st.wx[i]={};if(c.hb){wx.name=c.name;wx.rarity=c.rarity;wx.bonus=+c.bonus||0;wx.desc=c.desc;}}return true;}
+ if(!Array.isArray(st.inv))return false;
+ const ex=st.inv.find(x=>(c.att&&x.att===c.att)||(x.cid&&x.cid===c.id)||(!x.cid&&!c.hb&&iSing(x.name)===iSing(c.name)));
+ if(ex){ex.qty=(+ex.qty||0)+qty;if(!ex.cid)ex.cid=c.id;}
+ else st.inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour});
+ return true;}
+async function giveItems(c,qty){const I=G.items;if(!I.to.length&&!I.stash){toast('Pick who gets it first.');return;}
+ qty=Math.max(1,Math.round(+qty||1));const done=[],skip=[];
+ try{const rows=I.to.length?await rpc('party_list',{p_party:G.code}):[];
+  for(const id of I.to){const fresh=rows.find(r=>r.id===id);if(!fresh)continue;const d=clone(fresh.data);const nm=((d.src&&d.src.name)||'?').split(',')[0];
+   if(!giveTo(d,c,qty)){skip.push(nm);continue;}d.updatedAt=Date.now();
+   await rpc('party_save',{p_party:G.code,p_id:id,p_data:Object.assign({},d,{_auth:G.pin})});done.push(nm);}
+  if(I.stash){const it={key:c.id,id:c.id,name:c.name,cat:c.cat,rarity:c.rarity,desc:c.desc,base:c.base,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour};
+   await rpc('stash_store',{p_party:G.code,p_char:null,p_pin:G.pin,p_who:'GM',p_item:it,p_qty:qty});done.push("Ship's armoury");}
+  try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
+  if(done.length){I.log.unshift(`${c.name} ×${qty} → ${done.join(', ')}`);toast(`${c.name} ×${qty} given to ${done.join(', ')}.`,true);}
+  if(skip.length)toast(`${skip.join(', ')}: open their sheet once first, then try again.`);
+  await loadChars();render();
+ }catch(err){toast('Couldn’t give it: '+(err.message||'unknown error'));}}
+async function giveThrones(n){const I=G.items;n=Math.round(+n||0);if(n<=0){toast('Enter an amount.');return;}if(!I.to.length){toast('Pick at least one player.');return;}
+ try{const rows=await rpc('party_list',{p_party:G.code});const done=[];
+  for(const id of I.to){const fresh=rows.find(r=>r.id===id);if(!fresh)continue;const d=clone(fresh.data);d.state=d.state||{};d.state.thrones=(+d.state.thrones||0)+n;d.state.thrLog=[{d:n,t:Date.now()},...(d.state.thrLog||[])].slice(0,12);d.updatedAt=Date.now();
+   await rpc('party_save',{p_party:G.code,p_id:id,p_data:Object.assign({},d,{_auth:G.pin})});done.push(((d.src&&d.src.name)||'?').split(',')[0]);}
+  try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
+  I.log.unshift(`${n.toLocaleString()} Thrones each → ${done.join(', ')}`);I.thr='';toast(`${n.toLocaleString()} Thrones each to ${done.join(', ')}.`,true);await loadChars();render();
+ }catch(err){toast('Couldn’t give Thrones: '+(err.message||'unknown error'));}}
+document.addEventListener('input',e=>{const el=e.target;if(!G.items)return;const I=G.items,C=I.c;
+ if(el.id==='iQ'){I.q=el.value;const r=$('#iRes');if(r)r.innerHTML=itemResults();}
+ if(el.id==='iQty')I.qty=el.value;if(el.id==='iThr')I.thr=el.value;
+ if(el.id==='icName')C.name=el.value;if(el.id==='icDesc')C.desc=el.value;if(el.id==='icAc')C.ac=el.value;if(el.id==='icCap')C.cap=el.value;});
+document.addEventListener('change',e=>{const el=e.target;if(!G.items)return;const C=G.items.c;if(el.id==='icCat'){C.cat=el.value;const box=$('#dBody');if(box){pend.delete('#dBody');box.innerHTML=box._h=vDrawer();}}if(el.id==='icRar')C.rarity=el.value;});
+/* ITEMS-END */
 const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
 function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
 function vVoxDrawer(){const D=G.voxDraft;const chars=G.chars.map(charInfo);const R=G.data.voxReady||[];
@@ -454,6 +520,15 @@ root.addEventListener('click',async e=>{
   case'dnpc':openDrawer('npc',b.dataset.id);break;
   case'dpoll':openDrawer('poll');break;
   case'dvox':openDrawer('vox');break;
+  case'ditems':openDrawer('items');loadCatalog();break;
+  case'ito':{const I=G.items;if(b.dataset.id==='__stash')I.stash=!I.stash;else{const i=I.to.indexOf(b.dataset.id);i<0?I.to.push(b.dataset.id):I.to.splice(i,1);}render();break;}
+  case'itoall':G.items.to=G.chars.map(r=>r.id);render();break;
+  case'icat':G.items.cat=G.items.cat===b.dataset.v?'':b.dataset.v;render();break;
+  case'iroll':{const L=(G.catalog||{})[b.dataset.v]||[];if(!L.length){toast('Catalogue still loading.');break;}const n=1+Math.floor(Math.random()*L.length);G.items.roll={die:b.dataset.v,n,id:L[n-1]};render();break;}
+  case'igive':{const c=itemById(b.dataset.id);if(c)await giveItems(c,G.items.qty);break;}
+  case'icgive':{const C=G.items.c;if(!C.name.trim()){toast('Give the item a name.');break;}const c={id:'x:'+iN(C.name),name:C.name.trim(),cat:C.cat,rarity:C.rarity,desc:C.desc.trim()};
+   if(C.cat==='armour'&&C.ac!==''){c.armour=[+C.ac,C.cap===''?99:+C.cap];}await giveItems(c,G.items.qty);break;}
+  case'ithr':await giveThrones(G.items.thr);break;
   case'vto':{const t=G.voxDraft.to;const i=t.indexOf(b.dataset.id);i<0?t.push(b.dataset.id):t.splice(i,1);Object.assign(G.voxDraft,voxFromForm(),{to:t});render();break;}
   case'vtoall':Object.assign(G.voxDraft,voxFromForm(),{to:[]});render();break;
   case'vsend':{const m=voxFromForm();if(await voxSend(m)){G.voxDraft={to:[],style:m.style};render();}break;}
