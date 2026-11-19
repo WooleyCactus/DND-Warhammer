@@ -124,6 +124,27 @@ table.st s{color:var(--muted)}
 .cart table.st input{width:7em;text-align:right}
 .tot{display:flex;justify-content:space-between;font:700 16px var(--f-mono)}
 .neg{color:#ff8487}
+.icg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.ic{background:linear-gradient(180deg,#1f1a15,#141110);border:1px solid var(--line);border-top:3px solid var(--rc,#A0957D);display:flex;flex-direction:column}
+.ic-img{height:130px;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,rgba(200,162,74,.12),transparent 70%),#0e0c0a;border-bottom:1px solid var(--line);overflow:hidden}
+.ic-img img{max-width:100%;max-height:100%;object-fit:contain}
+.ic-img .ph{font-size:46px;opacity:.55;filter:grayscale(.3)}
+.ic-b{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ic-top{display:flex;gap:6px;align-items:baseline}.ic-top b{font:700 17px var(--f-display);color:var(--ink);flex:1;line-height:1.15}
+.ic-rr{font:700 10px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--rc)}
+.ic-sub{font-size:12px;color:var(--muted);margin-top:-6px}
+.ic-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+.ic-stat{background:#0b0a08;border:1px solid var(--line);padding:5px 7px}
+.ic-stat .k{display:block;font:700 9.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ic-stat .v{display:block;font:700 18px var(--f-mono);color:var(--gold-hi);line-height:1.2}
+.ic-stat .v small{font-size:12px;color:var(--ink);font-weight:400}
+.ic-tags{display:flex;flex-wrap:wrap;gap:4px}.ic-tags span{font-size:11.5px;border:1px solid var(--line);padding:1px 6px;color:var(--ink);background:#0b0a08;cursor:help}
+.ic-tags span.once{border-color:var(--warn);color:var(--warn)}
+.ic-desc{font-size:13.5px;color:var(--muted);line-height:1.35}
+.ic-buy{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:6px;border-top:1px dashed var(--line)}
+.ic-buy .pr{font:700 20px var(--f-mono);color:var(--gold-hi);flex:1}.ic-buy .pr s{font-size:13px;color:var(--muted);margin-left:6px;font-weight:400}
+.shsec{font:700 13px var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:6px 0 0;display:flex;gap:8px;align-items:center}
+.shsec .n{color:var(--muted);font-family:var(--f-mono)}
 #drawer .dh{display:flex;align-items:center;gap:8px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
 #drawer .dh b{font:700 15px var(--f-display);color:var(--gold-hi);flex:1}
 #drawer .db{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:max(30px,env(safe-area-inset-bottom))}
@@ -545,8 +566,11 @@ function vTabs(){return [['cc','Command center'],['items','Give items'],['codex'
 function setTab(t){G.tab=t;lsSet('rtm.gm.tab',t==='cc'?null:t);if(G.drawer&&['items','codex'].includes(G.drawer.type))G.drawer=null;if(t!=='cc')loadCatalog();if(t==='shops')ensureShops();window.scrollTo(0,0);render();}
 G.shop={sel:null,buyer:null,back:false,trusted:false,pct:0,cart:[],edit:false,q:'',deliver:'buyer',offers:{},cf:{name:'',cost:'',desc:'',service:false,back:false}};
 let shopsLoading=false;
-async function ensureShops(){if(!G.data||Array.isArray(G.data.shops)||shopsLoading)return;shopsLoading=true;
- try{const r=await fetch('shops.json',{cache:'no-cache'});const j=await r.json();if(!Array.isArray(G.data.shops)){G.data.shops=j.shops||[];dirty();}}catch(e){if(!Array.isArray(G.data.shops))G.data.shops=[];}
+async function ensureShops(){if(!G.data||shopsLoading)return;if(Array.isArray(G.data.shops)&&G.data.shopsV>=2)return;shopsLoading=true;
+ try{const r=await fetch('shops.json',{cache:'no-cache'});const j=await r.json();
+  if(!Array.isArray(G.data.shops)){G.data.shops=j.shops||[];}
+  else (j.shops||[]).forEach(d=>{const s=G.data.shops.find(x=>x.id===d.id);if(!s)return;s.rules=s.rules||d.rules;['shelf','back'].forEach(k=>{s[k]=s[k]||[];(d[k]||[]).forEach(id=>{if(!s[k].includes(id))s[k].push(id);});});});
+  G.data.shopsV=2;dirty();}catch(e){if(!Array.isArray(G.data.shops))G.data.shops=[];}
  shopsLoading=false;render();}
 function curShop(){const L=(G.data&&G.data.shops)||[];return L.find(x=>x.id===G.shop.sel)||L[0]||null;}
 function shopItem(s,id){return (s.custom||[]).find(x=>x.id===id)||itemById(id)||G.hb.find(x=>x.id===id)||null;}
@@ -563,7 +587,7 @@ function stockLine(it){if(it.cat==='weapon'&&it.dice)return `${it.dice} ${it.dty
  const d=String(it.desc||'');return d.length>110?d.slice(0,107)+'…':d;}
 function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||null;if(!L){ensureShops();return '<section class="box"><p class="muted">Opening the shops…</p></section>';}
  const S=G.shop;const s=curShop();if(s&&!S.sel)S.sel=s.id;const si=L.indexOf(s);
- const list=`<aside class="box shl"><h2>Shops<span class="sp"></span><span class="n">${L.length}</span></h2>${L.map(x=>`<button class="shb ${s&&x.id===s.id?'on':''}" data-act="shsel" data-id="${esc(x.id)}">${esc(x.name)}<small>${esc(x.place||'')}</small></button>`).join('')}<button class="sm" data-act="shnew">+ New shop</button></aside>`;
+ const list=`<aside class="box shl"><h2>Shops<span class="sp"></span><span class="n">Day ${G.data.shopDay||1}</span></h2><button class="sm pri" data-act="shnewday" title="Advance the in-game day and restock every shop">🎲 New day: restock all</button>${L.map(x=>`<button class="shb ${s&&x.id===s.id?'on':''}" data-act="shsel" data-id="${esc(x.id)}">${esc(x.name)}<small>${esc(x.place||'')}</small></button>`).join('')}<button class="sm" data-act="shnew">+ New shop</button></aside>`;
  if(!s)return `<div class="shopw">${list}<section class="box"><p class="empty">No shops yet. Make one.</p></section></div>`;
  const chars=G.chars.map(charInfo);const buyer=chars.find(c=>c.id===S.buyer);
  const rows=shopStock(s).filter(r=>!r.back||S.back||S.edit);
@@ -580,10 +604,11 @@ function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||nu
    <h2>Custom item or service</h2><div class="grid"><label>Name<input id="scName" value="${esc(S.cf.name)}" placeholder="Berth (per day)"></label><label>Price ₮<input id="scCost" type="number" value="${esc(S.cf.cost)}"></label></div>
    <label>Description<input id="scDesc" value="${esc(S.cf.desc)}"></label><div class="row"><label class="ck"><input type="checkbox" id="scSvc" ${S.cf.service?'checked':''}> Service (charges Thrones, gives no item)</label><label class="ck"><input type="checkbox" id="scBack" ${S.cf.back?'checked':''}> Back room</label><span class="sp" style="flex:1"></span><button data-act="shcustom">Add</button></div>
    <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="shremove">Delete this shop</button></div>`:'';
- const main=`<section class="box"><h2>${esc(s.name)}<span class="sp"></span><button class="sm ${S.edit?'on':''}" data-act="shedit">${S.edit?'Done editing':'Edit shop'}</button></h2>${meta}
+ const main=`<section class="box"><h2>${esc(s.name)}<span class="sp"></span>${S.edit?'':`<button class="sm" data-act="shrestock" title="Re-roll this shop's stock">🎲 Restock</button>`}<button class="sm ${S.edit?'on':''}" data-act="shedit">${S.edit?'Done editing':'Edit shop'}</button></h2>${meta}
   ${S.edit?'':`<div class="row"><label class="ck"><input type="checkbox" id="shBack" ${S.back?'checked':''}> Back room open</label>${S.back?`<label class="ck"><input type="checkbox" id="shTrust" ${S.trusted?'checked':''}> Trusted customer (no +25% discretion fee)</label>`:''}</div>
   <div class="row"><span class="muted">Prices</span>${pctChips}<label class="ck">Custom % <input id="shPct" type="number" value="${esc(S.pct||'')}" style="width:5em"></label>${S.pct?'<button class="sm ghost" data-act="shpct" data-v="0">Reset</button>':''}</div>`}
-  ${table(shelf,'On the shelf')}${(S.back||S.edit)?table(back,'Back room'):`<p class="muted">The back room is closed. Tick "Back room open" when they bribe, bully, fast-talk or earn their way in.</p>`}${addUI}</section>`;
+  ${S.edit?`<p class="muted">Editing the full stock lists. Each restock picks from these: up to ${(s.rules||{}).weapons||6} weapons (${(s.rules||{}).uncommon||2} uncommon, the rest common), every common non-weapon plus ${(s.rules||{}).uncommon||2} uncommon, and ${(s.rules||{}).back||4} back-room items.</p>
+   <div class="row"><label class="ck">Weapons shown <input type="number" min="0" data-k2="weapons" value="${(s.rules||{}).weapons??6}" style="width:4em"></label><label class="ck">Uncommon picks <input type="number" min="0" data-k2="uncommon" value="${(s.rules||{}).uncommon??2}" style="width:4em"></label><label class="ck">Back-room picks <input type="number" min="0" data-k2="back" value="${(s.rules||{}).back??4}" style="width:4em"></label></div>`+table(shelf,'Shelf pool')+table(back,'Back-room pool'):shopCards(s)}${addUI}</section>`;
  const tot=cartTotal();const has=buyer?(buyer.thrones||0):null;
  const sellRows=buyer?sellables(buyer.id):[];
  const cart=`<aside class="box cart"><h2>Sale</h2>
@@ -635,11 +660,54 @@ document.addEventListener('input',e=>{const el=e.target;const S=G.shop;if(!S)ret
  if(el.id==='shPct'){S.pct=+el.value||0;}
  if(el.id==='scName')S.cf.name=el.value;if(el.id==='scCost')S.cf.cost=el.value;if(el.id==='scDesc')S.cf.desc=el.value;});
 document.addEventListener('change',e=>{const el=e.target;const S=G.shop;if(!S)return;
+ if(el.dataset&&el.dataset.k2){const s=curShop();if(s){s.rules=Object.assign({weapons:6,uncommon:2,back:4},s.rules||{});s.rules[el.dataset.k2]=Math.max(0,+el.value||0);dirty();}}
  if(el.id==='shBack'){S.back=el.checked;el.blur();render();}if(el.id==='shTrust'){S.trusted=el.checked;el.blur();render();}
  if(el.name==='shDel'){S.deliver=el.value;}
  if(el.dataset&&el.dataset.cart!=null){el.blur();pend.delete('#tabView');render();}
  if(el.id==='shPct'){el.blur();pend.delete('#tabView');render();}
  if(el.id==='scSvc')S.cf.service=el.checked;if(el.id==='scBack')S.cf.back=el.checked;});
+// ---- stock rotation ----
+const ICON_PH={pistol:'🔫',basic:'🎯',special:'🔥',heavy:'💥',thrown:'🪓',melee:'🗡️',twohanded:'⚔️',exotic:'✨',armour:'🛡️',grenade:'💣',ammo:'📦',attachment:'🔧',consumable:'💉',gear:'🎒',relic:'🏺',service:'🛎️',curio:'🎁'};
+const isWpn=it=>it&&it.cat==='weapon';
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function poolOf(s){const P=[];(s.shelf||[]).forEach(id=>{const it=shopItem(s,id);if(it)P.push({id,it,back:false});});(s.back||[]).forEach(id=>{const it=shopItem(s,id);if(it)P.push({id,it,back:true});});return P;}
+function rotate(s){const R=Object.assign({weapons:6,uncommon:2,back:4},s.rules||{});const P=poolOf(s).filter(x=>!x.back);const B=poolOf(s).filter(x=>x.back);
+ const rar=x=>x.it.rarity||'common';
+ const wU=shuffle(P.filter(x=>isWpn(x.it)&&rar(x)!=='common')).slice(0,R.uncommon);
+ const wC=shuffle(P.filter(x=>isWpn(x.it)&&rar(x)==='common')).slice(0,Math.max(0,R.weapons-wU.length));
+ const wFill=wU.length+wC.length<R.weapons?shuffle(P.filter(x=>isWpn(x.it)&&rar(x)!=='common'&&!wU.includes(x))).slice(0,R.weapons-wU.length-wC.length):[];
+ const gC=P.filter(x=>!isWpn(x.it)&&rar(x)==='common');const gU=shuffle(P.filter(x=>!isWpn(x.it)&&rar(x)!=='common')).slice(0,R.uncommon);
+ const hi=x=>!['common','uncommon'].includes(x.it.rarity||'common');const back=[...shuffle(B.filter(hi)),...shuffle(B.filter(x=>!hi(x)))].slice(0,R.back);
+ s.stock={shelf:[...wC,...wU,...wFill,...gC,...gU].map(x=>x.id),back:back.map(x=>x.id),day:(G.data.shopDay||1),at:Date.now()};}
+function ensureStock(s){if(!s.stock||!Array.isArray(s.stock.shelf)){rotate(s);dirty();}}
+function swapOne(s,id){const P=poolOf(s);const cur=P.find(x=>x.id===id);if(!cur||!s.stock)return false;
+ const inStock=new Set([...s.stock.shelf,...s.stock.back]);const same=x=>x.back===cur.back&&isWpn(x.it)===isWpn(cur.it)&&((x.it.rarity||'common')==='common')===((cur.it.rarity||'common')==='common');
+ const opts=P.filter(x=>same(x)&&!inStock.has(x.id));if(!opts.length)return false;const pick=opts[Math.floor(Math.random()*opts.length)];
+ const L=cur.back?s.stock.back:s.stock.shelf;L[L.indexOf(id)]=pick.id;return pick.it.name;}
+// ---- item cards ----
+function imgSlug(it){return iN(it.name);}
+function phFor(it){return ICON_PH[it.service?'service':isWpn(it)?(it.cls||'melee'):it.cat]||'📦';}
+function imgTag(it){const slug=imgSlug(it);return `<img src="img/items/${slug}.webp" alt="" loading="lazy" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='img/items/${slug}.png';}else{this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'${phFor(it)}'}));}">`;}
+function statBoxes(it){const B=(k,v)=>`<div class="ic-stat"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+ if(isWpn(it)&&it.dice){const flame=(it.props||[]).includes('Flame');return B('Damage',`${esc(it.dice)}${+it.bonus?'+'+it.bonus:''} <small>${esc(it.dtype||'')}</small>`)+B(flame?'Cone':'Range',it.range?`${esc(it.range)}<small> ft</small>`:'Melee')+(it.clip?B('Clip',esc(it.clip)):'');}
+ if(Array.isArray(it.armour)){const [a,c]=it.armour;return B('AC',`${a}${c>=99?'<small> + Dex</small>':c>0?`<small> + Dex (max ${c})</small>`:''}`)+B('Type',`<small>${a>=16||c===0?'Heavy':c>=99?'Light':'Medium'}</small>`);}
+ return '';}
+const CLS_LABEL={pistol:'Pistol',basic:'Basic weapon',special:'Special weapon',heavy:'Heavy weapon',thrown:'Thrown weapon',melee:'One-handed melee',twohanded:'Two-handed melee',exotic:'Exotic weapon'};
+function itemCard(s,r){const it=r.it;const S=G.shop;const p=listPrice(it,r.back);const base=+it.cost||0;const pt=(G.catalog&&G.catalog.propText)||{};
+ const sub=isWpn(it)?(CLS_LABEL[it.cls]||'Weapon'):it.service?'Service':(((G.catalog&&G.catalog.cats)||[]).find(c=>c[0]===it.cat)||[0,it.cat])[1];
+ const desc=isWpn(it)?(it.flavor||''):String(it.desc||'');
+ const tags=[...(it.props||[]).map(x=>`<span title="${esc(pt[x]||'')}">${esc(x)}</span>`),...(it.cat==='attachment'?['<span class="once" title="Installing it uses it up: it is fitted permanently and can\'t be removed or reused.">One-time fit</span>']:[]),...(r.back?['<span title="Back-room stock">Back room</span>']:[])].join('');
+ return `<article class="ic" style="--rc:${RARC[it.rarity||'common']||RARC.common}"><div class="ic-img">${imgTag(it)}</div><div class="ic-b">
+  <div class="ic-top"><b>${esc(it.name)}</b><span class="ic-rr">${esc(RLAB[it.rarity||'common']||'')}</span></div><div class="ic-sub">${esc(sub||'')}</div>
+  ${statBoxes(it)?`<div class="ic-stats">${statBoxes(it)}</div>`:''}${tags?`<div class="ic-tags">${tags}</div>`:''}${desc?`<div class="ic-desc">${esc(desc)}</div>`:''}
+  <div class="ic-buy"><span class="pr">${it.cost==null?'—':fmt(p)}${it.cost!=null&&p!==base?`<s>${fmt(base)}</s>`:''}</span>${r.custom?'':`<button class="sm ghost" data-act="shswap" data-id="${esc(r.id)}" title="Swap this for another random item of the same kind">🔄</button>`}<button class="sm pri" data-act="shadd" data-id="${esc(r.id)}" data-b="${r.back?1:0}">+ Cart</button></div></div></article>`;}
+function shopCards(s){const S=G.shop;ensureStock(s);const st=s.stock;
+ const shelf=st.shelf.map(id=>({id,it:shopItem(s,id),back:false,custom:false})).filter(r=>r.it);
+ const cust=(s.custom||[]).map(it=>({id:it.id,it,back:!!it.back,custom:true}));
+ const back=st.back.map(id=>({id,it:shopItem(s,id),back:true,custom:false})).filter(r=>r.it);
+ const W=shelf.filter(r=>isWpn(r.it)),Gd=shelf.filter(r=>!isWpn(r.it)),C=cust.filter(r=>!r.back),CB=cust.filter(r=>r.back);
+ const sec=(t,rs)=>rs.length?`<div class="shsec">${t}<span class="n">${rs.length}</span></div><div class="icg">${rs.map(r=>itemCard(s,r)).join('')}</div>`:'';
+ return sec('Weapons on the shelf',W)+sec('Gear on the shelf',Gd)+sec('Specials & services',C)+(S.back?sec('Back room',[...back,...CB]):`<p class="muted">The back room is closed. Tick "Back room open" when they bribe, bully, fast-talk or earn their way in.</p>`);}
 /* SHOPS-END */
 const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
 function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
@@ -713,6 +781,9 @@ root.addEventListener('click',async e=>{
   case'dpoll':openDrawer('poll');break;
   case'dvox':openDrawer('vox');break;
   case'tab':setTab(b.dataset.v);break;
+  case'shrestock':{const s=curShop();if(s){rotate(s);dirty();toast(`${s.name} restocked.`,true);render();}break;}
+  case'shnewday':{if(!confirm('Start a new day? Every shop restocks at random.'))break;G.data.shopDay=(G.data.shopDay||1)+1;(G.data.shops||[]).forEach(rotate);dirty();toast(`Day ${G.data.shopDay}: all shops restocked.`,true);render();break;}
+  case'shswap':{const s=curShop();const n=s&&swapOne(s,b.dataset.id);if(n){dirty();toast(`Swapped in ${n}.`,true);render();}else toast('Nothing else of that kind to swap in.');break;}
   case'shsel':G.shop.sel=b.dataset.id;G.shop.cart=[];G.shop.back=false;G.shop.trusted=false;G.shop.pct=0;G.shop.edit=false;render();break;
   case'shbuyer':G.shop.buyer=G.shop.buyer===b.dataset.id?null:b.dataset.id;render();break;
   case'shpct':G.shop.pct=+b.dataset.v===G.shop.pct?0:+b.dataset.v;render();break;
@@ -727,7 +798,7 @@ root.addEventListener('click',async e=>{
   case'shremove':{const s=curShop();if(s&&confirm(`Delete ${s.name}? Its stock list and sales log go with it.`)){G.data.shops=G.data.shops.filter(x=>x!==s);G.shop.sel=null;G.shop.edit=false;dirty();render();}break;}
   case'shstock':{const s=curShop();if(!s)break;const id=b.dataset.id;s.shelf=(s.shelf||[]).filter(x=>x!==id);s.back=(s.back||[]).filter(x=>x!==id);(b.dataset.b==='1'?s.back:s.shelf).push(id);dirty();toast('Added.',true);render();break;}
   case'shmove':{const s=curShop();if(!s)break;const id=b.dataset.id;const cu=(s.custom||[]).find(x=>x.id===id);if(cu){cu.back=!cu.back;}else if((s.shelf||[]).includes(id)){s.shelf=s.shelf.filter(x=>x!==id);s.back.push(id);}else{s.back=s.back.filter(x=>x!==id);s.shelf.push(id);}dirty();render();break;}
-  case'shdel':{const s=curShop();if(!s)break;const id=b.dataset.id;s.shelf=(s.shelf||[]).filter(x=>x!==id);s.back=(s.back||[]).filter(x=>x!==id);s.custom=(s.custom||[]).filter(x=>x.id!==id);dirty();render();break;}
+  case'shdel':{const s=curShop();if(!s)break;const id=b.dataset.id;if(s.stock){s.stock.shelf=s.stock.shelf.filter(x=>x!==id);s.stock.back=s.stock.back.filter(x=>x!==id);}s.shelf=(s.shelf||[]).filter(x=>x!==id);s.back=(s.back||[]).filter(x=>x!==id);s.custom=(s.custom||[]).filter(x=>x.id!==id);dirty();render();break;}
   case'shcustom':{const s=curShop();const f=G.shop.cf;if(!s||!f.name.trim()){toast('Give it a name.');break;}(s.custom=s.custom||[]).push({id:'x:'+iN(f.name)+uid().slice(0,3),name:f.name.trim(),cat:f.service?'service':'gear',service:!!f.service,back:!!f.back,rarity:'common',cost:Math.max(0,+f.cost||0),desc:f.desc.trim()});G.shop.cf={name:'',cost:'',desc:'',service:false,back:false};dirty();render();break;}
   case'ditems':setTab('items');break;
   case'dcodex':setTab('codex');break;

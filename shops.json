@@ -94,7 +94,12 @@
 "desc": "Brass Uncle's own +1 laspistol. Never jams. Only for trusted customers."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "hacksaw",
@@ -139,7 +144,10 @@
 "std:suppressionshield",
 "std:voidarmour",
 "std:enforcercarapace",
-"std:carapacechestplate"
+"std:carapacechestplate",
+"std:duellinggrip",
+"std:monomolecularedge",
+"std:shockcoil"
 ],
 "back": [
 "std:eviscerator",
@@ -188,7 +196,12 @@
 "desc": "Gristle beats extra plates on for the day."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "sundries",
@@ -253,7 +266,12 @@
 "desc": "A brass charm etched with three musical notes. Bram presses it on back-room customers. (Choir recruiting token.)"
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "junk",
@@ -315,7 +333,12 @@
 "desc": "10% of the part's price, plus a long rest to recover: set the final price."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "ghhul",
@@ -365,7 +388,12 @@
 "desc": "Once: you know the way out of any maze for 1 hour. Costs a minor memory."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "wazbolt",
@@ -397,7 +425,12 @@
 "desc": "One day. +1d4 damage on one gun and it gains Inaccurate. On a natural 1 to hit, roll d6: on a 1 it explodes for its own damage (DC 13 Dex half)."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "grox",
@@ -472,7 +505,12 @@
 "desc": "Where the Vell sit-down happens."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 },
 {
 "id": "ironjaw",
@@ -557,7 +595,12 @@
 "desc": "No questions. Back-room service."
 }
 ],
-"log": []
+"log": [],
+"rules": {
+"weapons": 6,
+"uncommon": 2,
+"back": 4
+}
 }
 ]
 }
