@@ -1,0 +1,563 @@
+{
+"v": 1,
+"shops": [
+{
+"id": "brass",
+"name": "Brass Uncle's Arms",
+"owner": "Brass Uncle (Veteran Warrior)",
+"place": "Bazaar of Hulls",
+"note": "Honest prices, no credit. Names every gun. Has seen a real Inquisitor (the forged rosette fails here). Back room: bribe 200+, Intimidate DC 18; advantage on Persuasion for anyone proficient with heavy weapons or tinker's tools.",
+"shelf": [
+"std:stubpistol",
+"std:pumpshotgun",
+"std:autopistol",
+"std:lasgun",
+"std:autogun",
+"std:lascarbine",
+"std:huntingrifle",
+"std:combatshotgun",
+"std:laspistol",
+"std:handcannon",
+"std:webpistol",
+"std:duellingpistol",
+"std:needlepistol",
+"std:webber",
+"std:handflamer",
+"std:longlas",
+"std:flamer",
+"std:grenadelauncher",
+"std:heavystubber",
+"std:hellgun",
+"std:stubrounds",
+"std:shotgunshells",
+"std:sparepowercell",
+"std:dumdumrounds",
+"std:promethiumcanister",
+"std:boltshells",
+"std:manstopperrounds",
+"std:webcanister",
+"std:toxrounds",
+"std:fragmissile",
+"std:smokegrenade",
+"std:chokegasgrenade",
+"std:blindgrenade",
+"std:photonflashgrenade",
+"std:incendiarygrenade",
+"std:stungrenade",
+"std:fraggrenade",
+"std:webgrenade",
+"std:krakgrenade",
+"std:bayonet",
+"std:suppressor",
+"std:extendedmagazine",
+"std:reddotsight",
+"std:duellinggrip",
+"std:telescopicsight",
+"std:monomolecularedge",
+"std:hotshotcells",
+"std:shockcoil",
+"std:underslunggrenadelauncher"
+],
+"back": [
+"std:boltpistol",
+"std:hellpistol",
+"std:needlerifle",
+"std:boltgun",
+"std:radiumcarbine",
+"std:plasmapistol",
+"std:arcrifle",
+"std:plasmagun",
+"std:heavyflamer",
+"std:missilelauncher",
+"std:infernoshells",
+"std:hotshotchargepack",
+"std:meltacanister",
+"std:krakmissile",
+"std:plasmaflask",
+"std:haywiregrenade",
+"std:hallucinogengrenade",
+"std:plasmagrenade",
+"std:demolitioncharge",
+"std:meltabomb"
+],
+"custom": [
+{
+"id": "x:margery",
+"name": "\"Margery\" (mastercrafted laspistol)",
+"cat": "weapon",
+"base": "handcrossbow",
+"hb": true,
+"bonus": 1,
+"rarity": "uncommon",
+"cost": 5000,
+"back": true,
+"desc": "Brass Uncle's own +1 laspistol. Never jams. Only for trusted customers."
+}
+],
+"log": []
+},
+{
+"id": "hacksaw",
+"name": "The Hacksaw Saint",
+"owner": "Sister Gristle (Gladiator)",
+"place": "the Spine",
+"note": "10% off for a good fight story (Performance DC 12). Has seen a real Inquisitor. Back room: bribe 200+ (a shrine donation), Intimidate DC 18 (becomes a fist-fight); open to anyone with Vell's blessing. Repairs 10% of item price; +1 AC for a day 200.",
+"shelf": [
+"std:throwingknife",
+"std:throwingspear",
+"std:cudgel",
+"std:hookedblade",
+"std:spear",
+"std:combatknife",
+"std:hammer",
+"std:bolas",
+"std:hatchet",
+"std:trident",
+"std:throwingaxe",
+"std:chainaxe",
+"std:flail",
+"std:gladius",
+"std:chainsword",
+"std:spikedmaul",
+"std:ogrynmaul",
+"std:neuralwhip",
+"std:thundermaul",
+"std:duellingsabre",
+"std:heavychainaxe",
+"std:shockmaul",
+"std:powerpike",
+"std:monoknife",
+"std:electroflail",
+"std:chainglaive",
+"std:combatshield",
+"std:flakvest",
+"std:heavyflak",
+"std:mesharmour",
+"std:flakarmour",
+"std:feralworldplate",
+"std:heavycarapace",
+"std:suppressionshield",
+"std:voidarmour",
+"std:enforcercarapace",
+"std:carapacechestplate"
+],
+"back": [
+"std:eviscerator",
+"std:powerpick",
+"std:powerhammer",
+"std:powersword",
+"std:powerglaive",
+"std:powerhalberd",
+"std:powerlance",
+"std:powermaul",
+"std:poweraxe",
+"std:executionersaxe",
+"std:stormtroopercarapace",
+"std:fullcarapace"
+],
+"custom": [
+{
+"id": "x:saintssecondskin",
+"name": "Saint's Second Skin",
+"cat": "armour",
+"armour": [
+15,
+2
+],
+"rarity": "rare",
+"cost": 12000,
+"back": true,
+"desc": "A +1 carapace chestplate engraved with prayers (AC 15 + Dex, max 2). Once per day, when you would drop to 0 HP, drop to 1 instead. Or trade Gitgrabba's banner for it."
+},
+{
+"id": "x:armourrepair",
+"name": "Armour repair",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 50,
+"desc": "10% of the armour's price: set the final price."
+},
+{
+"id": "x:reinforce",
+"name": "Reinforce armour (+1 AC for a day)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 200,
+"desc": "Gristle beats extra plates on for the day."
+}
+],
+"log": []
+},
+{
+"id": "sundries",
+"name": "Saints & Sundries",
+"owner": "Acolyte Bram (Commoner, secretly Choir)",
+"place": "Shrine of the Last Light",
+"note": "Bram hums three notes (Insight DC 14 or Antonio's telepathy). Back room = a crate under the altar: a bribe of any amount works. Anyone who buys from it is offered a hymn charm (Choir recruiting).",
+"shelf": [
+"std:lhostickspack",
+"std:bottleofamasec",
+"std:medikit",
+"std:aquilapendant",
+"std:holywaterblessedvial",
+"std:synthskinpatch",
+"std:antiplagueserum",
+"std:detoxinjector",
+"std:medistimm",
+"std:combatstimm",
+"std:greatermedistimm"
+],
+"back": [
+"std:obscura",
+"std:frenzon",
+"std:slaught",
+"std:bloodreplacementunit"
+],
+"custom": [
+{
+"id": "x:medicae",
+"name": "Medicae (per Hit Die healed)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 50,
+"desc": "Set quantity = Hit Dice healed."
+},
+{
+"id": "x:lesserrestoration",
+"name": "Lesser Restoration",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 400,
+"desc": "Ends one disease or condition (blinded, deafened, paralyzed, poisoned)."
+},
+{
+"id": "x:removecurse",
+"name": "Remove Curse (Mother Sabine)",
+"cat": "service",
+"service": true,
+"rarity": "uncommon",
+"cost": 1000,
+"desc": "Only when Mother Sabine is in."
+},
+{
+"id": "x:hymncharm",
+"name": "Hymn charm",
+"cat": "relic",
+"rarity": "common",
+"cost": 10,
+"back": true,
+"desc": "A brass charm etched with three musical notes. Bram presses it on back-room customers. (Choir recruiting token.)"
+}
+],
+"log": []
+},
+{
+"id": "junk",
+"name": "The Junk Tithe",
+"owner": "Granny Ferris (Commoner) + 2 combat servitors",
+"place": "the Claw",
+"note": "Back room: bribe 150+, or bring her something interesting from a wreck (counts as a favour). Intimidate DC 18: the servitors step in. Fits cybernetics for 10% of the part's price plus a long rest.",
+"shelf": [
+"std:signalflare",
+"std:glowglobe",
+"std:chrono",
+"std:filtrationplugs",
+"std:manacles",
+"std:grapnelandcable",
+"std:dataslate",
+"std:survivalkit",
+"std:voxbead",
+"std:combitool",
+"std:rebreather",
+"std:magnoculars",
+"std:multikey",
+"std:voxcasterlongrange",
+"std:auspex",
+"std:lascutter",
+"std:voidsuit",
+"std:servoskullutility",
+"std:photovisor",
+"std:respiratorimplant",
+"std:bioniceye"
+],
+"back": [
+"std:preysensegoggles",
+"std:stummer",
+"std:gravchute",
+"std:chameleolinecloak",
+"std:holomask",
+"std:servoskullcombat",
+"std:bionicarm",
+"std:mechadendriteutility",
+"std:mindimpulseunit",
+"std:nullrod"
+],
+"custom": [
+{
+"id": "x:junkcrate",
+"name": "Junk crate",
+"cat": "gear",
+"rarity": "common",
+"cost": 200,
+"desc": "Roll the Curios d20 (Give items → Enemy loot) and give the result."
+},
+{
+"id": "x:cyberfitting",
+"name": "Cybernetic fitting",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 200,
+"desc": "10% of the part's price, plus a long rest to recover: set the final price."
+}
+],
+"log": []
+},
+{
+"id": "ghhul",
+"name": "Gaunt-Ghhul's Memory Stall",
+"owner": "Gaunt-Ghhul (Stryxis, Spy)",
+"place": "Bazaar of Hulls",
+"note": "Shelf items for Thrones. Back-room items cost a memory, a secret or a promise of matching value (set the price to 0 and note what they paid). Minor memory: forget one detail. Major: lose a skill proficiency until bought back. Intimidate = he vanishes into his jars for the day.",
+"shelf": [
+"std:krootrifle",
+"std:writofpassage",
+"std:psyfocus"
+],
+"back": [
+"std:pulsepistol",
+"std:splinterpistol",
+"std:shurikenpistol",
+"std:splinterrifle",
+"std:shurikencatapult",
+"std:pulserifle",
+"std:refractorfield",
+"std:egariangeode"
+],
+"custom": [
+{
+"id": "x:orieljar",
+"name": "Memory jar: a preacher with a captain's bearing",
+"cat": "relic",
+"rarity": "rare",
+"cost": 0,
+"back": true,
+"desc": "A vision of Oriel, alive, preaching. Costs a major memory, or the hymn-book."
+},
+{
+"id": "x:duellistjar",
+"name": "Memory jar: a master duellist",
+"cat": "consumable",
+"rarity": "uncommon",
+"cost": 0,
+"desc": "Once: advantage on all melee attacks for 1 minute. Costs a minor memory."
+},
+{
+"id": "x:cartographerjar",
+"name": "Memory jar: a hive cartographer",
+"cat": "consumable",
+"rarity": "uncommon",
+"cost": 0,
+"desc": "Once: you know the way out of any maze for 1 hour. Costs a minor memory."
+}
+],
+"log": []
+},
+{
+"id": "wazbolt",
+"name": "Wazbolt's Kustom Shop",
+"owner": "Wazbolt the mek (Tough)",
+"place": "the Pit",
+"note": "Owes the Ledgerers 3,000. Back room: win a fist-fight (Athletics contest) or bring Gitgrabba's say-so; bribes only in teef or shiny bits.",
+"shelf": [
+"std:choppa",
+"std:slugga",
+"std:shoota",
+"std:bigchoppa",
+"std:bigshoota",
+"std:rokkitlauncha",
+"std:stikkbomb",
+"std:orkeavyarmour"
+],
+"back": [
+"std:powerklaw"
+],
+"custom": [
+{
+"id": "x:kustomjob",
+"name": "Kustom job",
+"cat": "service",
+"service": true,
+"rarity": "uncommon",
+"cost": 500,
+"desc": "One day. +1d4 damage on one gun and it gains Inaccurate. On a natural 1 to hit, roll d6: on a 1 it explodes for its own damage (DC 13 Dex half)."
+}
+],
+"log": []
+},
+{
+"id": "grox",
+"name": "The Gilded Grox",
+"owner": "Ma Ketta (Tough Boss)",
+"place": "the Spine",
+"note": "Food, rooms and information. No blood on her floors.",
+"shelf": [],
+"back": [],
+"custom": [
+{
+"id": "x:room",
+"name": "Room (per night)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 20,
+"desc": "A bed and a lock that mostly works."
+},
+{
+"id": "x:goodroom",
+"name": "Good room (per night)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 100,
+"desc": "Bath, and a lock that works."
+},
+{
+"id": "x:stew",
+"name": "Grox stew and a drink",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 5,
+"desc": ""
+},
+{
+"id": "x:amasecglass",
+"name": "Amasec (not watered)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 20,
+"desc": "You have to ask."
+},
+{
+"id": "x:rumour",
+"name": "A rumour (round for the table)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 20,
+"desc": "Roll d6 on the rumour table."
+},
+{
+"id": "x:answer",
+"name": "A specific answer",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 200,
+"desc": "100–500, Ketta's call: set the final price."
+},
+{
+"id": "x:backroommeeting",
+"name": "Back room for a private meeting",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 200,
+"desc": "Where the Vell sit-down happens."
+}
+],
+"log": []
+},
+{
+"id": "ironjaw",
+"name": "Ironjaw's Dock Office",
+"owner": "Dockmaster Mabrenn \"Ironjaw\" (Veteran Warrior)",
+"place": "the Claw",
+"note": "Berths, repairs, crew.",
+"shelf": [],
+"back": [],
+"custom": [
+{
+"id": "x:berth",
+"name": "Berth (per day)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 50,
+"desc": ""
+},
+{
+"id": "x:fullrepair",
+"name": "Full repair (Dask's sabotage)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 6000,
+"desc": "Or free via Wazbolt."
+},
+{
+"id": "x:partialrepair",
+"name": "Partial repair (it flies, badly)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 2000,
+"desc": ""
+},
+{
+"id": "x:refuel",
+"name": "Refuel and resupply",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 500,
+"desc": ""
+},
+{
+"id": "x:deckhand",
+"name": "Hire a deckhand (per week)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 20,
+"desc": ""
+},
+{
+"id": "x:armsman",
+"name": "Hire an armsman (per week)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 50,
+"desc": ""
+},
+{
+"id": "x:techadept",
+"name": "Hire a tech-adept (per week)",
+"cat": "service",
+"service": true,
+"rarity": "common",
+"cost": 200,
+"desc": ""
+},
+{
+"id": "x:transponder",
+"name": "Fake transponder codes",
+"cat": "service",
+"service": true,
+"rarity": "rare",
+"cost": 1500,
+"back": true,
+"desc": "No questions. Back-room service."
+}
+],
+"log": []
+}
+]
+}

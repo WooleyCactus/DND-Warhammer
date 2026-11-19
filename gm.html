@@ -103,6 +103,27 @@ details>summary{cursor:pointer;color:var(--muted);font-size:13px}
 .cx .rr{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .cx-sec>summary{cursor:pointer;font:700 13px var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 0}
 .cx-sec>summary .n{color:var(--muted);font-family:var(--f-mono);margin-left:6px}
+nav.tabs{display:flex;gap:4px;margin-left:10px;flex-wrap:wrap}
+nav.tabs button{font:700 12px var(--f-display);letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;background:transparent;border:1px solid var(--line);color:var(--muted);cursor:pointer}
+nav.tabs button.on{border-color:var(--gold);color:var(--gold-hi);background:#2a2216}
+.tabview{padding:12px;display:flex;flex-direction:column;gap:12px}
+.tabview>.box{display:flex;flex-direction:column;gap:12px}
+.shopw{display:grid;gap:12px;grid-template-columns:230px minmax(0,1fr) 380px;align-items:start}
+@media (max-width:1180px){.shopw{grid-template-columns:200px minmax(0,1fr)}.shopw .cart{grid-column:1/-1}}
+@media (max-width:760px){.shopw{grid-template-columns:minmax(0,1fr)}}
+.shopw .box{display:flex;flex-direction:column;gap:10px}
+.shl button.shb{display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:4px;background:var(--sunk);border:1px solid var(--line);color:var(--ink);cursor:pointer}
+.shl button.shb.on{border-color:var(--gold);background:#2a2216}
+.shl button.shb small{display:block;color:var(--muted)}
+table.st{width:100%;border-collapse:collapse;font-size:14px}
+table.st td,table.st th{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+table.st th{font:700 11px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+table.st td.num,table.st th.num{text-align:right;white-space:nowrap;font-family:var(--f-mono)}
+table.st .sub{display:block;font-size:12px;color:var(--muted)}
+table.st s{color:var(--muted)}
+.cart table.st input{width:7em;text-align:right}
+.tot{display:flex;justify-content:space-between;font:700 16px var(--f-mono)}
+.neg{color:#ff8487}
 #drawer .dh{display:flex;align-items:center;gap:8px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
 #drawer .dh b{font:700 15px var(--f-display);color:var(--gold-hi);flex:1}
 #drawer .db{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;padding-bottom:max(30px,env(safe-area-inset-bottom))}
@@ -115,7 +136,7 @@ details>summary{cursor:pointer;color:var(--muted);font-size:13px}
 </head>
 <body>
 <header id="hdr">
- <h1>☩ GM Command Center</h1><span class="dot" id="dot"></span><span class="code" id="codeLbl"></span><span id="save"></span>
+ <h1>☩ GM Command Center</h1><nav class="tabs" id="tabs"></nav><span class="dot" id="dot"></span><span class="code" id="codeLbl"></span><span id="save"></span>
  <span class="sp"></span><a href="./">Sheets</a><button class="sm ghost" id="lockBtn" title="Lock this device">Lock</button>
 </header>
 <div class="cmd" id="cmd"></div>
@@ -128,6 +149,7 @@ details>summary{cursor:pointer;color:var(--muted);font-size:13px}
  </div>
  <div class="colR"><section class="box" id="pGoals"></section><section class="box" id="pStory"></section><section class="box" id="pPolls"></section><section class="box" id="pNpcs"></section><section class="box" id="pClocks"></section></div>
 </div>
+<div class="tabview" id="tabView" hidden></div>
 <div id="drawer" hidden><div class="dp"><div class="dh"><b id="dTitle"></b><button class="ghost" data-act="dclose" aria-label="Close">✕</button></div><div class="db" id="dBody"></div></div></div>
 <div id="lock" hidden><div class="box">
  <h3>GM Command Center</h3>
@@ -225,6 +247,7 @@ function paint(sel,html){const el=$(sel);if(!el)return;const a=document.activeEl
 document.addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;[...pend].forEach(sel=>{const el=$(sel);if(!(a&&el&&el.contains(a)&&a.matches('input,textarea,select'))){pend.delete(sel);render();}});},0));
 let rT=0;function render(){if(rT)return;rT=requestAnimationFrame(()=>{rT=0;if(!G.data)return;
  paint('#cmd',vCmd());paint('#pParty',vParty());paint('#pSession',vSession());paint('#pGoals',vGoals());paint('#pStory',vStory());paint('#pPolls',vPolls());paint('#pNpcs',vNpcs());paint('#pClocks',vClocks());
+ paint('#tabs',vTabs());{const tv=$('#tabView');const onCC=G.tab==='cc';$('#cc').hidden=!onCC;tv.hidden=onCC;if(!onCC)paint('#tabView',G.tab==='items'?`<section class="box"><h2>Give items</h2>${vItemsDrawer()}</section>`:G.tab==='codex'?`<section class="box"><h2>Codex · every weapon, armour and item</h2>${vCodex()}</section>`:vShops());}
  if(G.drawer){$('#drawer').hidden=false;$('#drawer').classList.toggle('wide',G.drawer.type==='codex');$('#dTitle').textContent=drawerTitle();paint('#dBody',vDrawer());}else $('#drawer').hidden=true;});}
 
 function vCmd(){
@@ -234,7 +257,6 @@ function vCmd(){
  const waiting=new Set(G.polls.filter(p=>p.answer==null).map(p=>p.id.split(':')[0])).size;
  return`<div class="grp"><span class="lbl">Map</span>${has?`<span class="tag ${meta.live===false?'bad':'ok'}">${meta.live===false?'🔒 Hidden from players':'👁 Players can see it'}</span><button class="sm ${meta.live===false?'pri':''}" data-act="maplive" data-v="${meta.live===false?1:0}">${meta.live===false?'Reveal':'Hide'}</button>`:'<span class="tag">No map yet</span>'}<button class="sm ${has?'':'pri'}" data-act="dnewmap">${has?'New map':'Generate a map'}</button></div>
  <div class="grp"><span class="lbl">Combat</span>${I.on?`<span>Round <b>${I.round}</b> · <b>${esc(nm(cur))}</b></span><button class="sm" data-act="prevturn" aria-label="Previous turn">◂</button><button class="sm pri" data-act="nextturn">Next turn ▸</button><button class="sm bad" data-act="endcombat">End</button>`:`<span class="muted">${has?'Not started. Initiative and Start combat are on the map’s Turn tab.':'—'}</span>`}</div>
- <div class="grp"><span class="lbl">Items</span><button class="sm" data-act="ditems">🎁 Give items</button><button class="sm" data-act="dcodex">📖 Codex</button></div>
  <div class="grp"><span class="lbl">Vox</span>${(G.data.voxReady||[]).map(r=>`<button class="sm pri" data-act="vfire" data-id="${esc(r.id)}" title="${esc(r.text)}">📡 ${esc(r.label||r.from||'Vox')}</button>`).join('')}<button class="sm" data-act="dvox">${(G.data.voxReady||[]).length?'Vox…':'Send a vox'}</button></div>
  <div class="grp"><span class="lbl">Polls</span><span class="muted">${waiting?waiting+' waiting for answers':'none waiting'}</span><button class="sm" data-act="dpoll">Send a poll</button></div>`;
 }
@@ -456,7 +478,7 @@ document.addEventListener('input',e=>{const el=e.target;if(!G.items)return;const
  if(el.id==='iQ'){I.q=el.value;const r=$('#iRes');if(r)r.innerHTML=itemResults();}
  if(el.id==='iQty')I.qty=el.value;if(el.id==='iThr')I.thr=el.value;
  if(el.id==='icName')C.name=el.value;if(el.id==='icDesc')C.desc=el.value;if(el.id==='icAc')C.ac=el.value;if(el.id==='icCap')C.cap=el.value;});
-document.addEventListener('change',e=>{const el=e.target;if(!G.items)return;const C=G.items.c;if(el.id==='icCat'){C.cat=el.value;const box=$('#dBody');if(box){pend.delete('#dBody');box.innerHTML=box._h=vDrawer();}}if(el.id==='icRar')C.rarity=el.value;});
+document.addEventListener('change',e=>{const el=e.target;if(!G.items)return;const C=G.items.c;if(el.id==='icCat'){C.cat=el.value;el.blur();pend.delete('#tabView');render();}if(el.id==='icRar')C.rarity=el.value;});
 /* ITEMS-END */
 /* CODEX-START: GM encyclopedia of every item, standard and homebrew, by type and rarity */
 G.cx={q:'',rar:'',src:'',form:null};
@@ -510,13 +532,115 @@ async function cxSave(){const f=G.cx.form;if(!f||!String(f.name||'').trim()){toa
 async function cxDelete(id){const c=G.hb.find(x=>x.id===id);if(!c||!confirm(`Delete ${c.name} from the codex? Copies players already have stay on their sheets.`))return;
  try{const ch=await rpc('chart_get',{p_party:G.code});ch.catalog=(ch.catalog||[]).filter(x=>x.id!==id);ch.updatedAt=Date.now();await rpc('chart_save',{p_party:G.code,p_data:ch});
   try{G.pchan.send({type:'broadcast',event:'chart',payload:{t:Date.now()}});}catch(e){}toast('Deleted.',true);await loadCatalog();}catch(err){toast('Couldn’t delete: '+(err.message||'unknown error'));}}
-function cxRepaint(){const box=$('#dBody');if(box&&G.drawer&&G.drawer.type==='codex'){pend.delete('#dBody');box.innerHTML=box._h=vCodex();}}
+function cxRepaint(){const a=document.activeElement;if(a&&a.blur)a.blur();pend.delete('#tabView');render();}
 document.addEventListener('input',e=>{const el=e.target;if(!G.cx)return;const f=G.cx.form;
  if(el.id==='cxQ'){G.cx.q=el.value;const b=$('#cxBody');if(b){const tmp=document.createElement('div');tmp.innerHTML=vCodex();const nb=tmp.querySelector('#cxBody');if(nb)b.innerHTML=nb.innerHTML;}}
  if(f){if(el.id==='cxName')f.name=el.value;if(el.id==='cxDesc')f.desc=el.value;if(el.id==='cxAc')f.ac=el.value;if(el.id==='cxCap')f.cap=el.value;}});
 document.addEventListener('change',e=>{const el=e.target;const f=G.cx&&G.cx.form;if(!f)return;
  if(el.id==='cxKind'){f.kind=el.value;cxRepaint();}if(el.id==='cxCat'){f.cat=el.value;cxRepaint();}if(el.id==='cxRar')f.rarity=el.value;if(el.id==='cxBase')f.base=el.value;if(el.id==='cxBonus')f.bonus=+el.value;});
 /* CODEX-END */
+/* SHOPS-START: tabs + the Shops tab (act as shopkeeper). Shop stock lives in gm_data.data.shops, seeded from shops.json. */
+G.tab=(()=>{const t=lsGet('rtm.gm.tab');return ['cc','items','codex','shops'].includes(t)?t:'cc';})();
+function vTabs(){return [['cc','Command center'],['items','Give items'],['codex','Codex'],['shops','Shops']].map(([k,l])=>`<button class="${G.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('');}
+function setTab(t){G.tab=t;lsSet('rtm.gm.tab',t==='cc'?null:t);if(G.drawer&&['items','codex'].includes(G.drawer.type))G.drawer=null;if(t!=='cc')loadCatalog();if(t==='shops')ensureShops();window.scrollTo(0,0);render();}
+G.shop={sel:null,buyer:null,back:false,trusted:false,pct:0,cart:[],edit:false,q:'',deliver:'buyer',offers:{},cf:{name:'',cost:'',desc:'',service:false,back:false}};
+let shopsLoading=false;
+async function ensureShops(){if(!G.data||Array.isArray(G.data.shops)||shopsLoading)return;shopsLoading=true;
+ try{const r=await fetch('shops.json',{cache:'no-cache'});const j=await r.json();if(!Array.isArray(G.data.shops)){G.data.shops=j.shops||[];dirty();}}catch(e){if(!Array.isArray(G.data.shops))G.data.shops=[];}
+ shopsLoading=false;render();}
+function curShop(){const L=(G.data&&G.data.shops)||[];return L.find(x=>x.id===G.shop.sel)||L[0]||null;}
+function shopItem(s,id){return (s.custom||[]).find(x=>x.id===id)||itemById(id)||G.hb.find(x=>x.id===id)||null;}
+function shopStock(s){const rows=[];
+ (s.shelf||[]).forEach(id=>{const it=shopItem(s,id);if(it)rows.push({id,it,back:false,custom:false});});
+ (s.back||[]).forEach(id=>{const it=shopItem(s,id);if(it)rows.push({id,it,back:true,custom:false});});
+ (s.custom||[]).forEach(it=>rows.push({id:it.id,it,back:!!it.back,custom:true}));return rows;}
+function listPrice(it,back){let p=+it.cost||0;if(back&&!G.shop.trusted)p=p*1.25;if(G.shop.pct)p=p*(1+G.shop.pct/100);return Math.max(0,Math.round(p));}
+function lineUnit(l){return l.override!=null&&l.override!==''?Math.max(0,Math.round(+l.override||0)):listPrice(l.it,l.back);}
+function cartTotal(){return G.shop.cart.reduce((a,l)=>a+lineUnit(l)*l.qty,0);}
+const fmt=n=>'₮ '+Number(n||0).toLocaleString();
+function stockLine(it){if(it.cat==='weapon'&&it.dice)return `${it.dice} ${it.dtype||''}${it.range?' · '+it.range+' ft':' · melee'}${(it.props||[]).length?' · '+it.props.join(', '):''}`;
+ if(Array.isArray(it.armour)){const [a,c]=it.armour;return `AC ${a}${c>=99?' + Dex':c>0?` + Dex (max ${c})`:''}`;}
+ const d=String(it.desc||'');return d.length>110?d.slice(0,107)+'…':d;}
+function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||null;if(!L){ensureShops();return '<section class="box"><p class="muted">Opening the shops…</p></section>';}
+ const S=G.shop;const s=curShop();if(s&&!S.sel)S.sel=s.id;const si=L.indexOf(s);
+ const list=`<aside class="box shl"><h2>Shops<span class="sp"></span><span class="n">${L.length}</span></h2>${L.map(x=>`<button class="shb ${s&&x.id===s.id?'on':''}" data-act="shsel" data-id="${esc(x.id)}">${esc(x.name)}<small>${esc(x.place||'')}</small></button>`).join('')}<button class="sm" data-act="shnew">+ New shop</button></aside>`;
+ if(!s)return `<div class="shopw">${list}<section class="box"><p class="empty">No shops yet. Make one.</p></section></div>`;
+ const chars=G.chars.map(charInfo);const buyer=chars.find(c=>c.id===S.buyer);
+ const rows=shopStock(s).filter(r=>!r.back||S.back||S.edit);
+ const q=iN(S.q);
+ const table=(rs,title)=>rs.length?`<h2>${title}</h2><table class="st"><tr><th>Item</th><th>Rarity</th><th class="num">List</th><th class="num">Price</th><th></th></tr>${rs.map(r=>{const it=r.it;const base=+it.cost||0;const p=listPrice(it,r.back);
+   return `<tr><td><b>${esc(it.name)}</b>${it.service?' <span class="tag">service</span>':''}<span class="sub">${esc(stockLine(it))}</span></td><td style="color:${RARC[it.rarity||'common']||RARC.common}">${esc(RLAB[it.rarity||'common']||it.rarity||'')}</td>
+   <td class="num">${it.cost==null?'—':fmt(base)}</td><td class="num">${it.cost==null?'—':(p!==base?`<b>${fmt(p)}</b>`:fmt(p))}</td>
+   <td style="white-space:nowrap">${S.edit?`<button class="sm ghost" data-act="shmove" data-id="${esc(r.id)}" title="${r.back?'Move to shelf':'Move to back room'}">${r.back?'→ Shelf':'→ Back'}</button><button class="sm ghost" data-act="shdel" data-id="${esc(r.id)}" aria-label="Remove from shop">✕</button>`:`<button class="sm pri" data-act="shadd" data-id="${esc(r.id)}" data-b="${r.back?1:0}">+ Cart</button>`}</td></tr>`;}).join('')}</table>`:'';
+ const shelf=rows.filter(r=>!r.back),back=rows.filter(r=>r.back);
+ const pctChips=[[-20,'Haggled −20%'],[-10,'Vell −10%'],[20,'Overcharge +20%'],[100,'Grudge ×2']].map(([v,l])=>`<button class="sm ${S.pct===v?'on':''}" data-act="shpct" data-v="${v}">${l}</button>`).join('');
+ const meta=S.edit?`<div class="grid"><label>Name<input data-k="shops.${si}.name" value="${esc(s.name)}"></label><label>Owner<input data-k="shops.${si}.owner" value="${esc(s.owner||'')}"></label><label>Where<input data-k="shops.${si}.place" value="${esc(s.place||'')}"></label></div><label>GM notes (back-room rules, quirks)<textarea data-k="shops.${si}.note">${esc(s.note||'')}</textarea></label>`
+   :`<div class="muted">${esc(s.owner||'')}${s.place?' · '+esc(s.place):''}</div>${s.note?`<div style="font-size:14px">${esc(s.note)}</div>`:''}`;
+ const addUI=S.edit?`<h2>Add stock</h2><input id="shQ" value="${esc(S.q)}" placeholder="Search the catalogue to add…" autocomplete="off"><div id="shRes">${shopSearch()}</div>
+   <h2>Custom item or service</h2><div class="grid"><label>Name<input id="scName" value="${esc(S.cf.name)}" placeholder="Berth (per day)"></label><label>Price ₮<input id="scCost" type="number" value="${esc(S.cf.cost)}"></label></div>
+   <label>Description<input id="scDesc" value="${esc(S.cf.desc)}"></label><div class="row"><label class="ck"><input type="checkbox" id="scSvc" ${S.cf.service?'checked':''}> Service (charges Thrones, gives no item)</label><label class="ck"><input type="checkbox" id="scBack" ${S.cf.back?'checked':''}> Back room</label><span class="sp" style="flex:1"></span><button data-act="shcustom">Add</button></div>
+   <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="shremove">Delete this shop</button></div>`:'';
+ const main=`<section class="box"><h2>${esc(s.name)}<span class="sp"></span><button class="sm ${S.edit?'on':''}" data-act="shedit">${S.edit?'Done editing':'Edit shop'}</button></h2>${meta}
+  ${S.edit?'':`<div class="row"><label class="ck"><input type="checkbox" id="shBack" ${S.back?'checked':''}> Back room open</label>${S.back?`<label class="ck"><input type="checkbox" id="shTrust" ${S.trusted?'checked':''}> Trusted customer (no +25% discretion fee)</label>`:''}</div>
+  <div class="row"><span class="muted">Prices</span>${pctChips}<label class="ck">Custom % <input id="shPct" type="number" value="${esc(S.pct||'')}" style="width:5em"></label>${S.pct?'<button class="sm ghost" data-act="shpct" data-v="0">Reset</button>':''}</div>`}
+  ${table(shelf,'On the shelf')}${(S.back||S.edit)?table(back,'Back room'):`<p class="muted">The back room is closed. Tick "Back room open" when they bribe, bully, fast-talk or earn their way in.</p>`}${addUI}</section>`;
+ const tot=cartTotal();const has=buyer?(buyer.thrones||0):null;
+ const sellRows=buyer?sellables(buyer.id):[];
+ const cart=`<aside class="box cart"><h2>Sale</h2>
+  <div><div class="muted" style="margin-bottom:4px">Buyer</div><div class="row">${chars.map(c=>`<button class="sm ${S.buyer===c.id?'on':''}" data-act="shbuyer" data-id="${esc(c.id)}">${esc(c.name.split(',')[0])}</button>`).join('')||'<span class="empty">No characters.</span>'}</div>${buyer?`<div class="muted" style="margin-top:4px">${esc(buyer.name.split(',')[0])} has <b style="color:var(--gold-hi)">${fmt(has)}</b></div>`:''}</div>
+  ${S.cart.length?`<table class="st"><tr><th>Item</th><th class="num">Qty</th><th class="num">Each</th><th class="num">Total</th><th></th></tr>${S.cart.map((l,i)=>`<tr><td>${esc(l.it.name)}${l.back?'<span class="sub">back room</span>':''}</td>
+    <td class="num"><button class="sm ghost" data-act="shq" data-i="${i}" data-d="-1">−</button>${l.qty}<button class="sm ghost" data-act="shq" data-i="${i}" data-d="1">+</button></td>
+    <td class="num"><input type="number" min="0" data-cart="${i}" value="${lineUnit(l)}" title="Final price each (haggle here)"></td><td class="num">${fmt(lineUnit(l)*l.qty)}</td><td><button class="sm ghost" data-act="shrm" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('')}</table>
+   <div class="tot"><span>Total</span><span>${fmt(tot)}</span></div>
+   ${buyer?`<div class="tot" style="font-size:13px"><span class="muted">${esc(buyer.name.split(',')[0])} after the sale</span><span class="${has-tot<0?'neg':''}">${fmt(has-tot)}</span></div>`:''}
+   <div class="row"><label class="ck"><input type="radio" name="shDel" value="buyer" ${S.deliver==='buyer'?'checked':''}> Deliver to buyer</label><label class="ck"><input type="radio" name="shDel" value="stash" ${S.deliver==='stash'?'checked':''}> To the Ship's armoury</label></div>
+   <div class="row"><button class="ghost" data-act="shclear">Clear</button><span style="flex:1"></span><button class="pri" data-act="shsell" ${buyer?'':'disabled'}>Complete sale</button></div>`
+   :'<p class="empty">Cart is empty. Tap "+ Cart" on any item.</p>'}
+  ${buyer?`<h2>Buy from ${esc(buyer.name.split(',')[0])}</h2>${sellRows.length?`<table class="st"><tr><th>Their item</th><th class="num">Offer each</th><th></th></tr>${sellRows.map(r=>`<tr><td>${esc(r.name)} <span class="muted">×${r.qty}</span></td><td class="num"><input type="number" min="0" data-offer="${esc(r.id)}" value="${S.offers[r.id]!=null?S.offers[r.id]:r.offer}"></td><td><button class="sm" data-act="shbuy" data-id="${esc(r.id)}">Buy 1</button></td></tr>`).join('')}</table><p class="muted" style="font-size:12px">Offer defaults to half the list price (a quarter for Choir gear). Weapons in their loadout aren't listed: stow or drop them first.</p>`:'<p class="empty">Nothing in their gear to sell.</p>'}`:''}
+  ${(s.log||[]).length?`<h2>Recent sales here</h2><div class="muted" style="font-size:13px">${s.log.slice(0,8).map(l=>`${esc(l.who)} ${l.kind==='buy'?'sold':'bought'} ${esc(l.what)} for ${fmt(l.total)}`).join('<br>')}</div>`:''}</aside>`;
+ return `<div class="shopw">${list}${main}${cart}</div>`;}
+function shopSearch(){const q=iN(G.shop.q);if(!q)return '<p class="empty">Type to search.</p>';
+ return allItems().filter(c=>iN(c.name).includes(q)||iN(c.desc).includes(q)).slice(0,15).map(c=>`<div class="row" style="border-bottom:1px solid var(--line);padding:4px 0"><span class="grow" style="flex:1">${esc(c.name)} <span class="muted" style="font-size:12px">${esc(RLAB[c.rarity||'common']||'')}${c.cost!=null?' · '+fmt(c.cost):''}</span></span><button class="sm" data-act="shstock" data-id="${esc(c.id)}" data-b="0">+ Shelf</button><button class="sm ghost" data-act="shstock" data-id="${esc(c.id)}" data-b="1">+ Back</button></div>`).join('')||'<p class="empty">Nothing matches.</p>';}
+function sellables(charId){const r=G.chars.find(x=>x.id===charId);const inv=(r&&r.data&&r.data.state&&r.data.state.inv)||[];
+ return inv.filter(it=>it.cat!=='money'&&(+it.qty||0)>0).map(it=>{const c=(it.cid&&itemById(it.cid))||allItems().find(x=>iN(x.name)===iN(it.name));const base=c&&c.cost!=null?+c.cost:0;
+  const choir=/choir|hymn/i.test(it.name);return {id:it.id,name:it.name,qty:it.qty,offer:Math.round(base*(choir?0.25:0.5))};});}
+function shopLog(s,e){s.log=[Object.assign({t:Date.now()},e),...(s.log||[])].slice(0,40);dirty();}
+async function completeSale(){const S=G.shop;const s=curShop();if(!s||!S.cart.length)return;if(!S.buyer){toast('Pick the buyer first.');return;}
+ const total=cartTotal();
+ try{const rows=await rpc('party_list',{p_party:G.code});const fresh=rows.find(r=>r.id===S.buyer);if(!fresh){toast('That character is gone.');return;}
+  const d=clone(fresh.data);d.state=d.state||{};const nm=((d.src&&d.src.name)||'?').split(',')[0];const have=+d.state.thrones||0;
+  if(total>have&&!confirm(`${nm} only has ₮${have.toLocaleString()}. Complete the sale anyway? Their Thrones will go negative.`))return;
+  const goods=S.cart.filter(l=>!l.it.service);
+  if(S.deliver==='buyer'){for(const l of goods){if(!giveTo(d,l.it,l.qty)){toast(`${nm}: open their sheet once first, then try again.`);return;}}}
+  d.state.thrones=have-total;d.state.thrLog=[{d:-total,t:Date.now()},...(d.state.thrLog||[])].slice(0,12);d.updatedAt=Date.now();
+  await rpc('party_save',{p_party:G.code,p_id:S.buyer,p_data:Object.assign({},d,{_auth:G.pin})});
+  if(S.deliver==='stash'){for(const l of goods){const c=l.it;await rpc('stash_store',{p_party:G.code,p_char:null,p_pin:G.pin,p_who:nm,p_item:{key:c.id,id:c.id,name:c.name,cat:c.cat,rarity:c.rarity,desc:c.desc,base:c.base,bonus:c.bonus,hb:!!c.hb,armour:c.armour,icon:c.icon},p_qty:l.qty});}}
+  try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
+  const what=S.cart.map(l=>`${l.it.name}${l.qty>1?' ×'+l.qty:''}`).join(', ');shopLog(s,{kind:'sell',who:nm,what,total});G.items.log.unshift(`${what} → ${nm} (bought at ${s.name}, ${fmt(total)})`);
+  S.cart=[];toast(`Sold to ${nm} for ${fmt(total)}.`,true);await loadChars();render();
+ }catch(err){toast('Couldn’t complete the sale: '+(err.message||'unknown error'));}}
+async function buyFromPlayer(invId){const S=G.shop;const s=curShop();if(!S.buyer||!s)return;
+ try{const rows=await rpc('party_list',{p_party:G.code});const fresh=rows.find(r=>r.id===S.buyer);if(!fresh)return;const d=clone(fresh.data);d.state=d.state||{};const inv=d.state.inv||[];const it=inv.find(x=>x.id===invId);if(!it){toast('They no longer have that.');return;}
+  if(it.worn&&(+it.qty||1)<=1){toast('They are wearing it. They take it off first.');return;}
+  const row=sellables(S.buyer).find(r=>r.id===invId);const offer=Math.max(0,Math.round(+(S.offers[invId]!=null?S.offers[invId]:row?row.offer:0)||0));const nm=((d.src&&d.src.name)||'?').split(',')[0];
+  it.qty=(+it.qty||1)-1;if(it.qty<=0)d.state.inv=inv.filter(x=>x!==it);
+  d.state.thrones=(+d.state.thrones||0)+offer;d.state.thrLog=[{d:offer,t:Date.now()},...(d.state.thrLog||[])].slice(0,12);d.updatedAt=Date.now();
+  await rpc('party_save',{p_party:G.code,p_id:S.buyer,p_data:Object.assign({},d,{_auth:G.pin})});try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
+  shopLog(s,{kind:'buy',who:nm,what:it.name,total:offer});toast(`${s.name} bought ${it.name} from ${nm} for ${fmt(offer)}.`,true);await loadChars();render();
+ }catch(err){toast('Couldn’t buy it: '+(err.message||'unknown error'));}}
+document.addEventListener('input',e=>{const el=e.target;const S=G.shop;if(!S)return;
+ if(el.id==='shQ'){S.q=el.value;const r=$('#shRes');if(r)r.innerHTML=shopSearch();}
+ if(el.dataset&&el.dataset.cart!=null){const l=S.cart[+el.dataset.cart];if(l){l.override=el.value;}}
+ if(el.dataset&&el.dataset.offer!=null)S.offers[el.dataset.offer]=el.value;
+ if(el.id==='shPct'){S.pct=+el.value||0;}
+ if(el.id==='scName')S.cf.name=el.value;if(el.id==='scCost')S.cf.cost=el.value;if(el.id==='scDesc')S.cf.desc=el.value;});
+document.addEventListener('change',e=>{const el=e.target;const S=G.shop;if(!S)return;
+ if(el.id==='shBack'){S.back=el.checked;el.blur();render();}if(el.id==='shTrust'){S.trusted=el.checked;el.blur();render();}
+ if(el.name==='shDel'){S.deliver=el.value;}
+ if(el.dataset&&el.dataset.cart!=null){el.blur();pend.delete('#tabView');render();}
+ if(el.id==='shPct'){el.blur();pend.delete('#tabView');render();}
+ if(el.id==='scSvc')S.cf.service=el.checked;if(el.id==='scBack')S.cf.back=el.checked;});
+/* SHOPS-END */
 const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
 function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
 function vVoxDrawer(){const D=G.voxDraft;const chars=G.chars.map(charInfo);const R=G.data.voxReady||[];
@@ -588,8 +712,25 @@ root.addEventListener('click',async e=>{
   case'dnpc':openDrawer('npc',b.dataset.id);break;
   case'dpoll':openDrawer('poll');break;
   case'dvox':openDrawer('vox');break;
-  case'ditems':openDrawer('items');loadCatalog();break;
-  case'dcodex':openDrawer('codex');loadCatalog();break;
+  case'tab':setTab(b.dataset.v);break;
+  case'shsel':G.shop.sel=b.dataset.id;G.shop.cart=[];G.shop.back=false;G.shop.trusted=false;G.shop.pct=0;G.shop.edit=false;render();break;
+  case'shbuyer':G.shop.buyer=G.shop.buyer===b.dataset.id?null:b.dataset.id;render();break;
+  case'shpct':G.shop.pct=+b.dataset.v===G.shop.pct?0:+b.dataset.v;render();break;
+  case'shadd':{const s=curShop();const it=s&&shopItem(s,b.dataset.id);if(!it)break;const back=b.dataset.b==='1';const l=G.shop.cart.find(x=>x.it.id===it.id&&x.back===back);if(l)l.qty++;else G.shop.cart.push({it,back,qty:1,override:null});render();break;}
+  case'shq':{const l=G.shop.cart[+b.dataset.i];if(l){l.qty=Math.max(1,l.qty+(+b.dataset.d));}render();break;}
+  case'shrm':G.shop.cart.splice(+b.dataset.i,1);render();break;
+  case'shclear':G.shop.cart=[];render();break;
+  case'shsell':await completeSale();break;
+  case'shbuy':await buyFromPlayer(b.dataset.id);break;
+  case'shedit':G.shop.edit=!G.shop.edit;render();break;
+  case'shnew':{const id='s'+uid();(G.data.shops=G.data.shops||[]).push({id,name:'New shop',owner:'',place:'',note:'',shelf:[],back:[],custom:[],log:[]});G.shop.sel=id;G.shop.edit=true;dirty();render();break;}
+  case'shremove':{const s=curShop();if(s&&confirm(`Delete ${s.name}? Its stock list and sales log go with it.`)){G.data.shops=G.data.shops.filter(x=>x!==s);G.shop.sel=null;G.shop.edit=false;dirty();render();}break;}
+  case'shstock':{const s=curShop();if(!s)break;const id=b.dataset.id;s.shelf=(s.shelf||[]).filter(x=>x!==id);s.back=(s.back||[]).filter(x=>x!==id);(b.dataset.b==='1'?s.back:s.shelf).push(id);dirty();toast('Added.',true);render();break;}
+  case'shmove':{const s=curShop();if(!s)break;const id=b.dataset.id;const cu=(s.custom||[]).find(x=>x.id===id);if(cu){cu.back=!cu.back;}else if((s.shelf||[]).includes(id)){s.shelf=s.shelf.filter(x=>x!==id);s.back.push(id);}else{s.back=s.back.filter(x=>x!==id);s.shelf.push(id);}dirty();render();break;}
+  case'shdel':{const s=curShop();if(!s)break;const id=b.dataset.id;s.shelf=(s.shelf||[]).filter(x=>x!==id);s.back=(s.back||[]).filter(x=>x!==id);s.custom=(s.custom||[]).filter(x=>x.id!==id);dirty();render();break;}
+  case'shcustom':{const s=curShop();const f=G.shop.cf;if(!s||!f.name.trim()){toast('Give it a name.');break;}(s.custom=s.custom||[]).push({id:'x:'+iN(f.name)+uid().slice(0,3),name:f.name.trim(),cat:f.service?'service':'gear',service:!!f.service,back:!!f.back,rarity:'common',cost:Math.max(0,+f.cost||0),desc:f.desc.trim()});G.shop.cf={name:'',cost:'',desc:'',service:false,back:false};dirty();render();break;}
+  case'ditems':setTab('items');break;
+  case'dcodex':setTab('codex');break;
   case'cxrar':G.cx.rar=b.dataset.v;render();break;
   case'cxsrc':G.cx.src=b.dataset.v;render();break;
   case'cxnew':G.cx.form={kind:'item',cat:'relic',rarity:'uncommon',bonus:0,base:'longsword'};render();break;
@@ -597,7 +738,7 @@ root.addEventListener('click',async e=>{
   case'cxsave':await cxSave();break;
   case'cxdel':await cxDelete(b.dataset.id);break;
   case'cxedit':{const c=G.hb.find(x=>x.id===b.dataset.id);if(c){G.cx.form={id:c.id,name:c.name,kind:c.cat==='weapon'?'weapon':'item',cat:c.cat,rarity:c.rarity||'common',desc:c.desc||'',base:c.base,bonus:c.bonus||0,ac:c.armour?c.armour[0]:'',cap:c.armour&&c.armour[1]<99?c.armour[1]:''};render();const d=$('#dBody');if(d)d.scrollTop=0;}break;}
-  case'cxgive':{const c=[...((G.catalog||{}).items||[]),...G.hb].find(x=>x.id===b.dataset.id);G.items.q=c?c.name:'';openDrawer('items');break;}
+  case'cxgive':{const c=[...((G.catalog||{}).items||[]),...G.hb].find(x=>x.id===b.dataset.id);G.items.q=c?c.name:'';setTab('items');break;}
   case'ito':{const I=G.items;if(b.dataset.id==='__stash')I.stash=!I.stash;else{const i=I.to.indexOf(b.dataset.id);i<0?I.to.push(b.dataset.id):I.to.splice(i,1);}render();break;}
   case'itoall':G.items.to=G.chars.map(r=>r.id);render();break;
   case'icat':G.items.cat=G.items.cat===b.dataset.v?'':b.dataset.v;render();break;
