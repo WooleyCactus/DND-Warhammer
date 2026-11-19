@@ -206,7 +206,7 @@ function charInfo(r){const d=r.data||{},src=d.src||{},st=d.state||{};const lvl=(
  const per=(src.skills||{}).perception||0;const max=+src.maxHp||0;
  return{id:r.id,name:src.name||'Unnamed',player:src.player||'',cls:(src.classes||[]).map(c=>(c.cls||'?').replace(/^./,x=>x.toUpperCase())+' '+(c.level||1)).join(' / '),
   hp:st.hp==null?max:+st.hp,max,temp:+st.temp||0,ac:src.ac,speed:+src.speed||30,pp:10+mod((src.abilities||{}).wis)+pb*per,
-  corruption:+st.corruption||0,insanity:+st.insanity||0,abil:src.abilities||{}};}
+  corruption:+st.corruption||0,insanity:+st.insanity||0,thrones:st.thrones==null?null:+st.thrones,abil:src.abilities||{}};}
 const tokenFor=id=>(G.map&&G.map.tokens&&G.map.tokens['pc-'+id])||null;
 const charName=id=>{const r=G.chars.find(x=>x.id===id);return r?charInfo(r).name:'(removed character)';};
 let toastT=0;function toast(m,ok){const t=$('#toast');t.textContent=m;t.className=ok?'ok':'';t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200);}
@@ -247,7 +247,7 @@ function vParty(){
   return`<div class="pc" data-act="dpc" data-id="${esc(c.id)}" style="${cur?'border-color:var(--gold);background:#2a2216;':''}"><div class="top"><b>${esc(c.name)}</b>${cur?'<span class="tag main">Turn</span>':''}${G.claims.includes(c.id)?'<span title="Player PIN set">🔒</span>':'<span class="tag" title="No player PIN yet">unclaimed</span>'}</div>
    <div class="muted" style="margin-top:-3px">${esc(c.player?c.player+' · ':'')}${esc(c.cls)}</div>
    ${hpBar(c.hp,c.max)}
-   <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>PP <b>${c.pp}</b></span>${t&&t.init!=null&&t.init!==''?`<span>Init <b>${esc(t.init)}</b></span>`:''}${c.corruption?`<span>Corr <b style="${c.corruption>=25?'color:#ff8487':''}">${c.corruption}</b></span>`:''}${c.insanity?`<span>Ins <b>${c.insanity}</b></span>`:''}</div>
+   <div class="stats"><span>HP <b>${c.hp}/${c.max}${c.temp?' +'+c.temp:''}</b></span><span>AC <b>${esc(c.ac==null?'–':c.ac)}</b></span><span>PP <b>${c.pp}</b></span>${t&&t.init!=null&&t.init!==''?`<span>Init <b>${esc(t.init)}</b></span>`:''}${c.corruption?`<span>Corr <b style="${c.corruption>=25?'color:#ff8487':''}">${c.corruption}</b></span>`:''}${c.insanity?`<span>Ins <b>${c.insanity}</b></span>`:''}${c.thrones!=null?`<span>₮ <b style="${c.thrones<0?'color:#ff8487':''}">${c.thrones.toLocaleString()}</b></span>`:''}</div>
    ${t&&t.cond&&t.cond.length?`<div class="row">${t.cond.map(x=>`<span class="tag bad">${esc(x)}</span>`).join('')}</div>`:''}
    ${G.data.pcNotes[c.id]?`<div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${esc(G.data.pcNotes[c.id])}</div>`:''}</div>`;}).join('');
  const comps=G.data.npcs.filter(n=>n.companion).map(n=>{const t=npcToken(n);const st=t||n;
@@ -365,7 +365,7 @@ function editor(){
   <div class="grid"><label>Max HP<input type="number" data-e="src.maxHp" value="${esc(src.maxHp??'')}"></label><label>Current HP (blank = full)<input type="number" data-e="state.hp" value="${esc(st.hp??'')}"></label>
    <label>Temp HP<input type="number" data-e="state.temp" value="${esc(st.temp??'')}"></label><label>AC<input type="number" data-e="src.ac" value="${esc(src.ac??'')}"></label>
    <label>Speed (ft)<input type="number" step="5" data-e="src.speed" value="${esc(src.speed??30)}"></label><label>Corruption<input type="number" data-e="state.corruption" value="${esc(st.corruption??0)}"></label>
-   <label>Insanity<input type="number" data-e="state.insanity" value="${esc(st.insanity??0)}"></label></div>
+   <label>Insanity<input type="number" data-e="state.insanity" value="${esc(st.insanity??0)}"></label><label>Thrones ₮<input type="number" data-e="state.thrones" value="${esc(st.thrones??0)}"></label></div>
   <h2>Weapons</h2><div class="lst">${(src.weapons||[]).map((w,i)=>`<div class="row"><input class="grow" data-e="src.weapons.${i}.name" value="${esc(w.name)}" placeholder="Name"><input data-e="src.weapons.${i}.atk" value="${esc(w.atk||'')}" placeholder="Attack" style="width:70px"><input data-e="src.weapons.${i}.dmg" value="${esc(w.dmg||'')}" placeholder="Damage" style="width:120px"><button class="sm ghost" data-act="erm" data-p="src.weapons" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty">No weapons.</p>'}</div>
   <div class="row"><button class="sm" data-act="eaddw">+ Weapon</button></div>
   <h2>Gear</h2>${inv?`<div class="lst">${inv.map((it,i)=>`<div class="row"><input class="grow" data-e="state.inv.${i}.name" value="${esc(it.name)}"><input type="number" data-e="state.inv.${i}.qty" value="${esc(it.qty??1)}" style="width:64px" aria-label="Quantity"><button class="sm ghost" data-act="erm" data-p="state.inv" data-i="${i}" aria-label="Remove">✕</button></div>`).join('')||'<p class="empty">No gear.</p>'}</div>
