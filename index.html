@@ -2464,7 +2464,7 @@ function drawHow(){
 function howRoll(){
  const h=S.how;if(!h)return;const ch=S.party.find(c=>c.id===h.id)||exampleChar();const f=howFormula(h);const on=h.addons.filter(a=>a.on);
  let total=0,detail=[],crit=false,fail=false;
- if(h.d20){const a=1+Math.floor(Math.random()*20),b=1+Math.floor(Math.random()*20);const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;
+ if(h.d20){const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');const a=die(20),b=adv!==dis?die(20):1+Math.floor(Math.random()*20);let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;
   detail.push(adv!==dis?`d20[${a},${b}]`:`d20[${a}]`);if(h.reliable&&r<10){detail.push('reliable→10');r=10;}crit=h.kind==='atk'?r>=h.crit:r===20;fail=r===1;total+=r;}
  else{const r=rollExpr(f.dice);total+=r.total;detail.push(r.detail);}
  for(const x of f.extras){const r=rollExpr(x);total+=r.total;detail.push(r.detail);}
@@ -3423,14 +3423,17 @@ const cur=()=>S.party.find(c=>c.id===S.cur);
 function go(view,extra){Object.assign(S,{view,confirmDel:false,perils:null},extra||{});render();window.scrollTo(0,0);}
 
 /* ---------- dice ---------- */
+// Every die the app rolls goes on the tape; pushRoll hands it to the 3D dice (dice3d.js), which land on these exact numbers.
+let TAPE=[];function die(f){const v=1+Math.floor(Math.random()*f);TAPE.push([f,v]);return v;}
 function rollExpr(expr){
  const s=String(expr||'').replace(/−/g,'-');const parts=[];let total=0;let m;const rx=/(\d*)d(\d+)/gi;let rest=s;
- while((m=rx.exec(s))){const n=+(m[1]||1),f=+m[2];const r=[];for(let i=0;i<n;i++)r.push(1+Math.floor(Math.random()*f));parts.push(`${n}d${f}[${r.join(',')}]`);total+=r.reduce((a,b)=>a+b,0);}
+ while((m=rx.exec(s))){const n=+(m[1]||1),f=+m[2];const r=[];for(let i=0;i<n;i++)r.push(die(f));parts.push(`${n}d${f}[${r.join(',')}]`);total+=r.reduce((a,b)=>a+b,0);}
  rest=s.replace(rx,' ');const flats=rest.match(/[+-]\s*\d+/g)||[];flats.forEach(x=>total+=parseInt(x.replace(/\s/g,''),10));
  return {total,detail:parts.join(' ')+(flats.length?' '+flats.join(' ').replace(/\s+/g,''):'')};
 }
-function d20(label,mod){const r=1+Math.floor(Math.random()*20);pushRoll({label,total:r+mod,detail:`d20[${r}] ${sgn(mod)}`,crit:r===20,fail:r===1});return r;}
-function pushRoll(r){S.rolls.unshift(r);S.rolls=S.rolls.slice(0,4);drawDice();clearTimeout(pushRoll.t);pushRoll.t=setTimeout(()=>{S.rolls=[];drawDice();},9000);}
+function d20(label,mod){const r=die(20);pushRoll({label,total:r+mod,detail:`d20[${r}] ${sgn(mod)}`,crit:r===20,fail:r===1});return r;}
+function pushRoll(r){const tape=TAPE.splice(0);if(tape.length&&window.Dice3D&&Dice3D.on()){Dice3D.roll(tape).then(()=>showRoll(r));return;}showRoll(r);}
+function showRoll(r){S.rolls.unshift(r);S.rolls=S.rolls.slice(0,4);drawDice();clearTimeout(showRoll.t);showRoll.t=setTimeout(()=>{S.rolls=[];drawDice();},9000);}
 function toastMsg(t){pushRoll({label:t,total:'',detail:''});}
 function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit?' crit':''}${r.fail?' fail':''}">${esc(r.label)}${r.total!==''?`<b>${esc(r.total)}</b>`:''}${r.detail?`<div class="mono" style="font-size:11px;opacity:.75">${esc(r.detail)}</div>`:''}</div>`).join('');}
 
@@ -3598,7 +3601,7 @@ function vSheet(ch){
    <select class="sel-inline" data-c="crewRole" aria-label="Crew role">${Object.entries(CREW_ROLES).map(([k,v])=>opt(k,v[0],(ch.choices||{}).crewRole||'trader')).join('')}</select>
    ${d.homeworld?`<select class="sel-inline" data-c="homeworld" aria-label="Homeworld">${Object.entries(HOMEWORLDS).map(([k,v])=>opt(k,v[0],(ch.choices||{}).homeworld||'void')).join('')}</select>`:''}
   </div></div>
-  <div class="row">${ex?'':'<span class="purity" aria-hidden="true"><span class="wax">✠</span><span class="slip"></span></span>'}${ex?`<button class="btn primary" data-act="adoptex">Add to the crew</button>`:`<button class="btn primary" data-act="levelup">Level up</button>${spellListFor((s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).cls||'x',(s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).sub)?`<button class="btn" data-act="managepw">Manage powers</button>`:''}<button class="btn ghost" data-act="edit">Edit 5e source</button><button class="btn ghost" data-act="savefile">Save to file</button><button class="btn ghost" data-act="printsheet">Print</button>${S.confirmDel?`<span class="confirm">Remove ${esc(s.name)} for everyone? <button class="btn sm danger" data-act="del">Remove</button><button class="btn sm" data-act="nodel">Keep</button></span>`:`<button class="btn ghost" data-act="askdel">Remove</button>`}`}</div>
+  <div class="row">${ex?'':'<span class="purity" aria-hidden="true"><span class="wax">✠</span><span class="slip"></span></span>'}${ex?`<button class="btn primary" data-act="adoptex">Add to the crew</button>`:`<button class="btn primary" data-act="levelup">Level up</button>${spellListFor((s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).cls||'x',(s.classes.find(x=>spellListFor(x.cls,x.sub))||{}).sub)?`<button class="btn" data-act="managepw">Manage powers</button>`:''}<button class="btn ghost" data-act="edit">Edit 5e source</button><button class="btn ghost" data-act="savefile">Save to file</button><button class="btn ghost" data-act="printsheet">Print</button>${window.Dice3D&&Dice3D.available?`<button class="btn ghost" data-act="dice3d" title="3D dice animations on this device">🎲 3D dice: ${Dice3D.on()?'on':'off'}</button>${Dice3D.on()?`<button class="btn ghost" data-act="dice3dsnd" title="Dice sounds">${Dice3D.sound()?'🔊':'🔇'}</button>`:''}`:''}${S.confirmDel?`<span class="confirm">Remove ${esc(s.name)} for everyone? <button class="btn sm danger" data-act="del">Remove</button><button class="btn sm" data-act="nodel">Keep</button></span>`:`<button class="btn ghost" data-act="askdel">Remove</button>`}`}</div>
  </div>
 
  <div class="vitals">
@@ -3813,6 +3816,8 @@ document.addEventListener('click',e=>{
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{const i=+b.dataset.i;const w=d.weapons[i];const sp=spareOf(ch,i,w);if(sp<=0){toastMsg(w.to+': no spare clips left.');break;}st.ammo=st.ammo||{};if((st.ammo[i]==null?w.clip:st.ammo[i])>=w.clip){toastMsg('Clip is already full.');break;}st.spare=st.spare||{};st.spare[i]=sp-1;st.ammo[i]=w.clip;persist(ch);render();toastMsg(`${w.to} reloaded. ${sp-1} spare clip${sp-1===1?'':'s'} left.`);break;}
   case 'loedit':case 'lopend':case 'lopendx':case 'loinst':case 'lorem':loClick(a,b,ch);break;
+  case 'dice3d':Dice3D.set(!Dice3D.on());if(Dice3D.on())Dice3D.preload();render();break;
+  case 'dice3dsnd':Dice3D.setSound(!Dice3D.sound());render();break;
   case 'kitroll':case 'kituse':{const inv=invOf(ch);const it=inv.find(x=>x.id===b.dataset.id);const u=it&&useOf(it);if(!u)break;
    const rolled=kitRoll(it,u);if(a==='kitroll')break;if(ch.example){break;}
    it.qty=Math.max(0,(+it.qty||1)-1);const st=ch.state=ch.state||{};if(it.qty===0)st.inv=inv.filter(x=>x!==it);persist(ch,true);render();
@@ -3825,9 +3830,9 @@ document.addEventListener('click',e=>{
   case 'respool':{const k=b.dataset.k;const r=resources(ch,d).find(x=>x.k===k);st.res=st.res||{};st.res[k]=Math.max(0,Math.min(r.max,(st.res[k]||0)+(+b.dataset.d)));persist(ch);render();break;}
   case 'short':st.pact=0;st.res=st.res||{};resources(ch,d).forEach(r=>{if(r.reset==='short'||r.partial){st.res[r.k]=r.partial?Math.max(0,(st.res[r.k]||0)-1):0;}});st.raging=false;persist(ch);toastMsg('Short rest: pact slots restored. Spend hit dice by adjusting HP.');render();break;
   case 'long':st.hp=d.maxHp;st.temp=0;st.slots={};st.pact=0;st.ammo={};st.res={};st.raging=false;persist(ch);toastMsg('Long rest: wounds, slots and clips restored.');render();break;
-  case 'perils':{const wis=d.mods.wis+(d.saves.find(x=>x.a==='wis').prof?d.pb:0);const r=1+Math.floor(Math.random()*20);const tot=r+wis;
+  case 'perils':{const wis=d.mods.wis+(d.saves.find(x=>x.a==='wis').prof?d.pb:0);const r=die(20);const tot=r+wis;
    if(r!==1&&tot>=10){S.perils=`<b>Resisted.</b> Wis save ${r} ${sgn(wis)} = ${tot} against DC 10.`;pushRoll({label:'Perils save: resisted',total:tot,detail:`d20[${r}] ${sgn(wis)}`});}
-   else{const p=1+Math.floor(Math.random()*20);const row=PERILS.find(x=>p>=x[0]&&p<=x[1]);S.perils=`<b style="color:var(--blood)">Failed</b> (Wis save ${tot}). Perils roll <span class="mono">${p}</span>: ${esc(row[2])}`;pushRoll({label:'Perils of the Warp',total:p,detail:row[2],fail:true});}
+   else{const p=die(20);const row=PERILS.find(x=>p>=x[0]&&p<=x[1]);S.perils=`<b style="color:var(--blood)">Failed</b> (Wis save ${tot}). Perils roll <span class="mono">${p}</span>: ${esc(row[2])}`;pushRoll({label:'Perils of the Warp',total:p,detail:row[2],fail:true});}
    render();break;}
  }
 });
@@ -3878,6 +3883,7 @@ render();initStore();
 
 <script src="polls.js"></script>
 <script src="vox.js"></script>
+<script src="dice3d.js"></script>
 <script src="shopfront.js"></script>
 </body>
 </html>
