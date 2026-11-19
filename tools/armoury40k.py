@@ -152,7 +152,7 @@ ANN = {
  'flail':('melee','common',100,'A spiked ball on a chain, popular with Ecclesiarchy zealots.'),
  'glaive':('twohanded','rare',3000,'A long blade on a haft, sheathed in a disruption field. A weapon of honour guards.'),
  'greataxe':('twohanded','uncommon',300,'A two-handed chain-axe. Heavy, brutal and very loud.'),
- 'greatsword':('twohanded','rare',500,'A huge two-handed chainsword, favoured by Ecclesiarchy crusaders. It needs both hands and some faith.'),
+ 'greatsword':('twohanded','rare',2500,'A huge two-handed chainsword, favoured by Ecclesiarchy crusaders. It needs both hands and some faith.'),
  'halberd':('twohanded','rare',3000,'An axe-headed polearm wrapped in a disruption field, carried by palace guards and Custodian imitators.'),
  'lance':('melee','rare',3000,'A long power lance for mounted charges, or for very determined people on foot.'),
  'longsword':('melee','common',150,'A sword with a motorised chain of teeth. The iconic close-combat weapon of the Imperium.'),
@@ -167,12 +167,23 @@ ANN = {
  'warhammer':('melee','rare',2650,'A one-handed hammer sheathed in a disruption field.'),
  'whip':('melee','uncommon',200,'A whip that stimulates every nerve it touches. A slaver\'s favourite.'),
  'blowgun':('pistol','uncommon',1000,'A silent pistol that fires toxin-coated needles. An assassin\'s tool.'),
- 'handcrossbow':('pistol','common',750,'The standard Imperial sidearm: a las pistol that never jams and never runs dry for long.'),
+ 'handcrossbow':('pistol','common',400,'The standard Imperial sidearm: a las pistol that never jams and never runs dry for long.'),
  'heavycrossbow':('basic','rare',5000,'The holy bolter: rocket-propelled shells that explode inside the target. Rare outside the Astartes and the very rich.'),
- 'longbow':('basic','uncommon',5000,'A las rifle wired to a backpack power pack, firing overcharged bolts that punch through armour.'),
+ 'longbow':('basic','uncommon',2500,'A las rifle wired to a backpack power pack, firing overcharged bolts that punch through armour.'),
  'shotgun':('basic','common',350,'A pump or semi-automatic shotgun, the boarding party\'s best friend.'),
  'net':('thrown','common',100,'A weighted net laced with gravitic tension, for taking prisoners.'),
 }
+
+# ---- prices for items the app already had (name -> Thrones) ----
+OLD_COST = {'Frag grenade':500,'Krak grenade':800,'Smoke grenade':50,'Photon flash grenade':400,'Melta bomb':5000,
+ 'Medi-stimm':500,'Greater medi-stimm':1500,'Combat stimm':800,'De-tox injector':500,'Medi-kit':50,'Corpse-starch bars':5,'Recaf flask':20,
+ 'Spare power cell':30,'Bolt shells':150,'Shotgun shells':15,'Stub rounds':10,'Promethium canister':100,'Plasma flask':1500,
+ 'Glow-globe':10,'Grapnel and cable':30,'Magnoculars':250,'Auspex':500,'Multikey':250,'Rebreather':200,'Void suit':1000,'Vox-bead':75,
+ 'Data-slate':50,'Combi-tool':150,'Filtration plugs':20,'Manacles':20,'Aquila pendant':50,
+ 'Flak vest':100,'Mesh armour':450,'Flak armour':500,'Heavy flak':300,'Carapace chestplate':4000,'Storm-trooper carapace':7500,
+ 'Heavy carapace':750,'Full carapace':15000,'Combat shield':100,
+ 'Red-dot sight':250,'Telescopic sight':500,'Suppressor':150,'Extended magazine':200,'Hot-shot cells':600,'Bayonet':20,
+ 'Underslung grenade launcher':1200,'Monomolecular edge':500,'Shock coil':700,'Duelling grip':300}
 
 # ---- new non-weapon items: (name, cat, rarity, cost, desc, extra) ----
 ITEMS = [
@@ -285,10 +296,12 @@ def build():
           f" const ANN={json.dumps(ann, ensure_ascii=False)};\n"
           f" const PROPS={json.dumps(PROPS, ensure_ascii=False)};\n"
           f" const ITEMS={json.dumps(items, ensure_ascii=False)};\n"
+          f" const OLDCOST={json.dumps(OLD_COST, ensure_ascii=False)};\n"
           " for(const w of NEW){W5E[w.k]=[w.dice,w.type,w.f];WEAPONS[w.k]={to:w.to,lbl:w.lbl,dice:w.dice,type:w.type,range:w.range||undefined,clip:w.clip||undefined,props:w.props,cls:w.cls,rarity:w.rarity,cost:w.cost,desc:w.desc};if(!WEAPON_KEYS.includes(w.k))WEAPON_KEYS.push(w.k);}\n"
           " WEAPON_KEYS.sort((a,b)=>b.length-a.length);\n"
           " for(const [k,a] of Object.entries(ANN)){if(WEAPONS[k])Object.assign(WEAPONS[k],a);}\n"
           " for(const [p,t] of Object.entries(PROPS)){if(!PROP_TEXT[p])PROP_TEXT[p]=t;}\n"
+          " for(const x of STD_ITEMS){if(x.cost==null&&OLDCOST[x.name]!=null)x.cost=OLDCOST[x.name];}\n"
           " const have=new Set(STD_ITEMS.map(x=>x.id));\n"
           " for(const it of ITEMS){const o=I(it.name,it.cat,it.rarity,it.desc,{cost:it.cost});if(it.armour)o.armour=it.armour;if(!have.has(o.id))STD_ITEMS.push(o);}\n"
           "})();\n/* ARMOURY40K-END */\n")
