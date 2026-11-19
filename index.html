@@ -258,15 +258,31 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 @keyframes dtin{from{opacity:0;transform:translateY(10px) scale(.8)}to{opacity:1;transform:none}}
 @media print{#dtray{display:none}}
 .dice{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;max-width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
-.die{pointer-events:auto;background:linear-gradient(180deg,#e2d1a8,var(--parch));color:var(--parch-ink);padding:9px 14px 9px 14px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.7),0 0 0 1px #7a6440;animation:pop .18s ease-out;position:relative;font-family:var(--f-body)}
-.die::before{content:"+++";font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;color:#7a2a1c;display:block}
-.die:not(:first-child){opacity:.55;font-size:12px;padding:4px 10px}
-.die:not(:first-child)::before{display:none}
-.die b{font-family:var(--f-mono);font-size:22px;margin-left:8px;color:#2a1e10}
-.die.crit{box-shadow:0 8px 24px rgba(0,0,0,.7),0 0 0 2px var(--gold)}
-.die.crit b{color:#7a5a10}
-.die.fail{box-shadow:0 8px 24px rgba(0,0,0,.7),0 0 0 2px var(--blood)}
-.die.fail b{color:#8f1518}
+.die{pointer-events:auto;min-width:min(300px,calc(100vw - 32px));background:linear-gradient(180deg,#221b14,#120e0b);color:var(--ink);border:1px solid var(--line);border-left:3px solid var(--gold);box-shadow:0 10px 28px rgba(0,0,0,.75),0 0 0 1px #000;animation:pop .18s ease-out;font-family:var(--f-body)}
+.die.msg{min-width:0;padding:10px 14px;font-size:14px;border-left-color:var(--muted)}
+.die .rl-h{padding:8px 12px 0;font:700 11.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.die .rl-b{display:flex;align-items:center;gap:12px;padding:8px 12px 10px}
+.die .rl-d{display:flex;flex-wrap:wrap;gap:5px;flex:1;align-items:center}
+.die .rc{display:inline-flex;flex-direction:column;align-items:center;min-width:34px;padding:3px 6px 4px;background:#0b0907;border:1px solid var(--line);font:700 17px/1.1 var(--f-mono);color:var(--ink)}
+.die .rc em{font:600 9px var(--f-mono);font-style:normal;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.die .rc.max{border-color:var(--gold);color:var(--gold-hi,#F1D27A);box-shadow:0 0 8px rgba(200,162,74,.35)}
+.die .rc.min{border-color:var(--blood);color:#ff8a7a}
+.die .rc.drop{opacity:.4;text-decoration:line-through}
+.die .rm{font:700 16px var(--f-mono);color:var(--muted);padding:0 2px}
+.die .rl-t{min-width:64px;text-align:center;padding:4px 10px;background:#0b0907;border:1px solid var(--gold-dk,#7A5C1E)}
+.die .rl-t em{display:block;font:600 9px var(--f-mono);font-style:normal;letter-spacing:.14em;color:var(--muted)}
+.die .rl-t b{display:block;font:700 30px/1.05 var(--f-mono);color:var(--gold-hi,#F1D27A)}
+.die .rl-x{padding:0 12px 9px;font-size:12.5px;color:var(--muted);margin-top:-4px}
+.die.crit{border-left-color:var(--gold-hi,#F1D27A);box-shadow:0 10px 28px rgba(0,0,0,.75),0 0 0 1px var(--gold),0 0 22px rgba(200,162,74,.35)}
+.die.crit .rl-h{color:var(--gold-hi,#F1D27A)}
+.die.fail{border-left-color:var(--blood);box-shadow:0 10px 28px rgba(0,0,0,.75),0 0 0 1px var(--blood)}
+.die.fail .rl-t b{color:#ff8a7a}
+.die:not(:first-child){min-width:0;animation:none;background:#0f0c0a;border-left-width:2px;box-shadow:0 4px 14px rgba(0,0,0,.7)}
+.die:not(:first-child) .rl-h{color:var(--muted)}
+.die:not(:first-child) .rl-b,.die:not(:first-child) .rl-x{display:none}
+.die:not(:first-child) .rl-h{padding:6px 10px;display:flex;gap:10px;justify-content:space-between}
+.die .rl-h i{display:none}
+.die:not(:first-child) .rl-h i{display:inline;font-style:normal;color:var(--ink)}
 @keyframes pop{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.die{animation:none}}
 
@@ -2481,7 +2497,7 @@ function drawHow(){
 function howRoll(){
  const h=S.how;if(!h)return;const ch=S.party.find(c=>c.id===h.id)||exampleChar();const f=howFormula(h);const on=h.addons.filter(a=>a.on);
  let total=0,detail=[],crit=false,fail=false;
- if(h.d20){const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');const a=die(20),b=adv!==dis?die(20):1+Math.floor(Math.random()*20);let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;
+ if(h.d20){const adv=on.some(x=>x.d20==='adv'),dis=on.some(x=>x.d20==='dis');const ia=TAPE.length;const a=die(20),b=adv!==dis?die(20):1+Math.floor(Math.random()*20);let r=adv&&!dis?Math.max(a,b):dis&&!adv?Math.min(a,b):a;if(adv!==dis&&TAPE[ia+1])TAPE[r===a?ia+1:ia][2]=1;
   detail.push(adv!==dis?`d20[${a},${b}]`:`d20[${a}]`);if(h.reliable&&r<10){detail.push('reliable→10');r=10;}crit=h.kind==='atk'?r>=h.crit:r===20;fail=r===1;total+=r;}
  else{const r=rollExpr(f.dice);total+=r.total;detail.push(r.detail);}
  for(const x of f.extras){const r=rollExpr(x);total+=r.total;detail.push(r.detail);}
@@ -3481,10 +3497,18 @@ function rollExpr(expr){
  return {total,detail:parts.join(' ')+(flats.length?' '+flats.join(' ').replace(/\s+/g,''):'')};
 }
 function d20(label,mod){const r=die(20);pushRoll({label,total:r+mod,detail:`d20[${r}] ${sgn(mod)}`,crit:r===20,fail:r===1});return r;}
-function pushRoll(r){const tape=TAPE.splice(0);if(tape.length&&window.Dice3D&&Dice3D.on()){Dice3D.roll(tape).then(()=>showRoll(r));return;}showRoll(r);}
+function pushRoll(r){const tape=TAPE.splice(0);if(tape.length)r.dice=tape;if(tape.length&&window.Dice3D&&Dice3D.on()){Dice3D.roll(tape).then(()=>showRoll(r));return;}showRoll(r);}
 function showRoll(r){S.rolls.unshift(r);S.rolls=S.rolls.slice(0,4);drawDice();clearTimeout(showRoll.t);showRoll.t=setTimeout(()=>{S.rolls=[];drawDice();},9000);}
 function toastMsg(t){pushRoll({label:t,total:'',detail:''});}
-function drawDice(){$('#dice').innerHTML=S.rolls.map(r=>`<div class="die${r.crit?' crit':''}${r.fail?' fail':''}">${esc(r.label)}${r.total!==''?`<b>${esc(r.total)}</b>`:''}${r.detail?`<div class="mono" style="font-size:11px;opacity:.75">${esc(r.detail)}</div>`:''}</div>`).join('');}
+function drawDice(){$('#dice').innerHTML=S.rolls.map(rollCard).join('');}
+function rollCard(r){if(r.total===''||r.total==null)return `<div class="die msg">${esc(r.label)}</div>`;
+ const D=r.dice||[];const kept=D.filter(d=>!d[2]);const sum=kept.reduce((a,d)=>a+d[1],0);const tot=Number(r.total);
+ const mod=D.length&&Number.isFinite(tot)&&!/reliable/.test(r.detail||'')?tot-sum:null;
+ const chips=D.map(([f,v,drop])=>`<span class="rc${drop?' drop':v===f&&f===20?' max':v===1&&f===20?' min':''}" title="d${f}${drop?' (dropped)':''}"><em>d${f}</em>${v}</span>`).join('');
+ const modTxt=mod?`<span class="rm">${mod>0?'+':'−'}${Math.abs(mod)}</span>`:'';
+ const extra=!D.length&&r.detail?`<div class="rl-x">${esc(r.detail)}</div>`:'';
+ return `<div class="die${r.crit?' crit':''}${r.fail?' fail':''}"><div class="rl-h"><span>${esc(r.label)}</span><i>${esc(r.total)}</i></div>
+  <div class="rl-b">${D.length?`<div class="rl-d">${chips}${modTxt}</div>`:'<div class="rl-d"></div>'}<div class="rl-t"><em>TOTAL</em><b>${esc(r.total)}</b></div></div>${extra}</div>`;}
 
 /* ---------- views ---------- */
 function render(){

@@ -32,7 +32,8 @@
    if(!front)open=false;
    if(JSON.stringify(was)!==JSON.stringify(front))paint();}catch(e){}busy=false;}
 
- const css=`#rtm-shopfab{position:fixed;right:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:38;background:#1f1a12;border:1px solid #C8A24A;color:#F1D27A;padding:9px 13px;font:700 13px Georgia,serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 14px rgba(200,162,74,.25)}
+ const css=`#rtm-shopfab{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));z-index:38;background:#1f1a12;border:1px solid #C8A24A;color:#F1D27A;padding:9px 13px;font:700 13px Georgia,serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.6),0 0 14px rgba(200,162,74,.25)}
+ #rtm-shopfab.tr{bottom:auto;top:calc(var(--rtm-tr-top,14px) + var(--rtm-gm-h,0px))}
  #rtm-shop{position:fixed;inset:0;z-index:55;background:rgba(5,4,3,.82);overflow:auto;padding:14px;-webkit-overflow-scrolling:touch}
  #rtm-shop .sw{max-width:1200px;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#E8DFC8}
  #rtm-shop .hd{display:flex;gap:10px;align-items:flex-start;position:sticky;top:-14px;background:#0f0d0b;border:1px solid #3a3226;border-top:3px solid #C8A24A;padding:12px 14px;margin:-14px -14px 12px;z-index:2}
@@ -79,7 +80,7 @@
  function paint(){ensureDom();let fab=document.getElementById('rtm-shopfab'),ov=document.getElementById('rtm-shop');
   if(!front){fab&&fab.remove();ov&&ov.remove();return;}
   if(!fab){fab=document.createElement('button');fab.id='rtm-shopfab';fab.type='button';fab.onclick=()=>{open=true;paint();};document.body.appendChild(fab);}
-  fab.textContent='🛒 '+front.name;fab.style.display=open?'none':'';
+  fab.classList.toggle('tr',!!document.querySelector('header.top'));fab.textContent='🛒 '+front.name;fab.style.display=open?'none':'';
   if(!open){ov&&ov.remove();return;}
   if(!ov){ov=document.createElement('div');ov.id='rtm-shop';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target.closest('[data-x]')||e.target===ov){open=false;paint();}});}
   const pt=front.propText||{};const I=front.items||[];
