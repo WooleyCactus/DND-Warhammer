@@ -585,9 +585,9 @@ const fmt=n=>'₮ '+Number(n||0).toLocaleString();
 function stockLine(it){if(it.cat==='weapon'&&it.dice)return `${it.dice} ${it.dtype||''}${it.range?' · '+it.range+' ft':' · melee'}${(it.props||[]).length?' · '+it.props.join(', '):''}`;
  if(Array.isArray(it.armour)){const [a,c]=it.armour;return `AC ${a}${c>=99?' + Dex':c>0?` + Dex (max ${c})`:''}`;}
  const d=String(it.desc||'');return d.length>110?d.slice(0,107)+'…':d;}
-function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||null;if(!L){ensureShops();return '<section class="box"><p class="muted">Opening the shops…</p></section>';}
+function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||null;if(!L){ensureShops();return '<section class="box"><p class="muted">Opening the shops…</p></section>';}if(G.data.shopShow)schedFront();
  const S=G.shop;const s=curShop();if(s&&!S.sel)S.sel=s.id;const si=L.indexOf(s);
- const list=`<aside class="box shl"><h2>Shops<span class="sp"></span><span class="n">Day ${G.data.shopDay||1}</span></h2><button class="sm pri" data-act="shnewday" title="Advance the in-game day and restock every shop">🎲 New day: restock all</button>${L.map(x=>`<button class="shb ${s&&x.id===s.id?'on':''}" data-act="shsel" data-id="${esc(x.id)}">${esc(x.name)}<small>${esc(x.place||'')}</small></button>`).join('')}<button class="sm" data-act="shnew">+ New shop</button></aside>`;
+ const list=`<aside class="box shl"><h2>Shops<span class="sp"></span><span class="n">Day ${G.data.shopDay||1}</span></h2><button class="sm pri" data-act="shnewday" title="Advance the in-game day and restock every shop">🎲 New day: restock all</button>${L.map(x=>`<button class="shb ${s&&x.id===s.id?'on':''}" data-act="shsel" data-id="${esc(x.id)}">${G.data.shopShow===x.id?'📣 ':''}${esc(x.name)}<small>${esc(x.place||'')}</small></button>`).join('')}<button class="sm" data-act="shnew">+ New shop</button></aside>`;
  if(!s)return `<div class="shopw">${list}<section class="box"><p class="empty">No shops yet. Make one.</p></section></div>`;
  const chars=G.chars.map(charInfo);const buyer=chars.find(c=>c.id===S.buyer);
  const rows=shopStock(s).filter(r=>!r.back||S.back||S.edit);
@@ -604,7 +604,7 @@ function vShops(){if(!G.catalog)loadCatalog();const L=(G.data&&G.data.shops)||nu
    <h2>Custom item or service</h2><div class="grid"><label>Name<input id="scName" value="${esc(S.cf.name)}" placeholder="Berth (per day)"></label><label>Price ₮<input id="scCost" type="number" value="${esc(S.cf.cost)}"></label></div>
    <label>Description<input id="scDesc" value="${esc(S.cf.desc)}"></label><div class="row"><label class="ck"><input type="checkbox" id="scSvc" ${S.cf.service?'checked':''}> Service (charges Thrones, gives no item)</label><label class="ck"><input type="checkbox" id="scBack" ${S.cf.back?'checked':''}> Back room</label><span class="sp" style="flex:1"></span><button data-act="shcustom">Add</button></div>
    <div class="row"><span style="flex:1"></span><button class="sm bad" data-act="shremove">Delete this shop</button></div>`:'';
- const main=`<section class="box"><h2>${esc(s.name)}<span class="sp"></span>${S.edit?'':`<button class="sm" data-act="shrestock" title="Re-roll this shop's stock">🎲 Restock</button>`}<button class="sm ${S.edit?'on':''}" data-act="shedit">${S.edit?'Done editing':'Edit shop'}</button></h2>${meta}
+ const main=`<section class="box"><h2>${esc(s.name)}<span class="sp"></span>${S.edit?'':`<button class="sm" data-act="shrestock" title="Re-roll this shop's stock">🎲 Restock</button>`}${G.data.shopShow===s.id?`<button class="sm on" data-act="shhide" title="Players stop seeing this shop">🙈 Hide wares</button>`:`<button class="sm pri" data-act="shshow" title="Players see what's on display, at list price (no GM discounts or controls)">📣 Show wares</button>`}<button class="sm ${S.edit?'on':''}" data-act="shedit">${S.edit?'Done editing':'Edit shop'}</button></h2>${meta}
   ${S.edit?'':`<div class="row"><label class="ck"><input type="checkbox" id="shBack" ${S.back?'checked':''}> Back room open</label>${S.back?`<label class="ck"><input type="checkbox" id="shTrust" ${S.trusted?'checked':''}> Trusted customer (no +25% discretion fee)</label>`:''}</div>
   <div class="row"><span class="muted">Prices</span>${pctChips}<label class="ck">Custom % <input id="shPct" type="number" value="${esc(S.pct||'')}" style="width:5em"></label>${S.pct?'<button class="sm ghost" data-act="shpct" data-v="0">Reset</button>':''}</div>`}
   ${S.edit?`<p class="muted">Editing the full stock lists. Each restock picks from these: up to ${(s.rules||{}).weapons||6} weapons (${(s.rules||{}).uncommon||2} uncommon, the rest common), every common non-weapon plus ${(s.rules||{}).uncommon||2} uncommon, and ${(s.rules||{}).back||4} back-room items.</p>
@@ -713,6 +713,21 @@ function shopCards(s){const S=G.shop;ensureStock(s);const st=s.stock;
  const W=shelf.filter(r=>isWpn(r.it)),Gd=shelf.filter(r=>!isWpn(r.it)),C=cust.filter(r=>!r.back),CB=cust.filter(r=>r.back);
  const sec=(t,rs)=>rs.length?`<div class="shsec">${t}<span class="n">${rs.length}</span></div><div class="icg">${rs.map(r=>itemCard(s,r)).join('')}</div>`:'';
  return sec('Weapons on the shelf',W)+sec('Gear on the shelf',Gd)+sec('Specials & services',C)+(S.back?sec('Back room',[...back,...CB]):`<p class="muted">The back room is closed. Tick "Back room open" when they bribe, bully, fast-talk or earn their way in.</p>`);}
+// ---- shop window for players (shopfront table) ----
+let frontT=0,frontLast='';
+function frontSnap(){const id=G.data&&G.data.shopShow;const s=id&&(G.data.shops||[]).find(x=>x.id===id);if(!s)return null;ensureStock(s);
+ const pt=(G.catalog&&G.catalog.propText)||{};const props=new Set();const S=G.shop;const backOpen=!!S.back&&(curShop()||{}).id===s.id;
+ const pub=(it,back)=>{const c=+it.cost||0;return it.cost==null?null:Math.max(0,Math.round(back&&!S.trusted?c*1.25:c));};
+ const card=(it,back)=>{(it.props||[]).forEach(x=>props.add(x));const o={name:it.name,cat:it.service?'service':it.cat,rarity:it.rarity||'common',price:pub(it,back),back:!!back};
+  if(isWpn(it))Object.assign(o,{cls:it.cls,dice:it.dice,bonus:+it.bonus||0,dtype:it.dtype,range:it.range,clip:it.clip,props:it.props||[],desc:it.flavor||''});else o.desc=String(it.desc||'');
+  if(Array.isArray(it.armour))o.armour=it.armour;if(it.props&&!o.props)o.props=it.props;return o;};
+ const items=[];s.stock.shelf.forEach(i=>{const it=shopItem(s,i);if(it)items.push(card(it,false));});
+ (s.custom||[]).filter(it=>!it.back).forEach(it=>items.push(card(it,false)));
+ if(backOpen){s.stock.back.forEach(i=>{const it=shopItem(s,i);if(it)items.push(card(it,true));});(s.custom||[]).filter(it=>it.back).forEach(it=>items.push(card(it,true)));}
+ const P={};props.forEach(x=>{if(pt[x])P[x]=pt[x];});
+ return {id:s.id,name:s.name,owner:s.owner||'',place:s.place||'',day:G.data.shopDay||1,back:backOpen,trusted:!!S.trusted,items,propText:P};}
+function schedFront(force){clearTimeout(frontT);frontT=setTimeout(async()=>{const snap=frontSnap();const key=JSON.stringify(snap);if(!force&&key===frontLast)return;
+ try{await rpc('shopfront_set',{p_party:G.code,p_pin:G.pin,p_data:snap?Object.assign({at:Date.now()},snap):null});frontLast=key;try{G.pchan.send({type:'broadcast',event:'shop',payload:{t:Date.now()}});}catch(e){}}catch(e){toast('Shop window: '+e.message);}},force?0:600);}
 /* SHOPS-END */
 const VSTY={static:'Static (garbled, then clears)',clear:'Clear channel',cipher:'Encrypted (they tap Decrypt)'};
 function voxTo(to){return !to||!to.length?'Whole party':to.map(charName).join(', ');}
@@ -786,6 +801,8 @@ root.addEventListener('click',async e=>{
   case'dpoll':openDrawer('poll');break;
   case'dvox':openDrawer('vox');break;
   case'tab':setTab(b.dataset.v);break;
+  case'shshow':{const s=curShop();if(!s)break;G.data.shopShow=s.id;dirty();schedFront(true);toast(`Players can now see ${s.name}.`,true);render();break;}
+  case'shhide':{G.data.shopShow=null;dirty();schedFront(true);toast('Shop hidden from players.',true);render();break;}
   case'shrestock':{const s=curShop();if(s){rotate(s);dirty();toast(`${s.name} restocked.`,true);render();}break;}
   case'shnewday':{if(!confirm('Start a new day? Every shop restocks at random.'))break;G.data.shopDay=(G.data.shopDay||1)+1;(G.data.shops||[]).forEach(rotate);dirty();toast(`Day ${G.data.shopDay}: all shops restocked.`,true);render();break;}
   case'shswap':{const s=curShop();const n=s&&swapOne(s,b.dataset.id);if(n){dirty();toast(`Swapped in ${n}.`,true);render();}else toast('Nothing else of that kind to swap in.');break;}
