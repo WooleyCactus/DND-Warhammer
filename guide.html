@@ -673,6 +673,7 @@ function bgFor(bg){const n=N(bg);if(!n)return null;for(const [k,v] of BACKGROUND
 const WEAPONS={
  handcrossbow:{to:'Laspistol',dice:'1d6',type:'radiant',range:'60/180',clip:30,props:['Light','Reliable']},
  lightcrossbow:{to:'Lasgun',dice:'1d8',type:'radiant',range:'120/360',clip:60,props:['Two-handed','Reliable','Burst']},
+ shotgun:{to:'Combat shotgun',dice:'1d10',type:'piercing',range:'30/90',clip:8,props:['Two-handed','Scatter']},
  heavycrossbow:{to:'Boltgun',dice:'2d6',type:'piercing',range:'120/360',clip:24,props:['Two-handed','Explosive','Burst']},
  shortbow:{to:'Autogun',dice:'1d8',type:'piercing',range:'100/300',clip:20,props:['Two-handed','Burst']},
  longbow:{to:'Hellgun',dice:'1d10',type:'radiant',range:'120/360',clip:20,props:['Two-handed','Burst']},
@@ -713,6 +714,7 @@ const WEAPONS={
 const WEAPON_KEYS=Object.keys(WEAPONS).sort((a,b)=>b.length-a.length);
 const PROP_TEXT={
  'Reliable':'Never jams.',
+ 'Scatter':'Within 10 ft, roll the damage dice twice and use the higher total.',
  'Burst':'Spend 3 shots: 10-ft cube, Dex save (DC 8 + prof + Dex) or take weapon damage.',
  'Explosive':'On a crit, roll damage dice three times instead of twice.',
  'Overheat':'On a natural 1, take the weapon\'s damage; unusable until a short rest.',
@@ -1807,7 +1809,7 @@ function subDesc(name){return SUBDESC[name]||'';}
 </script>
 <script>
 /* ===== Roll math, "how to roll" cards, and the turn helper ===== */
-const W5E={club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
+const W5E={shotgun:['1d10','piercing','ranged two'],club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
 function clsLevel(src,c){const e=(src.classes||[]).find(x=>x.cls===c);return e?e.level:0;}
 function hasFeat(src,k){return (src.feats||[]).some(f=>f.key===k);}
 function rollCtx(ch,d){

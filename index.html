@@ -698,6 +698,7 @@ function bgFor(bg){const n=N(bg);if(!n)return null;for(const [k,v] of BACKGROUND
 const WEAPONS={
  handcrossbow:{to:'Laspistol',dice:'1d6',type:'radiant',range:'60/180',clip:30,props:['Light','Reliable']},
  lightcrossbow:{to:'Lasgun',dice:'1d8',type:'radiant',range:'120/360',clip:60,props:['Two-handed','Reliable','Burst']},
+ shotgun:{to:'Combat shotgun',dice:'1d10',type:'piercing',range:'30/90',clip:8,props:['Two-handed','Scatter']},
  heavycrossbow:{to:'Boltgun',dice:'2d6',type:'piercing',range:'120/360',clip:24,props:['Two-handed','Explosive','Burst']},
  shortbow:{to:'Autogun',dice:'1d8',type:'piercing',range:'100/300',clip:20,props:['Two-handed','Burst']},
  longbow:{to:'Hellgun',dice:'1d10',type:'radiant',range:'120/360',clip:20,props:['Two-handed','Burst']},
@@ -738,6 +739,7 @@ const WEAPONS={
 const WEAPON_KEYS=Object.keys(WEAPONS).sort((a,b)=>b.length-a.length);
 const PROP_TEXT={
  'Reliable':'Never jams.',
+ 'Scatter':'Within 10 ft, roll the damage dice twice and use the higher total.',
  'Burst':'Spend 3 shots: 10-ft cube, Dex save (DC 8 + prof + Dex) or take weapon damage.',
  'Explosive':'On a crit, roll damage dice three times instead of twice.',
  'Overheat':'On a natural 1, take the weapon\'s damage; unusable until a short rest.',
@@ -2287,7 +2289,7 @@ function pmClick(a,v,btn){const pm=S.pm;if(!pm)return false;const ch=S.party.fin
  render();return true;}
 
 /* ===== Roll math, "how to roll" cards, and the turn helper ===== */
-const W5E={club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
+const W5E={shotgun:['1d10','piercing','ranged two'],club:['1d4','bludgeoning','light'],dagger:['1d4','piercing','finesse light thrown'],greatclub:['1d8','bludgeoning','two'],handaxe:['1d6','slashing','light thrown'],javelin:['1d6','piercing','thrown'],lighthammer:['1d4','bludgeoning','light thrown'],mace:['1d6','bludgeoning',''],quarterstaff:['1d6','bludgeoning','versatile'],sickle:['1d4','slashing','light'],spear:['1d6','piercing','thrown versatile'],dart:['1d4','piercing','finesse thrown ranged'],lightcrossbow:['1d8','piercing','ranged two'],shortbow:['1d6','piercing','ranged two'],sling:['1d4','bludgeoning','ranged'],battleaxe:['1d8','slashing','versatile'],flail:['1d8','bludgeoning',''],glaive:['1d10','slashing','heavy reach two'],greataxe:['1d12','slashing','heavy two'],greatsword:['2d6','slashing','heavy two'],halberd:['1d10','slashing','heavy reach two'],lance:['1d10','piercing','heavy reach'],longsword:['1d8','slashing','versatile'],maul:['2d6','bludgeoning','heavy two'],morningstar:['1d8','piercing',''],pike:['1d10','piercing','heavy reach two'],rapier:['1d8','piercing','finesse'],scimitar:['1d6','slashing','finesse light'],shortsword:['1d6','piercing','finesse light'],trident:['1d8','piercing','thrown versatile'],warpick:['1d8','piercing','versatile'],warhammer:['1d8','bludgeoning','versatile'],whip:['1d4','slashing','finesse reach'],blowgun:['1','piercing','ranged'],handcrossbow:['1d6','piercing','ranged light'],heavycrossbow:['1d10','piercing','ranged heavy two'],longbow:['1d8','piercing','ranged heavy two']};
 function clsLevel(src,c){const e=(src.classes||[]).find(x=>x.cls===c);return e?e.level:0;}
 function hasFeat(src,k){return (src.feats||[]).some(f=>f.key===k);}
 function rollCtx(ch,d){
@@ -2677,6 +2679,14 @@ const STD_ITEMS=[
  I('Filtration plugs','gear','common','Advantage on saves against inhaled toxins.'),
  I('Manacles','gear','common','Restrain a Medium or smaller creature.'),
  I('Aquila pendant','relic','common','Holy symbol of the Imperium; a Faith focus.'),
+ I('Flak vest','armour','common','Light armour. AC 11 + Dex. Tap Wear in your gear to put it on.',{armour:[11,99]}),
+ I('Mesh armour','armour','uncommon','Light armour. AC 12 + Dex. Tap Wear in your gear to put it on.',{armour:[12,99]}),
+ I('Flak armour','armour','common','Medium armour. AC 13 + Dex (max 2). Tap Wear in your gear to put it on.',{armour:[13,2]}),
+ I('Heavy flak','armour','common','Heavy armour. AC 14. Tap Wear in your gear to put it on.',{armour:[14,0]}),
+ I('Carapace chestplate','armour','uncommon','Medium armour. AC 14 + Dex (max 2). Tap Wear in your gear to put it on.',{armour:[14,2]}),
+ I('Storm-trooper carapace','armour','rare','Medium armour. AC 15 + Dex (max 2). Tap Wear in your gear to put it on.',{armour:[15,2]}),
+ I('Heavy carapace','armour','uncommon','Heavy armour. AC 16 (Str 13). Tap Wear in your gear to put it on.',{armour:[16,0]}),
+ I('Full carapace','armour','rare','Heavy armour. AC 18 (Str 15). Tap Wear in your gear to put it on.',{armour:[18,0]}),
  I('Combat shield','armour','common','+2 AC while carried.'),
  I('Thrones','money','common','Imperial currency.')
 ];
@@ -2703,11 +2713,24 @@ function giveItem(ch,c,qty){
  const ex=inv.find(x=>(c.att&&x.att===c.att)||(x.cid&&x.cid===c.id)||(!x.cid&&!c.hb&&sing(x.name)===sing(c.name)));
  const add=c.cat==='money'?100*qty:qty;
  if(ex){ex.qty=(+ex.qty||0)+add;if(!ex.cid)ex.cid=c.id;}
- else inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty:add,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon});
+ else inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty:add,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour});
  return `${c.name} added.`;
 }
 
 /* ---- inventory UI ---- */
+/* WEAR-START: armour items in gear set the sheet's AC when worn */
+const ARMOUR40={flakvest:[11,99],mesharmour:[12,99],flakarmour:[13,2],heavyflak:[14,0],carapacechestplate:[14,2],stormtroopercarapace:[15,2],heavycarapace:[16,0],fullcarapace:[18,0]};
+function armourSpec(it){if(!it)return null;if(Array.isArray(it.armour))return it.armour;const n=N(it.name);const k=Object.keys(ARMOUR40).find(k=>n.startsWith(k));return k?ARMOUR40[k]:null;}
+function isShield(it){return !!it&&/shield/i.test(it.name||'')&&(it.cat==='armour'||!it.cat);}
+function wearable(it){return !!armourSpec(it)||isShield(it);}
+function recalcAC(ch){const s=ch.src;const inv=(ch.state&&ch.state.inv)||[];const dex=modOf(+(s.abilities||{}).dex||10);
+ const body=inv.find(i=>i.worn&&armourSpec(i));const sh=inv.find(i=>i.worn&&isShield(i));
+ if(!body&&!sh){if(s.acBase!=null){s.ac=s.acBase;delete s.acBase;}return;}
+ if(s.acBase==null)s.acBase=s.ac||10+dex;
+ if(body){const [b,cap]=armourSpec(body);const def=/\"defense\"|Bulwark Doctrine/.test(JSON.stringify(s.opts||{})+(s.features||''))?1:0;
+  s.ac=b+Math.min(dex,cap)+((sh||s.shield)?2:0)+def;}
+ else s.ac=s.acBase+(s.shield?0:2);}
+/* WEAR-END */
 /* STASH-START: the Ship's Armoury, a shared stash per party (supabase/stash.sql) */
 const SH={data:null,t:0,busy:false};
 function stashOn(){return S.store==='party'&&!!(DB&&DB.client&&DB.code);}
@@ -2733,14 +2756,15 @@ async function stashClick(a,b,ch){
  SH.busy=true;render();
  try{
   if(a==='stow'){const it=inv.find(x=>x.id===b.dataset.id);if(!it)return;
-   const item={id:it.cid||('x:'+N(it.name)),name:it.name,cat:it.cat||catFor(it.name),rarity:it.rarity||'common',desc:it.desc||'',icon:it.icon,hb:!!it.hb,att:it.att,hbDef:it.hbDef};
+   if(it.worn&&(+it.qty||1)<=1){toastMsg(`Take off the ${it.name} first.`);return;}
+   const item={id:it.cid||('x:'+N(it.name)),name:it.name,cat:it.cat||catFor(it.name),rarity:it.rarity||'common',desc:it.desc||'',icon:it.icon,hb:!!it.hb,att:it.att,hbDef:it.hbDef,armour:it.armour};
    const {data,error}=await DB.client.rpc('stash_store',{p_party:DB.code,p_char:ch.id,p_pin:pin,p_who:who,p_item:item,p_qty:1});
    if(error){toastMsg(error.message||'Couldn\u2019t reach the armoury.');return;}
    it.qty=(+it.qty||1)-1;if(it.qty<=0)st.inv=inv.filter(x=>x!==it);persist(ch,true);toastMsg(`${it.name} stowed in the ship's armoury.`);SH.t=0;await stashLoad(true);}
   else{const q=a==='stakeall'?Math.max(1,+b.dataset.q||1):1;
    const {data,error}=await DB.client.rpc('stash_take',{p_party:DB.code,p_char:ch.id,p_pin:pin,p_who:who,p_key:b.dataset.k,p_qty:q});
    if(error||!data){toastMsg((error&&error.message)||'Couldn\u2019t take that.');SH.t=0;await stashLoad(true);return;}
-   const c={id:data.id||data.key,name:data.name,cat:data.cat||'gear',rarity:data.rarity||'common',desc:data.desc||'',base:data.base,att:data.att,hbDef:data.hbDef,hb:!!data.hb,icon:data.icon};
+   const c={id:data.id||data.key,name:data.name,cat:data.cat||'gear',rarity:data.rarity||'common',desc:data.desc||'',base:data.base,att:data.att,hbDef:data.hbDef,hb:!!data.hb,icon:data.icon,armour:data.armour};
    if(c.cat==='weapon'&&!c.base)c.cat='gear';
    const msg=giveItem(ch,c,+data.qty||q);persist(ch,true);toastMsg(msg);SH.t=0;await stashLoad(true);}
  }catch(e){toastMsg('Couldn\u2019t reach the armoury.');}
@@ -2753,7 +2777,7 @@ function vGear(ch,d){
   return `<div class="gcat"><div class="tk-h">${label}</div>${items.map(it=>{const open=S.invOpen===it.id;return `<div class="gi-row" style="--rc:${rarColor(it.rarity)}"><span class="gw-ic">${itemIcon(it)}</span>
    <button class="gi-n" data-act="ginfo" data-id="${it.id}" aria-expanded="${open}">${esc(it.name)}${it.hb?' <span class="hb">Homebrew</span>':''}${open&&it.desc?`<small>${esc(it.desc)}</small>`:''}</button>
    <span class="gi-q"><button class="step" data-act="gq" data-id="${it.id}" data-d="-1" aria-label="Use or drop one"${ex?' disabled':''}>−</button><span class="mono">${it.cat==='money'?Number(it.qty).toLocaleString():it.qty}</span>${gm||it.cat==='money'?`<button class="step" data-act="gq" data-id="${it.id}" data-d="1" aria-label="Add one"${ex?' disabled':''}>+</button>`:''}</span>
-   ${ex||it.cat==='money'||!stashOn()?'':`<button class="gi-stow" data-act="stow" data-id="${it.id}" title="Stow one in the ship's armoury" aria-label="Stow ${esc(it.name)} in the ship's armoury">⇪</button>`}${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Discard ${esc(it.name)}">×</button>`}</div>`;}).join('')}</div>`;}).join('');
+   ${!ex&&wearable(it)?`<button class="btn sm${it.worn?' primary':''} gi-wear" data-act="gwear" data-id="${it.id}" aria-pressed="${!!it.worn}">${it.worn?'Worn ✓':'Wear'}</button>`:''}${ex||it.cat==='money'||!stashOn()?'':`<button class="gi-stow" data-act="stow" data-id="${it.id}" title="Stow one in the ship's armoury" aria-label="Stow ${esc(it.name)} in the ship's armoury">⇪</button>`}${ex?'':`<button class="gi-x" data-act="gdel" data-id="${it.id}" aria-label="Discard ${esc(it.name)}">×</button>`}</div>`;}).join('')}</div>`;}).join('');
  return `<section class="sec"><h2 class="sec-h">Gear<small>${gm?'GM mode':'ammo, grenades, kit'}</small></h2>
   <div class="gcats">${groups||'<p class="muted">No gear yet.</p>'}</div>
   ${ex?'':stashPanel(ch)}
@@ -2807,8 +2831,8 @@ function armouryClick(a,b,ch){
   case 'gpick':{const c=catalog(gm).find(x=>x.id===b.dataset.v);if(!c)return true;if((c.gmOnly||c.hb)&&!gm){toastMsg('Only the GM can add that.');return true;}
    const q=Math.max(1,+(document.getElementById('gqty')||{}).value||1);const msg=giveItem(ch,c,q);S.gq='';S.gqty=1;persist(ch,true);render();toastMsg(msg);return true;}
   case 'gq':{const it=inv.find(x=>x.id===b.dataset.id);if(!it)return true;const d=+b.dataset.d;if(d>0&&!gm&&it.cat!=='money')return true;
-   const step=it.cat==='money'?d*10:d;it.qty=Math.max(0,(+it.qty||0)+step);if(it.qty===0&&it.cat!=='money'){st.inv=inv.filter(x=>x!==it);toastMsg(`${it.name}: used up.`);}break;}
-  case 'gdel':st.inv=inv.filter(x=>x.id!==b.dataset.id);break;
+   const step=it.cat==='money'?d*10:d;it.qty=Math.max(0,(+it.qty||0)+step);if(it.qty===0&&it.cat!=='money'){st.inv=inv.filter(x=>x!==it);if(it.worn)recalcAC(ch);toastMsg(`${it.name}: used up.`);}break;}
+  case 'gdel':st.inv=inv.filter(x=>x.id!==b.dataset.id);if(inv.some(x=>x.id===b.dataset.id&&x.worn))recalcAC(ch);break;
   case 'hbtoggle':S.hbOpen=!S.hbOpen;return true;
   case 'lootroll':if(!gm)return true;lootRoll(b.dataset.v);render();return true;
   case 'spare':{const i=+b.dataset.i;const d=derive(ch);st.spare=st.spare||{};st.spare[i]=Math.max(0,spareOf(ch,i,d.weapons[i])+(+b.dataset.d));break;}
@@ -3747,7 +3771,8 @@ document.addEventListener('click',e=>{
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{const i=+b.dataset.i;const w=d.weapons[i];const sp=spareOf(ch,i,w);if(sp<=0){toastMsg(w.to+': no spare clips left.');break;}st.ammo=st.ammo||{};if((st.ammo[i]==null?w.clip:st.ammo[i])>=w.clip){toastMsg('Clip is already full.');break;}st.spare=st.spare||{};st.spare[i]=sp-1;st.ammo[i]=w.clip;persist(ch);render();toastMsg(`${w.to} reloaded. ${sp-1} spare clip${sp-1===1?'':'s'} left.`);break;}
   case 'loedit':case 'lopend':case 'lopendx':case 'loinst':case 'lorem':loClick(a,b,ch);break;
-  case 'gcat':case 'ginfo':case 'stow':case 'stake':case 'stakeall':case 'stashref':stashClick(a,b,ch);break;
+  case 'gcat':case 'ginfo':case 'gwear':{const inv=invOf(ch);const it=inv.find(x=>x.id===b.dataset.id);if(!it)break;const on=!it.worn;if(on){if(armourSpec(it))inv.forEach(x=>{if(x!==it&&armourSpec(x))x.worn=false;});if(isShield(it))inv.forEach(x=>{if(x!==it&&isShield(x))x.worn=false;});}it.worn=on;recalcAC(ch);persist(ch,true);render();toastMsg(on?`${it.name} on. AC is now ${ch.src.ac}.`:`${it.name} off. AC is now ${ch.src.ac}.`);break;}
+  case 'stow':case 'stake':case 'stakeall':case 'stashref':stashClick(a,b,ch);break;
   case 'gpick':case 'gq':case 'gdel':case 'hbtoggle':case 'lootroll':case 'hbdel':case 'hbsave':case 'spare':case 'shot3':armouryClick(a,b,ch);break;
   case 'rage':st.raging=!st.raging;persist(ch);render();break;
   case 'res':{const k=b.dataset.k,j=+b.dataset.j;st.res=st.res||{};const u2=st.res[k]||0;st.res[k]=j<u2?j:j+1;persist(ch);render();break;}
