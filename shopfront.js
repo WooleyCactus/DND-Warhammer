@@ -52,6 +52,7 @@
  #rtm-shop .st strong{display:block;font:700 18px ui-monospace,Menlo,monospace;color:#F1D27A}#rtm-shop .st small{font-size:12px;color:#E8DFC8;font-weight:400}
  #rtm-shop .tg{display:flex;flex-wrap:wrap;gap:4px}#rtm-shop .tg span{font-size:12px;border:1px solid #3a3226;padding:1px 6px;background:#0b0a08}#rtm-shop .tg span.o{border-color:#E0A33A;color:#E0A33A}
  #rtm-shop details{font-size:12.5px;color:#A89B82}#rtm-shop details summary{cursor:pointer;color:#C8A24A}
+ #rtm-shop .e{font-size:13.5px;background:#0b0a08;border-left:2px solid #C8A24A;padding:4px 8px}
  #rtm-shop .d{font-size:13.5px;color:#BFB49C;line-height:1.35}
  #rtm-shop .p{margin-top:auto;padding-top:6px;border-top:1px dashed #3a3226;font:700 20px ui-monospace,Menlo,monospace;color:#F1D27A}`;
  function ensureDom(){if(document.getElementById('rtm-shopcss'))return;const st=document.createElement('style');st.id='rtm-shopcss';st.textContent=css;document.head.appendChild(st);}
@@ -59,6 +60,12 @@
   return f?`<img src="${URL}/storage/v1/object/public/item-images/${encodeURIComponent(f)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${ph}'}))">`:`<span>${ph}</span>`;}
  function stats(it){const B=(k,v)=>`<div><em>${k}</em><strong>${v}</strong></div>`;
   if(it.cat==='weapon'&&it.dice){const fl=(it.props||[]).includes('Flame');return B('Damage',`${esc(it.dice)}${it.bonus?'+'+it.bonus:''} <small>${esc(it.dtype||'')}</small>`)+B(fl?'Cone':'Range',it.range?`${esc(it.range)}<small> ft</small>`:'Melee')+(it.clip?B('Clip',esc(it.clip)):'');}
+  if(it.use){const u=it.use;let h='';
+   if(u.dmg)h+=B(u.atk?'Damage (attack)':'Damage',`${esc(u.dmg)}${u.dt?` <small>${esc(u.dt)}</small>`:''}`);
+   if(u.heal)h+=B('Heals',`${esc(u.heal)} <small>HP</small>`);if(u.temp)h+=B('Temp HP',esc(u.temp));
+   if(u.r)h+=B('Range',esc(u.r).replace(/ ft$/,'<small> ft</small>'));if(u.area)h+=B('Area',`<small>${esc(u.area)}</small>`);
+   if(u.save)h+=B('Save',`${esc(u.save)}${u.half?' <small>half</small>':''}`);if(u.dur)h+=B('Lasts',`<small>${esc(u.dur)}</small>`);
+   if(u.a&&!u.dmg&&!u.heal&&!u.temp)h+=B('Use',`<small>${esc(u.a)}</small>`);return h;}
   if(Array.isArray(it.armour)){const[a,c]=it.armour;return B('AC',`${a}${c>=99?'<small> + Dex</small>':c>0?`<small> + Dex (max ${c})</small>`:''}`);}
   return '';}
  function card(it,pt){const s=stats(it);const props=it.props||[];
@@ -68,7 +75,7 @@
   return `<article class="c" style="--rc:${RARC[it.rarity]||RARC.common}"><div class="im">${img(it)}</div><div class="b">
    <div class="t"><b>${esc(it.name)}</b><i>${esc(RLAB[it.rarity]||'')}</i></div><div class="sub">${esc(sub)}</div>
    ${s?`<div class="st">${s}</div>`:''}${tags?`<div class="tg">${tags}</div>`:''}${rules?`<details><summary>What the traits do</summary>${rules}</details>`:''}
-   ${it.desc?`<div class="d">${esc(it.desc)}</div>`:''}<div class="p">${it.price==null?'Ask':fmt(it.price)}</div></div></article>`;}
+   ${it.use&&it.use.eff?`<div class="e">⚡ ${esc(it.use.eff)}</div>`:''}${it.desc?`<div class="d">${esc(it.desc)}</div>`:''}<div class="p">${it.price==null?'Ask':fmt(it.price)}</div></div></article>`;}
  function paint(){ensureDom();let fab=document.getElementById('rtm-shopfab'),ov=document.getElementById('rtm-shop');
   if(!front){fab&&fab.remove();ov&&ov.remove();return;}
   if(!fab){fab=document.createElement('button');fab.id='rtm-shopfab';fab.type='button';fab.onclick=()=>{open=true;paint();};document.body.appendChild(fab);}

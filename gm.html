@@ -140,6 +140,7 @@ table.st s{color:var(--muted)}
 .ic-stat .v small{font-size:12px;color:var(--ink);font-weight:400}
 .ic-tags{display:flex;flex-wrap:wrap;gap:4px}.ic-tags span{font-size:11.5px;border:1px solid var(--line);padding:1px 6px;color:var(--ink);background:#0b0a08;cursor:help}
 .ic-tags span.once{border-color:var(--warn);color:var(--warn)}
+.ic-eff{font-size:13.5px;color:var(--ink);background:#0b0a08;border-left:2px solid var(--gold);padding:4px 8px}
 .ic-desc{font-size:13.5px;color:var(--muted);line-height:1.35}
 .ic-buy{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:6px;border-top:1px dashed var(--line)}
 .ic-buy .pr{font:700 20px var(--f-mono);color:var(--gold-hi);flex:1}.ic-buy .pr s{font-size:13px;color:var(--muted);margin-left:6px;font-weight:400}
@@ -514,7 +515,7 @@ function codexItems(){const C=G.cx;const q=iN(C.q);
  return [...((G.catalog&&G.catalog.items)||[]),...G.hb.map(c=>c.cat==='weapon'&&c.base?hbWeapon(c):c)].filter(c=>c.cat!=='money')
   .filter(c=>(!C.rar||(c.rarity||'common')===C.rar)&&(!C.src||(C.src==='hb'?c.hb:C.src==='std'?!c.hb&&c.cat!=='curio':c.cat==='curio'))&&(!q||iN(c.name).includes(q)||iN(c.desc).includes(q)||iN(c.base5e).includes(q)||iN(c.cls).includes(q)||(c.props||[]).some(p=>iN(p).includes(q))));}
 function costText(c){if(c.hb)return 'Homebrew · price: your call';if(c.cat==='curio')return '';return c.cost==null?(c.rarity==='legendary'||c.rarity==='veryrare'?'Not for sale':''):'₮ '+Number(c.cost).toLocaleString();}
-function statLine(c){if(c.cat==='weapon'&&c.dice){const b=+c.bonus||0;return `${b?`+${b} · `:''}${esc(c.dice)}${b?'+'+b:''} ${esc(c.dtype||'')}${c.range?` · ${esc(c.range)} ft`:' · melee'}${c.clip?` · clip ${esc(c.clip)}`:''}`;}
+function statLine(c){if(c.use){const u=c.use;return [u.dmg&&`${esc(u.dmg)} ${esc(u.dt||'')}`.trim(),u.heal&&`heals ${esc(u.heal)}`,u.temp&&`${esc(u.temp)} temp HP`,u.r&&esc(u.r),u.area&&esc(u.area),u.save&&`${esc(u.save)} save${u.half?' (half)':''}`,u.dur&&esc(u.dur)].filter(Boolean).join(' · ')||'';}if(c.cat==='weapon'&&c.dice){const b=+c.bonus||0;return `${b?`+${b} · `:''}${esc(c.dice)}${b?'+'+b:''} ${esc(c.dtype||'')}${c.range?` · ${esc(c.range)} ft`:' · melee'}${c.clip?` · clip ${esc(c.clip)}`:''}`;}
  if(Array.isArray(c.armour)){const [a,cap]=c.armour;return `AC ${a}${cap>=99?' + Dex':cap>0?` + Dex (max ${cap})`:''}`;}
  if(c.d20||c.d13)return c.d20?`Enemy loot d20: ${c.d20}`:`Special curio d13: ${c.d13}`;return '';}
 function cxCard(c){const pt=(G.catalog&&G.catalog.propText)||{};const r=c.rarity||'common';
@@ -685,6 +686,11 @@ function swapOne(s,id){const P=poolOf(s);const cur=P.find(x=>x.id===id);if(!cur|
  const opts=P.filter(x=>same(x)&&!inStock.has(x.id));if(!opts.length)return false;const pick=opts[Math.floor(Math.random()*opts.length)];
  const L=cur.back?s.stock.back:s.stock.shelf;L[L.indexOf(id)]=pick.id;return pick.it.name;}
 // ---- item cards ----
+function useBoxes(u,B){let h='';const sv=u.save?esc(u.save).replace(' ','&nbsp;'):'';
+ if(u.dmg)h+=B(u.atk?'Damage (attack)':'Damage',`${esc(u.dmg)}${u.dt?` <small>${esc(u.dt)}</small>`:''}`);
+ if(u.heal)h+=B('Heals',`${esc(u.heal)} <small>HP</small>`);if(u.temp)h+=B('Temp HP',esc(u.temp));
+ if(u.r)h+=B('Range',esc(u.r).replace(/ ft$/,'<small> ft</small>'));if(u.area)h+=B('Area',`<small>${esc(u.area)}</small>`);
+ if(u.save)h+=B('Save',`${sv}${u.half?' <small>half</small>':''}`);if(u.dur)h+=B('Lasts',`<small>${esc(u.dur)}</small>`);if(u.a&&!u.dmg&&!u.heal&&!u.temp)h+=B('Use',`<small>${esc(u.a)}</small>`);return h;}
 function imgSlug(it){return iN(it.name);}
 function phFor(it){return ICON_PH[it.service?'service':isWpn(it)?(it.cls||'melee'):it.cat]||'📦';}
 // pictures: Supabase bucket "item-images" (file name = squashed item name + .webp/.png/.jpg), listed once via item_images()
@@ -695,6 +701,7 @@ function imgTag(it){const slug=imgSlug(it);if(!IMGS)loadImgs();const f=IMGS&&IMG
  return `<img src="${SUPA_URL}/storage/v1/object/public/item-images/${encodeURIComponent(f)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph',textContent:'${phFor(it)}'}))">`;}
 function statBoxes(it){const B=(k,v)=>`<div class="ic-stat"><span class="k">${k}</span><span class="v">${v}</span></div>`;
  if(isWpn(it)&&it.dice){const flame=(it.props||[]).includes('Flame');return B('Damage',`${esc(it.dice)}${+it.bonus?'+'+it.bonus:''} <small>${esc(it.dtype||'')}</small>`)+B(flame?'Cone':'Range',it.range?`${esc(it.range)}<small> ft</small>`:'Melee')+(it.clip?B('Clip',esc(it.clip)):'');}
+ if(it.use)return useBoxes(it.use,B);
  if(Array.isArray(it.armour)){const [a,c]=it.armour;return B('AC',`${a}${c>=99?'<small> + Dex</small>':c>0?`<small> + Dex (max ${c})</small>`:''}`)+B('Type',`<small>${a>=16||c===0?'Heavy':c>=99?'Light':'Medium'}</small>`);}
  return '';}
 const CLS_LABEL={pistol:'Pistol',basic:'Basic weapon',special:'Special weapon',heavy:'Heavy weapon',thrown:'Thrown weapon',melee:'One-handed melee',twohanded:'Two-handed melee',exotic:'Exotic weapon'};
@@ -704,7 +711,7 @@ function itemCard(s,r){const it=r.it;const S=G.shop;const p=listPrice(it,r.back)
  const tags=[...(it.props||[]).map(x=>`<span title="${esc(pt[x]||'')}">${esc(x)}</span>`),...(it.cat==='attachment'?['<span class="once" title="Installing it uses it up: it is fitted permanently and can\'t be removed or reused.">One-time fit</span>']:[]),...(r.back?['<span title="Back-room stock">Back room</span>']:[])].join('');
  return `<article class="ic" style="--rc:${RARC[it.rarity||'common']||RARC.common}"><div class="ic-img">${imgTag(it)}</div><div class="ic-b">
   <div class="ic-top"><b>${esc(it.name)}</b><span class="ic-rr">${esc(RLAB[it.rarity||'common']||'')}</span></div><div class="ic-sub">${esc(sub||'')}</div>
-  ${statBoxes(it)?`<div class="ic-stats">${statBoxes(it)}</div>`:''}${tags?`<div class="ic-tags">${tags}</div>`:''}${desc?`<div class="ic-desc">${esc(desc)}</div>`:''}
+  ${statBoxes(it)?`<div class="ic-stats">${statBoxes(it)}</div>`:''}${tags?`<div class="ic-tags">${tags}</div>`:''}${it.use&&it.use.eff?`<div class="ic-eff">⚡ ${esc(it.use.eff)}</div>`:''}${desc?`<div class="ic-desc">${esc(desc)}</div>`:''}
   <div class="ic-buy"><span class="pr">${it.cost==null?'—':fmt(p)}${it.cost!=null&&p!==base?`<s>${fmt(base)}</s>`:''}</span>${r.custom?'':`<button class="sm ghost" data-act="shswap" data-id="${esc(r.id)}" title="Swap this for another random item of the same kind">🔄</button>`}<button class="sm pri" data-act="shadd" data-id="${esc(r.id)}" data-b="${r.back?1:0}">+ Cart</button></div></div></article>`;}
 function shopCards(s){const S=G.shop;ensureStock(s);const st=s.stock;
  const shelf=st.shelf.map(id=>({id,it:shopItem(s,id),back:false,custom:false})).filter(r=>r.it);
@@ -720,7 +727,7 @@ function frontSnap(){const id=G.data&&G.data.shopShow;const s=id&&(G.data.shops|
  const pub=(it,back)=>{const c=+it.cost||0;return it.cost==null?null:Math.max(0,Math.round(back&&!S.trusted?c*1.25:c));};
  const card=(it,back)=>{(it.props||[]).forEach(x=>props.add(x));const o={name:it.name,cat:it.service?'service':it.cat,rarity:it.rarity||'common',price:pub(it,back),back:!!back};
   if(isWpn(it))Object.assign(o,{cls:it.cls,dice:it.dice,bonus:+it.bonus||0,dtype:it.dtype,range:it.range,clip:it.clip,props:it.props||[],desc:it.flavor||''});else o.desc=String(it.desc||'');
-  if(Array.isArray(it.armour))o.armour=it.armour;if(it.props&&!o.props)o.props=it.props;return o;};
+  if(Array.isArray(it.armour))o.armour=it.armour;if(it.use)o.use=it.use;if(it.props&&!o.props)o.props=it.props;return o;};
  const items=[];s.stock.shelf.forEach(i=>{const it=shopItem(s,i);if(it)items.push(card(it,false));});
  (s.custom||[]).filter(it=>!it.back).forEach(it=>items.push(card(it,false)));
  if(backOpen){s.stock.back.forEach(i=>{const it=shopItem(s,i);if(it)items.push(card(it,true));});(s.custom||[]).filter(it=>it.back).forEach(it=>items.push(card(it,true)));}

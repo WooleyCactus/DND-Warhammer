@@ -316,6 +316,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.4}
 .confirm-att{flex-wrap:wrap;justify-content:space-between}
 /* loadout */
 .loadout{margin-bottom:24px}
+.kit-eff{font-size:13.5px;border-left:2px solid var(--gold);background:var(--sunk);padding:5px 9px;margin-top:8px}
 .lo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px}
 .lo{display:grid;grid-template-columns:118px minmax(0,1fr);gap:0;border:1px solid var(--line);border-left:3px solid var(--rc);background:var(--rivets),var(--plate-bg);box-shadow:inset 0 1px 0 rgba(255,230,180,.05),0 2px 0 #000;min-width:0}
 .lo-art{position:relative;display:grid;place-items:center;padding:14px 8px 26px;background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--rc) 22%,transparent),transparent 70%),var(--sunk);border-right:1px solid var(--line)}
@@ -2584,6 +2585,26 @@ function bigIcon(w){const key=iconFor(w.to+' '+w.from);const col=RARITY[w.rarity
  return `<svg class="lo-ic" viewBox="0 0 24 24" aria-hidden="true" style="color:${col}"><g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">${GI[key]||GI.box}</g>
  <g fill="none" stroke="#efe6d2" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".92">${(w.att||[]).map(k=>{const D=attDef(k,w.wx);return D?OVL[D.ov]||'':'';}).join('')}</g></svg>`;}
 
+/* KIT-START */
+function useBoxes(u,roll){const B=(k,v,act,sub)=>{const inner=`<span class="k">${k}</span><span class="v">${v}</span>${sub?`<small>${sub}</small>`:''}`;return act?`<button class="lo-stat" data-act="${act}">${inner}</button>`:`<div class="lo-stat st">${inner}</div>`;};let h='';
+ if(u.dmg)h+=B(u.atk?'Damage · attack':'Damage',esc(u.dmg),roll,esc(u.dt||''));
+ if(u.heal)h+=B('Heals',esc(u.heal),roll,'HP');if(u.temp)h+=B('Temp HP',esc(u.temp),roll,'');
+ if(u.r)h+=B('Range',esc(u.r));if(u.area)h+=B('Area',`<small>${esc(u.area)}</small>`);
+ if(u.save)h+=B('Save',esc(u.save),'',u.half?'half on a success':'');if(u.dur)h+=B('Lasts',`<small>${esc(u.dur)}</small>`);return h;}
+function kitRoll(it,u){const ex=u.dmg||u.heal||u.temp;if(!ex||!/d\d/.test(ex))return false;const r=rollExpr(ex.replace(/^\+/,''));
+ const what=u.dmg?`${u.dt||''} damage`.trim():u.heal?'HP healed':'temp HP';
+ pushRoll({label:`${it.name}: ${what}${u.save?` (${u.save} save${u.half?', half on a success':''})`:u.atk?' (ranged attack to hit)':''}`,total:(u.dmg&&/^\+/.test(u.dmg)?'+':'')+r.total,detail:r.detail});return true;}
+function vKit(ch){const inv=invOf(ch);const ex=!!ch.example;
+ const L=inv.filter(it=>{const c=it.cat||catFor(it.name);return (c==='grenade'||c==='consumable')&&useOf(it);});if(!L.length)return '';
+ const cards=L.map(it=>{const u=useOf(it);const c=it.cat||catFor(it.name);const r=RARITY[it.rarity]||RARITY.common;const dice=/d\d/.test(u.dmg||u.heal||u.temp||'');
+  const verb=c==='grenade'?(/placed/i.test(u.a||'')?'Set':'Throw'):'Use';
+  return `<article class="lo kit" style="--rc:${r[1]}"><div class="lo-art">${itemIcon(it)}<span class="lo-rar">${esc(r[0])}</span></div><div class="lo-body">
+   <div class="lo-head"><div><b>${esc(it.name)}</b><small>${esc(u.a||'')}${u.a?' · ':''}${it.qty} left</small></div></div>
+   <div class="lo-stats">${useBoxes(u,dice?`kitroll" data-id="${it.id}`:'')}</div>
+   ${u.eff?`<div class="kit-eff">⚡ ${esc(u.eff)}</div>`:''}
+   <div class="lo-ammo"><button class="btn sm primary" data-act="kituse" data-id="${it.id}"${ex?' disabled':''}>${verb}${dice?' & roll':''}</button><span class="muted" style="font-size:12.5px">uses one</span></div></div></article>`;}).join('');
+ return `<section class="sec loadout"><h2 class="sec-h">Grenades &amp; stims<small>tap Damage or Heals to roll without using one</small></h2><div class="lo-grid">${cards}</div></section>`;}
+/* KIT-END */
 function vLoadout(ch,d){
  const s=ch.src;const st=ch.state||{};const ex=!!ch.example;const ammo=st.ammo||{};const wcs=weaponCalc(ch,d);const c=rollCtx(ch,d);
  if(!d.weapons.length)return '';
@@ -2709,6 +2730,11 @@ function niceKey(k){if(typeof WEAPONS!=='undefined'&&WEAPONS[k]&&WEAPONS[k].lbl)
  for(const it of ITEMS){const o=I(it.name,it.cat,it.rarity,it.desc,{cost:it.cost});if(it.armour)o.armour=it.armour;if(!have.has(o.id))STD_ITEMS.push(o);}
 })();
 /* ARMOURY40K-END */
+/* USE40K-START */
+const ITEM_USE={"fraggrenade":{"a":"Action","r":"60 ft","area":"20-ft radius","dmg":"2d6","dt":"piercing","save":"DEX 13","half":1},"krakgrenade":{"a":"Action","r":"60 ft","area":"One target","atk":1,"dmg":"4d6","dt":"force"},"smokegrenade":{"a":"Action","r":"60 ft","area":"20-ft radius","dur":"1 minute","eff":"Heavy obscurement"},"photonflashgrenade":{"a":"Action","r":"60 ft","area":"15-ft radius","save":"CON 13","eff":"Blinded until the end of its next turn"},"meltabomb":{"a":"Action (placed)","r":"Touch","area":"One structure","dmg":"8d6","dt":"fire","eff":"Detonates next turn"},"stikkbomb":{"a":"Action","r":"40 ft","area":"10-ft radius","dmg":"2d6","dt":"slashing","save":"DEX 12","half":1,"eff":"Dud on a d20 roll of 1"},"incendiarygrenade":{"a":"Action","r":"60 ft","area":"10-ft radius","dmg":"2d6","dt":"fire","save":"DEX 13","dur":"1 minute","eff":"Fail: catch fire. Entering or starting there: 1d6 fire"},"stungrenade":{"a":"Action","r":"60 ft","area":"10-ft radius","save":"CON 13","eff":"Stunned until the end of its next turn"},"chokegasgrenade":{"a":"Action","r":"60 ft","area":"20-ft cloud","dmg":"2d6","dt":"poison","save":"CON 13","dur":"1 minute","eff":"Poisoned while inside; rebreathers protect"},"blindgrenade":{"a":"Action","r":"60 ft","area":"20-ft cloud","dur":"1 minute","eff":"Heavy obscurement; blocks darkvision and auspex"},"webgrenade":{"a":"Action","r":"60 ft","area":"10-ft radius","save":"DEX 13","eff":"Restrained (escape: DC 13 Str, action)"},"haywiregrenade":{"a":"Action","r":"60 ft","area":"15-ft radius","dmg":"3d6","dt":"lightning","save":"DEX 14","half":1,"eff":"Machines take double and shut down"},"hallucinogengrenade":{"a":"Action","r":"60 ft","area":"20-ft radius","save":"WIS 14","eff":"Fail: random action next turn (d4)"},"plasmagrenade":{"a":"Action","r":"60 ft","area":"10-ft radius","dmg":"4d6","dt":"fire","save":"DEX 14","half":1},"demolitioncharge":{"a":"Action (placed)","r":"Touch","area":"20-ft radius","dmg":"6d6","dt":"thunder","save":"DEX 15","half":1,"eff":"Timer or remote; double vs structures"},"holywaterblessedvial":{"a":"Action","r":"20 ft","area":"One target","atk":1,"dmg":"2d6","dt":"radiant","eff":"Daemons and undead only"},"medistimm":{"a":"Bonus action","heal":"2d4+2"},"greatermedistimm":{"a":"Bonus action","heal":"4d4+4"},"combatstimm":{"a":"Bonus action","dur":"1 minute","eff":"+10 ft speed, advantage on Str checks; then 1 exhaustion"},"detoxinjector":{"a":"Action","eff":"Ends Poisoned"},"medikit":{"a":"Action","eff":"Stabilise a dying creature, no check (10 uses)"},"synthskinpatch":{"a":"Action","temp":"2d6+2","dur":"1 hour"},"antiplagueserum":{"a":"Action","dur":"24 hours","eff":"Cures one disease, or advantage on disease saves"},"obscura":{"a":"Action","dur":"1 hour","eff":"Advantage vs frightened; disadvantage on Perception and Insight. Addictive"},"bloodreplacementunit":{"a":"Action","heal":"4d4+4","eff":"Stabilises a dying creature"},"frenzon":{"a":"Bonus action","dur":"1 minute","eff":"Advantage on melee attacks, immune to frightened, no reactions"},"slaught":{"a":"Bonus action","dur":"1 minute","eff":"+10 ft speed, +2 AC, advantage on Dex saves; then 1 exhaustion"},"spook":{"a":"Action","dur":"10 minutes","eff":"Use one random psychic cantrip (GM picks)"},"dumdumrounds":{"dmg":"+2","eff":"vs unarmoured targets; −1 to hit armoured ones. One reload"},"manstopperrounds":{"eff":"Ignore resistance from mundane armour. One reload"},"toxrounds":{"eff":"Weapon gains Toxic. One reload"},"infernoshells":{"dmg":"1d4","dt":"fire","dur":"Until doused","eff":"On a hit the target burns at the start of each turn. One reload"},"hotshotchargepack":{"dmg":"+1d8","eff":"Per hit; the weapon gains Overheat. 5 shots"},"krakenpenetratorshells":{"eff":"Weapon gains Rending and ignores resistance. One reload"},"hellfireshells":{"dmg":"+1d6","dt":"acid","eff":"Per hit; the weapon gains Toxic. One reload"},"fragmissile":{"r":"Launcher","area":"Blast","dmg":"4d6","dt":"fire"},"krakmissile":{"r":"Launcher","area":"One target","dmg":"6d10","dt":"force","eff":"Double vs vehicles and structures"}};
+function useOf(it){return it?(it.use||ITEM_USE[N(it.name)]||null):null;}
+STD_ITEMS.forEach(i=>{const u=ITEM_USE[N(i.name)];if(u)i.use=u;});
+/* USE40K-END */
 const STD_WEAPONS=Object.keys(W5E).filter(k=>WEAPONS[k]).map(k=>I(WEAPONS[k].to,'weapon',WEAPONS[k].rarity||'common',`${WEAPONS[k].dice?WEAPONS[k].dice+' '+WEAPONS[k].type:W5E[k][0]+' '+W5E[k][1]}${WEAPONS[k].range?', '+WEAPONS[k].range+' ft':''}.${WEAPONS[k].lbl?'':' 5e: '+niceKey(k)+'.'}${WEAPONS[k].desc?' '+WEAPONS[k].desc:''}`,{base:k,gmOnly:true,cost:WEAPONS[k].cost,cls:WEAPONS[k].cls,flavor:WEAPONS[k].desc}));
 function hbItems(){return (S.chart&&S.chart.catalog)||[];}
 function catalog(gm){return [...STD_ITEMS,...(gm?STD_WEAPONS:[]),...(gm&&typeof CURIO_ITEMS!=='undefined'?CURIO_ITEMS:[]),...(gm?hbItems():[])];}
@@ -3585,7 +3611,7 @@ function vSheet(ch){
   <div class="vital"><span class="k">Rest</span><div class="row"><button class="btn sm" data-act="short">Short</button><button class="btn sm" data-act="long">Long</button></div></div>
  ${ex?'':thronesVital(st)}
  </div>
- ${vLoadout(ch,d)}
+ ${vLoadout(ch,d)}${vKit(ch)}
  <div class="meters">${meter('corruption','Corruption',CORRUPTION,'cor')}${meter('insanity','Insanity',INSANITY,'ins')}</div>
  ${turnPanel(ch,d)}
 
@@ -3787,6 +3813,10 @@ document.addEventListener('click',e=>{
   case 'shot':{const i=+b.dataset.i;const w=d.weapons[i];st.ammo=st.ammo||{};const left=st.ammo[i]==null?w.clip:st.ammo[i];st.ammo[i]=Math.max(0,left-1);if(left-1<=0)toastMsg(w.to+': clip empty, reload.');persist(ch);render();break;}
   case 'reload':{const i=+b.dataset.i;const w=d.weapons[i];const sp=spareOf(ch,i,w);if(sp<=0){toastMsg(w.to+': no spare clips left.');break;}st.ammo=st.ammo||{};if((st.ammo[i]==null?w.clip:st.ammo[i])>=w.clip){toastMsg('Clip is already full.');break;}st.spare=st.spare||{};st.spare[i]=sp-1;st.ammo[i]=w.clip;persist(ch);render();toastMsg(`${w.to} reloaded. ${sp-1} spare clip${sp-1===1?'':'s'} left.`);break;}
   case 'loedit':case 'lopend':case 'lopendx':case 'loinst':case 'lorem':loClick(a,b,ch);break;
+  case 'kitroll':case 'kituse':{const inv=invOf(ch);const it=inv.find(x=>x.id===b.dataset.id);const u=it&&useOf(it);if(!u)break;
+   const rolled=kitRoll(it,u);if(a==='kitroll')break;if(ch.example){break;}
+   it.qty=Math.max(0,(+it.qty||1)-1);const st=ch.state=ch.state||{};if(it.qty===0)st.inv=inv.filter(x=>x!==it);persist(ch,true);render();
+   if(!rolled)toastMsg(`${it.name} used${u.eff?': '+u.eff:''}.${it.qty?` ${it.qty} left.`:' That was the last one.'}`);break;}
   case 'gcat':case 'ginfo':case 'gwear':{const inv=invOf(ch);const it=inv.find(x=>x.id===b.dataset.id);if(!it)break;const on=!it.worn;if(on){if(armourSpec(it))inv.forEach(x=>{if(x!==it&&armourSpec(x))x.worn=false;});if(isShield(it))inv.forEach(x=>{if(x!==it&&isShield(x))x.worn=false;});}it.worn=on;recalcAC(ch);persist(ch,true);render();toastMsg(on?`${it.name} on. AC is now ${ch.src.ac}.`:`${it.name} off. AC is now ${ch.src.ac}.`);break;}
   case 'stow':case 'stake':case 'stakeall':case 'stashref':stashClick(a,b,ch);break;
   case 'gpick':case 'gq':case 'gdel':case 'hbtoggle':case 'lootroll':case 'hbdel':case 'hbsave':case 'spare':case 'shot3':armouryClick(a,b,ch);break;
