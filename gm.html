@@ -474,7 +474,7 @@ function giveTo(d,c,qty){const st=d.state=d.state||{};const src=d.src=d.src||{};
  if(!Array.isArray(st.inv))return false;
  const ex=st.inv.find(x=>(c.att&&x.att===c.att)||(x.cid&&x.cid===c.id)||(!x.cid&&!c.hb&&iSing(x.name)===iSing(c.name)));
  if(ex){ex.qty=(+ex.qty||0)+qty;if(!ex.cid)ex.cid=c.id;}
- else st.inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour});
+ else st.inv.push({id:'i'+uid(),cid:c.id,name:c.name,qty,cat:c.cat,rarity:c.rarity,desc:c.desc,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour,slot:c.slot,acb:c.acb,pa:c.pa,q:c.q});
  return true;}
 async function giveItems(c,qty){const I=G.items;if(!I.to.length&&!I.stash){toast('Pick who gets it first.');return;}
  qty=Math.max(1,Math.round(+qty||1));const done=[],skip=[];
@@ -482,7 +482,7 @@ async function giveItems(c,qty){const I=G.items;if(!I.to.length&&!I.stash){toast
   for(const id of I.to){const fresh=rows.find(r=>r.id===id);if(!fresh)continue;const d=clone(fresh.data);const nm=((d.src&&d.src.name)||'?').split(',')[0];
    if(!giveTo(d,c,qty)){skip.push(nm);continue;}d.updatedAt=Date.now();
    await rpc('party_save',{p_party:G.code,p_id:id,p_data:Object.assign({},d,{_auth:G.pin})});done.push(nm);}
-  if(I.stash){const it={key:c.id,id:c.id,name:c.name,cat:c.cat,rarity:c.rarity,desc:c.desc,base:c.base,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour};
+  if(I.stash){const it={key:c.id,id:c.id,name:c.name,cat:c.cat,rarity:c.rarity,desc:c.desc,base:c.base,att:c.att,hbDef:c.hbDef,hb:!!c.hb,icon:c.icon,armour:c.armour,slot:c.slot,acb:c.acb,pa:c.pa,q:c.q};
    await rpc('stash_store',{p_party:G.code,p_char:null,p_pin:G.pin,p_who:'GM',p_item:it,p_qty:qty});done.push("Ship's armoury");}
   try{G.pchan.send({type:'broadcast',event:'changed',payload:{t:Date.now()}});}catch(err){}
   if(done.length){I.log.unshift(`${c.name} ×${qty} → ${done.join(', ')}`);toast(`${c.name} ×${qty} given to ${done.join(', ')}.`,true);}
@@ -504,7 +504,7 @@ document.addEventListener('change',e=>{const el=e.target;if(!G.items)return;cons
 /* ITEMS-END */
 /* CODEX-START: GM encyclopedia of every item, standard and homebrew, by type and rarity */
 G.cx={q:'',rar:'',src:'',form:null};
-const RORD=['common','uncommon','rare','veryrare','legendary'];const RLAB={common:'Common',uncommon:'Uncommon',rare:'Rare',veryrare:'Very rare',legendary:'Legendary'};
+const RORD=['common','uncommon','rare','veryrare','legendary'];const RLAB={common:'Common',uncommon:'Uncommon',rare:'Rare',veryrare:'Relic',legendary:'Artefact'};
 const wcls=c=>c.cls||(c.melee!==false&&!c.range?'melee':'basic');
 const CX_SECTIONS=[['pistol','Pistols',c=>c.cat==='weapon'&&wcls(c)==='pistol'],['basic','Basic weapons (rifles, carbines, shotguns)',c=>c.cat==='weapon'&&wcls(c)==='basic'],['special','Special weapons (flame, melta, plasma, launchers)',c=>c.cat==='weapon'&&wcls(c)==='special'],['heavy','Heavy weapons',c=>c.cat==='weapon'&&wcls(c)==='heavy'],['thrown','Thrown weapons',c=>c.cat==='weapon'&&wcls(c)==='thrown'],['melee','One-handed melee',c=>c.cat==='weapon'&&wcls(c)==='melee'],['twohanded','Two-handed melee',c=>c.cat==='weapon'&&wcls(c)==='twohanded'],['exotic','Exotic & archeotech weapons',c=>c.cat==='weapon'&&wcls(c)==='exotic'],
  ['armour','Armour & shields',c=>c.cat==='armour'],['grenade','Grenades & explosives',c=>c.cat==='grenade'],['ammo','Ammunition',c=>c.cat==='ammo'],['attachment','Weapon attachments',c=>c.cat==='attachment'],

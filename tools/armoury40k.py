@@ -193,9 +193,9 @@ ITEMS = [
  ('Ork \'eavy armour','armour','uncommon',800,'Heavy armour. AC 15 (Str 15). Scrap plates bolted together. Disadvantage on Stealth, and on Persuasion with anyone who has a nose.',{'armour':[15,0]}),
  ('Enforcer carapace','armour','uncommon',3000,'Medium armour. AC 14 + Dex (max 2). Arbites-pattern plates with a rebreather and a photo-visor built into the helm (darkvision 30 ft).',{'armour':[14,2]}),
  ('Aeldari mesh armour','armour','veryrare',18000,'Light armour. AC 14 + Dex. Thermoplastic xenos mesh that hardens under impact. No Stealth penalty.',{'armour':[14,99]}),
- ('Light power armour','armour','veryrare',25000,'Heavy armour. AC 18. Inquisitorial-pattern powered plate. While you wear it, your Strength counts as 2 higher for carrying and Athletics.',{'armour':[18,0]}),
- ('Sororitas power armour','armour','legendary',None,'Heavy armour. AC 19 (Str 13). Holy power armour of the Adepta Sororitas, sealed against vacuum and blessed against the Warp: advantage on saves against Corruption.',{'armour':[19,0]}),
- ('Astartes power armour','armour','legendary',None,'Heavy armour. AC 20. Made for Space Marines. An unaugmented human can barely move in it: speed 10 ft and disadvantage on Dex checks and saves.',{'armour':[20,0]}),
+ ('Light power armour','armour','veryrare',25000,'Power-armour core (chest). Heavy armour, AC 16; each power-armour piece adds to it. Inquisitorial-pattern powered plate. While you wear it, your Strength counts as 2 higher for carrying and Athletics.',{'pa':True,'armour':[16,0]}),
+ ('Sororitas power armour','armour','legendary',None,'Power-armour core (chest). Heavy armour, AC 17 (Str 13). Holy power armour of the Adepta Sororitas, sealed against vacuum and blessed against the Warp: advantage on saves against Corruption.',{'pa':True,'armour':[17,0]}),
+ ('Astartes power armour','armour','legendary',None,'Power-armour core (chest). Heavy armour, AC 18. Made for Space Marines. An unaugmented human can barely move in it: speed 10 ft and disadvantage on Dex checks and saves.',{'pa':True,'armour':[18,0]}),
  ('Suppression shield','armour','uncommon',800,'Shield, +2 AC. A riot shield with a shock plate: when you shove with it, the target can\'t take reactions until its next turn.',{}),
  ('Storm shield','armour','veryrare',20000,'Shield, +2 AC. A power-field shield: once per short rest, as a reaction, reduce the damage of one hit by 2d10.',{}),
  # fields and protective relics
@@ -269,6 +269,49 @@ ITEMS = [
  ('Warp-touched compass','relic','veryrare',None,'A compass whose needle points at whatever its holder most wants. It is never wrong. It is often unkind.',{}),
 ]
 
+
+# ---- equipment-slot pieces (see claude/item-ladder.md). slot: helm pauldrons belt ring bracers gloves pants boots;
+#      acb = AC from a non-chest piece (sheet caps the total at +3); pa = power-armour piece; q = quality it turns up in ----
+EQUIP = [
+ # power-armour cores (chest)
+ ('Salvaged Mk IV cuirass','armour','rare',4000,'Power-armour core (chest). Heavy armour, AC 15. Turns up Broken: −2 AC and no powered effects (for it or any power-armour piece) until it is repaired.',{'armour':[15,0],'pa':True,'q':'broken'}),
+ # helms
+ ('Rebreather helm','armour','common',150,'Helm. Advantage on saves against inhaled poisons, gas and choke grenades.',{'slot':'helm'}),
+ ('Photo-visor helm','armour','uncommon',900,'Helm. Darkvision 60 ft, and you can\'t be blinded by photon flash grenades.',{'slot':'helm'}),
+ ('Mk VII Aquila helm','armour','rare',6000,'Power-armour helm, +1 AC. Auto-senses (powered): darkvision 60 ft, advantage on sight-based Perception checks, built-in vox.',{'slot':'helm','acb':1,'pa':True}),
+ ('Psy-null coif','armour','veryrare',None,'Helm, +1 AC. Blank-thread mesh: advantage on saves against psychic powers and Warp effects. Once a day, cast Counterspell (level 3, no slot) as a reaction; you can\'t cast powers in the same round.',{'slot':'helm','acb':1}),
+ # pauldrons
+ ('Flak pauldrons','armour','common',200,'Pauldrons. Take 2 less damage from grenades and explosions.',{'slot':'pauldrons'}),
+ ('Carapace pauldrons','armour','uncommon',1200,'Pauldrons, +1 AC.',{'slot':'pauldrons','acb':1}),
+ ('Mk VII pauldrons','armour','rare',7000,'Power-armour pauldrons, +1 AC. Heraldry plate: advantage on Intimidation against anyone who recognises your house colours.',{'slot':'pauldrons','acb':1,'pa':True}),
+ ('Pauldrons of the Unbroken Line','armour','veryrare',None,'Pauldrons, +1 AC. When an ally within 30 ft drops to 0 HP, use your reaction to move up to your speed toward them without provoking attacks; if you end next to them they regain 1d8 HP. Once per short rest.',{'slot':'pauldrons','acb':1}),
+ # bracers
+ ('Wrist auspex','armour','common',250,'Bracers. Bonus action: sense living creatures within 30 ft, even through thin bulkheads (not what they are). Once per short rest.',{'slot':'bracers'}),
+ ('Gun-bracer','armour','uncommon',1500,'Bracers with a hidden stub gun: 1d6 piercing, 30/90 ft, 2 shots, then an action to reload. Needs no free hand. Counts as a pistol.',{'slot':'bracers'}),
+ ('Kine-shield vambraces','armour','rare',8000,'Bracers. Once a day, cast Shield (no slot) as a reaction.',{'slot':'bracers'}),
+ # gloves
+ ('Tech-adept gloves','armour','common',200,'Gloves. Advantage on Tech-Use checks to repair or jury-rig machinery.',{'slot':'gloves'}),
+ ('Shock gauntlets','armour','uncommon',1200,'Gloves. Your unarmed strikes deal 1d6 lightning damage instead of their normal damage.',{'slot':'gloves'}),
+ ('Mk VII servo-gauntlets','armour','rare',8000,'Power-armour gauntlets. Servo strength (powered): you count as one size larger for carrying, pushing and grappling, and have advantage on Strength checks to break things.',{'slot':'gloves','pa':True}),
+ ('Gauntlet of the Machine-Saint','armour','veryrare',None,'Gloves. Once a day, cast Lightning Bolt (level 3, DC 15) from the palm. Constructs and servitors you touch obey one simple spoken command (no save) once per short rest.',{'slot':'gloves'}),
+ # belt
+ ('Utility harness','armour','common',100,'Belt. Drawing a grenade or stim doesn\'t use your free object interaction.',{'slot':'belt'}),
+ ('Las-cell bandolier','armour','uncommon',600,'Belt. Reloading a las weapon is a bonus action.',{'slot':'belt'}),
+ # rings
+ ('Ashgrave signet','armour','common',None,'Ring of the Ashgrave Dynasty. Advantage on Persuasion with Imperial officials who respect the Warrant; disadvantage with the Footfall Guild of Ledgerers, who want their money.',{'slot':'ring'}),
+ ('Shroud ring','armour','uncommon',2000,'Ring. Advantage on Stealth checks in dim light or darkness.',{'slot':'ring'}),
+ ('Ring of the Burning Saint','armour','rare',9000,'Ring. Resistance to fire damage. Once a day, cast Fireball (level 3, DC 15).',{'slot':'ring'}),
+ ('Oriel\'s Warrant-signet','armour','legendary',None,'Artefact ring, +2 AC. You gain the Inspiring Leader feat. You always know the direction to Vesper\'s Rest. Once per long rest, speak with the Warrant\'s authority: each Imperial subject within 60 ft that hears you makes a DC 18 Wisdom save or obeys one command (as Command) that doesn\'t harm itself.',{'slot':'ring','acb':2}),
+ # greaves
+ ('Padded fatigues','armour','common',120,'Greaves. Standing up from prone costs only 5 ft of movement.',{'slot':'pants'}),
+ ('Mk VII greaves','armour','rare',6000,'Power-armour greaves, +1 AC. Mag-locks (powered): you can\'t be knocked prone while standing.',{'slot':'pants','acb':1,'pa':True}),
+ # boots
+ ('Mag-boots','armour','uncommon',700,'Boots. Walk on metal walls and ceilings at half speed; you can\'t be pushed while they are locked.',{'slot':'boots'}),
+ ('Mk VII boots','armour','rare',5000,'Power-armour boots. Servo-legs (powered): your jump distance doubles and you take 2d6 less falling damage.',{'slot':'boots','pa':True}),
+ ('Ghost-corridor boots','armour','veryrare',None,'Boots. Speed +10 ft. Once a day, cast Dimension Door (level 4).',{'slot':'boots'}),
+]
+ITEMS += EQUIP
+
 def flags(cls, props, rng):
     f = []
     if cls in ('pistol','basic','special','heavy') or (cls=='exotic' and rng): f.append('ranged')
@@ -303,7 +346,7 @@ def build():
           " for(const [p,t] of Object.entries(PROPS)){if(!PROP_TEXT[p])PROP_TEXT[p]=t;}\n"
           " for(const x of STD_ITEMS){if(x.cost==null&&OLDCOST[x.name]!=null)x.cost=OLDCOST[x.name];}\n"
           " const have=new Set(STD_ITEMS.map(x=>x.id));\n"
-          " for(const it of ITEMS){const o=I(it.name,it.cat,it.rarity,it.desc,{cost:it.cost});if(it.armour)o.armour=it.armour;if(!have.has(o.id))STD_ITEMS.push(o);}\n"
+          " for(const it of ITEMS){const o=I(it.name,it.cat,it.rarity,it.desc,{cost:it.cost});for(const f of ['armour','slot','acb','pa','q'])if(it[f]!=null)o[f]=it[f];if(!have.has(o.id))STD_ITEMS.push(o);}\n"
           "})();\n/* ARMOURY40K-END */\n")
     return js, neww
 

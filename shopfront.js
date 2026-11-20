@@ -12,7 +12,7 @@
  const code=()=>{const c=norm(get('rtm.party.code'));return c.length===9?c:'';};
  const fmt=n=>'₮ '+Number(n||0).toLocaleString();
  const RARC={common:'#A0957D',uncommon:'#7FB069',rare:'#5B8DEF',veryrare:'#B07FE0',legendary:'#E0A33A'};
- const RLAB={common:'Standard issue',uncommon:'Mastercrafted',rare:'Archeotech',veryrare:'Relic',legendary:'Artefact'};
+ const RLAB={common:'Common',uncommon:'Uncommon',rare:'Rare',veryrare:'Relic',legendary:'Artefact'};
  const CLS={pistol:'Pistol',basic:'Basic weapon',special:'Special weapon',heavy:'Heavy weapon',thrown:'Thrown weapon',melee:'One-handed melee',twohanded:'Two-handed melee',exotic:'Exotic weapon'};
  const CAT={armour:'Armour & shields',grenade:'Grenades & explosives',ammo:'Ammunition',attachment:'Weapon attachment',consumable:'Consumable',gear:'Equipment',relic:'Relic',curio:'Curio',service:'Service'};
  const PH={pistol:'🔫',basic:'🎯',special:'🔥',heavy:'💥',thrown:'🪓',melee:'🗡️',twohanded:'⚔️',exotic:'✨',armour:'🛡️',grenade:'💣',ammo:'📦',attachment:'🔧',consumable:'💉',gear:'🎒',relic:'🏺',service:'🛎️',curio:'🎁'};
